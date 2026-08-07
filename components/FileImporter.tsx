@@ -1,16 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useAppStore } from "@/lib/store";
 import { readStaticFile, listStaticFiles, importFromExcel } from "@/lib/storage/excel";
+import { importFromJson } from "@/lib/storage/json";
 import { Upload, FolderOpen } from "lucide-react";
 
 export function FileImporter() {
@@ -20,6 +15,7 @@ export function FileImporter() {
   const [isImporting, setIsImporting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const importData = useAppStore((state) => state.importData);
+  const router = useRouter();
 
   useEffect(() => {
     if (mode === "static") {
@@ -33,7 +29,7 @@ export function FileImporter() {
     try {
       const data = await readStaticFile(selectedFile);
       importData(data);
-      window.location.href = "/dashboard";
+      router.push("/dashboard");
     } catch (error) {
       console.error(error);
       alert("导入失败");
@@ -48,9 +44,14 @@ export function FileImporter() {
 
     setIsImporting(true);
     try {
-      const data = await importFromExcel(file);
+      let data;
+      if (file.name.endsWith(".json")) {
+        data = await importFromJson(file);
+      } else {
+        data = await importFromExcel(file);
+      }
       importData(data);
-      window.location.href = "/dashboard";
+      router.push("/dashboard");
     } catch (error) {
       console.error(error);
       alert("导入失败，请检查文件格式是否正确。");
@@ -74,18 +75,18 @@ export function FileImporter() {
 
       {mode === "static" && (
         <div className="flex items-center gap-2">
-          <Select value={selectedFile} onValueChange={(value) => setSelectedFile(value ?? "")}>
-            <SelectTrigger className="w-60">
-              <SelectValue placeholder="选择 static 文件夹中的文件" />
-            </SelectTrigger>
-            <SelectContent>
-              {files.map((file) => (
-                <SelectItem key={file.name} value={file.name}>
-                  {file.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <select
+            value={selectedFile}
+            onChange={(e) => setSelectedFile(e.target.value)}
+            className="border rounded px-2 py-1 text-sm"
+          >
+            <option value="">选择 static 文件夹中的文件</option>
+            {files.map((file) => (
+              <option key={file.name} value={file.name}>
+                {file.name}
+              </option>
+            ))}
+          </select>
           <Button onClick={handleStaticImport} disabled={!selectedFile || isImporting}>
             {isImporting ? "导入中..." : "导入"}
           </Button>
@@ -96,7 +97,7 @@ export function FileImporter() {
         <>
           <input
             type="file"
-            accept=".xlsx,.xls"
+            accept=".xlsx,.xls,.json"
             ref={inputRef}
             className="hidden"
             onChange={handleLocalImport}
@@ -107,7 +108,7 @@ export function FileImporter() {
             disabled={isImporting}
           >
             <Upload className="w-4 h-4 mr-2" />
-            {isImporting ? "导入中..." : "选择本地文件"}
+            {isImporting ? "导入中..." : "选择本地 Excel/JSON 文件"}
           </Button>
         </>
       )}

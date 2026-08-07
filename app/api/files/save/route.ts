@@ -30,6 +30,15 @@ export async function POST(request: Request) {
     const sessionsSheet = XLSX.utils.json_to_sheet(data.sessions);
     XLSX.utils.book_append_sheet(workbook, sessionsSheet, "sessions");
 
+    const chatSessionsSheet = XLSX.utils.json_to_sheet(data.chatSessions || []);
+    XLSX.utils.book_append_sheet(workbook, chatSessionsSheet, "chatSessions");
+
+    const topicsSheet = XLSX.utils.json_to_sheet(data.topics || []);
+    XLSX.utils.book_append_sheet(workbook, topicsSheet, "topics");
+
+    const errorsSheet = XLSX.utils.json_to_sheet(data.errors || []);
+    XLSX.utils.book_append_sheet(workbook, errorsSheet, "errors");
+
     const filePath = path.join(STATIC_DIR, filename);
     const buffer = XLSX.write(workbook, { type: "buffer", bookType: "xlsx" });
     fs.writeFileSync(filePath, buffer as Buffer);

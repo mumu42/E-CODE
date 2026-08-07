@@ -1,5 +1,13 @@
 import * as XLSX from "xlsx";
-import type { AppData, AssessmentRecord, PracticeRecord, UserProfile } from "@/lib/types";
+import type {
+  AppData,
+  AssessmentRecord,
+  PracticeRecord,
+  UserProfile,
+  ChatSession,
+  TopicRecord,
+  ErrorItem,
+} from "@/lib/types";
 
 function buildWorkbook(data: AppData) {
   const workbook = XLSX.utils.book_new();
@@ -42,8 +50,11 @@ export async function importFromExcel(file: File): Promise<Partial<AppData>> {
         const profile = parseWorkbook<UserProfile>(workbook, "profile")[0] ?? null;
         const assessments = parseWorkbook<AssessmentRecord>(workbook, "assessments");
         const sessions = parseWorkbook<PracticeRecord>(workbook, "sessions");
+        const chatSessions = parseWorkbook<ChatSession>(workbook, "chatSessions");
+        const topics = parseWorkbook<TopicRecord>(workbook, "topics");
+        const errors = parseWorkbook<ErrorItem>(workbook, "errors");
 
-        resolve({ profile, assessments, sessions });
+        resolve({ profile, assessments, sessions, chatSessions, topics, errors });
       } catch (error) {
         reject(error);
       }

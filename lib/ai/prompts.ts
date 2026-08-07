@@ -1,4 +1,4 @@
-import type { Level, Target } from "@/lib/types";
+import type { Level, Target, ChatRole } from "@/lib/types";
 
 export function buildAssessmentPrompt(answers: Record<string, string>, sample: string) {
   return `You are an expert English assessor. Evaluate the user's English level based on their quiz answers and a speaking/writing sample.
@@ -55,6 +55,112 @@ Return a JSON object with this exact shape:
   "scenario": "context describing the situation (e.g., IELTS Speaking Part 2)",
   "hints": ["hint 1", "hint 2", "hint 3"]
 }
+
+Return only valid JSON, no markdown.`;
+}
+
+export function buildWritePrompt(
+  target: Target,
+  level: Level,
+  topic: string,
+  instructions: string,
+  userInput: string
+) {
+  return `You are a rigorous English writing coach. The user's goal is ${target} and their current level is ${level}.
+
+Writing topic: ${topic}
+Instructions: ${instructions}
+User's writing: ${userInput}
+
+Evaluate the writing and return feedback in JSON with this exact shape:
+{
+  "score": 0-100,
+  "grammarScore": 0-100,
+  "vocabularyScore": 0-100,
+  "structureScore": 0-100,
+  "errors": [
+    {
+      "id": "unique-id-string",
+      "original": "the incorrect text snippet",
+      "correction": "the corrected text",
+      "explanation": "explanation in Chinese",
+      "type": "grammar|vocabulary|spelling|structure|expression"
+    }
+  ],
+  "suggestions": ["suggestion 1", "suggestion 2"],
+  "improvedVersion": "a polished version of the user's writing in English",
+  "feedback": "overall Chinese feedback with encouragement and next steps"
+}
+
+Return only valid JSON, no markdown.`;
+}
+
+export function buildWritingTopicPrompt(target: Target, level: Level) {
+  return `Generate a writing topic for an learner preparing for ${target} at level ${level}.
+
+Return a JSON object with this exact shape:
+{
+  "title": "short title of the writing task",
+  "instructions": "detailed instructions for the writing task in Chinese with some English examples",
+  "wordLimit": 150,
+  "timeLimit": 30
+}
+
+Return only valid JSON, no markdown.`;
+}
+
+export function buildChatPrompt(
+  target: Target,
+  level: Level,
+  role: ChatRole,
+  history: { role: "user" | "assistant"; content: string }[],
+  userMessage: string
+) {
+  const roleDescriptions: Record<ChatRole, string> = {
+    friend: "a friendly native speaker chatting casually",
+    interviewer: "a job interviewer asking behavioral and situational questions",
+    examiner: "an IELTS/TOEFL speaking examiner conducting Part 1-3 style questions",
+    teacher: "a patient English teacher helping the user improve",
+    colleague: "a professional colleague discussing work topics",
+  };
+
+  const historyText = history
+    .map((h) => `${h.role === "user" ? "User" : "Assistant"}: ${h.content}`)
+    .join("\n");
+
+  return `You are ${roleDescriptions[role]}. The user is preparing for ${target} and is at level ${level}.
+
+Keep the conversation natural. After your reply, optionally include a short correction or suggestion if the user made a clear mistake, but keep it brief and encouraging.
+
+Conversation history:
+${historyText}
+
+User: ${userMessage}
+
+Reply in JSON with this exact shape:
+{
+  "reply": "your natural reply in English",
+  "corrections": ["optional correction 1", "optional correction 2"]
+}
+
+Return only valid JSON, no markdown.`;
+}
+
+export function buildWeakPointDrillPrompt(
+  weakPoint: string,
+  count: number
+) {
+  return `The user is weak in the following English area: ${weakPoint}. They want to practice ${count} questions.
+
+Return a JSON array with this exact shape:
+[
+  {
+    "question": "the question in English or Chinese-English mix",
+    "options": ["A", "B", "C", "D"],
+    "answer": "the correct option",
+    "explanation": "explanation in Chinese"
+  }
+]
 
 Return only valid JSON, no markdown.`;
 }

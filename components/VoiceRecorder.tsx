@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Mic, Square } from "lucide-react";
@@ -12,14 +12,11 @@ interface VoiceRecorderProps {
 
 export function VoiceRecorder({ value, onChange }: VoiceRecorderProps) {
   const [isListening, setIsListening] = useState(false);
-  const [supported, setSupported] = useState(false);
+  const [supported] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return "webkitSpeechRecognition" in window || "SpeechRecognition" in window;
+  });
   const recognitionRef = useRef<SpeechRecognition | null>(null);
-
-  useEffect(() => {
-    if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
-      setSupported(true);
-    }
-  }, []);
 
   function startListening() {
     const SpeechRecognition =

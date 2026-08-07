@@ -2,8 +2,21 @@ import {
   buildAssessmentPrompt,
   buildSpeakPrompt,
   buildDailyTopicPrompt,
+  buildWritePrompt,
+  buildWritingTopicPrompt,
+  buildChatPrompt,
+  buildWeakPointDrillPrompt,
 } from "./prompts";
-import type { AssessmentResult, Level, Target, SpeakFeedback } from "@/lib/types";
+import type {
+  AssessmentResult,
+  Level,
+  Target,
+  SpeakFeedback,
+  WritingTopic,
+  WritingFeedback,
+  ChatRole,
+  DrillQuestion,
+} from "@/lib/types";
 
 function safeParseJson<T>(text: string): T | null {
   try {
@@ -84,6 +97,105 @@ export async function generateDailyTopic(
   const parsed = safeParseJson<{ topic: string; scenario: string; hints: string[] }>(result);
   if (!parsed) {
     throw new Error("Failed to parse topic result");
+  }
+  return parsed;
+}
+
+export async function generateWritingTopic(target: Target, level: Level): Promise<WritingTopic> {
+  const res = await fetch("/api/ai/write", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      prompt: buildWritingTopicPrompt(target, level),
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Writing topic generation failed");
+  }
+
+  const { result } = (await res.json()) as { result: string };
+  const parsed = safeParseJson<WritingTopic>(result);
+  if (!parsed) {
+    throw new Error("Failed to parse writing topic");
+  }
+  return parsed;
+}
+
+export async function getWritingFeedback(
+  target: Target,
+  level: Level,
+  topic: string,
+  instructions: string,
+  userInput: string
+): Promise<WritingFeedback> {
+  const res = await fetch("/api/ai/write", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      prompt: buildWritePrompt(target, level, topic, instructions, userInput),
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Writing feedback failed");
+  }
+
+  const { result } = (await res.json()) as { result: string };
+  const parsed = safeParseJson<WritingFeedback>(result);
+  if (!parsed) {
+    throw new Error("Failed to parse writing feedback");
+  }
+  return parsed;
+}
+
+export async function sendChatMessage(
+  target: Target,
+  level: Level,
+  role: ChatRole,
+  history: { role: "user" | "assistant"; content: string }[],
+  userMessage: string
+): Promise<{ reply: string; corrections: string[] }> {
+  const res = await fetch("/api/ai/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      prompt: buildChatPrompt(target, level, role, history, userMessage),
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Chat failed");
+  }
+
+  const { result } = (await res.json()) as { result: string };
+  const parsed = safeParseJson<{ reply: string; corrections: string[] }>(result);
+  if (!parsed) {
+    throw new Error("Failed to parse chat result");
+  }
+  return parsed;
+}
+
+export async function generateWeakPointDrill(
+  weakPoint: string,
+  count: number
+): Promise<DrillQuestion[]> {
+  const res = await fetch("/api/ai/write", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      prompt: buildWeakPointDrillPrompt(weakPoint, count),
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Drill generation failed");
+  }
+
+  const { result } = (await res.json()) as { result: string };
+  const parsed = safeParseJson<DrillQuestion[]>(result);
+  if (!parsed) {
+    throw new Error("Failed to parse drill result");
   }
   return parsed;
 }

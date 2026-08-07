@@ -6,11 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAppStore } from "@/lib/store";
 import { FileImporter } from "@/components/FileImporter";
 import { FileExporter } from "@/components/FileExporter";
-import { Mic, FileText } from "lucide-react";
+import { Mic, FileText, MessageCircle, BookOpen, Star } from "lucide-react";
 
 export default function DashboardPage() {
   const profile = useAppStore((state) => state.profile);
   const sessions = useAppStore((state) => state.sessions);
+  const topics = useAppStore((state) => state.topics);
+  const errors = useAppStore((state) => state.errors);
 
   if (!profile) {
     return (
@@ -31,28 +33,51 @@ export default function DashboardPage() {
     IELTS_TOEFL: "雅思托福",
   };
 
-  const todaySessions = sessions.filter((s) =>
-    s.date.startsWith(new Date().toISOString().split("T")[0])
+  const today = new Date().toISOString().split("T")[0];
+  const todaySessions = sessions.filter((s) => s.date.startsWith(today));
+  const todayTopic = topics.find(
+    (t) => t.userId === profile.id && t.date.startsWith(today)
   );
+  const unreviewedErrors = errors.filter((e) => !e.reviewed).length;
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold">今日任务</h1>
-          <p className="text-gray-600">
+          <h1 className="text-2xl font-bold dark:text-white">今日任务</h1>
+          <p className="text-gray-600 dark:text-gray-300">
             目标：{targetMap[profile.target]} · 当前级别：{profile.level}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <FileImporter />
           <FileExporter />
         </div>
       </div>
 
+      {todayTopic && (
+        <Card className="mb-6 bg-linear-to-r from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 border-blue-200">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Star className="w-4 h-4 text-blue-600" />
+              今日话题
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="font-medium dark:text-blue-100">{todayTopic.topic}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{todayTopic.scenario}</p>
+            <Link href="/speak">
+              <Button size="sm" className="mt-3">
+                去练习
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid md:grid-cols-2 gap-6 max-w-4xl">
         <Link href="/speak">
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full dark:bg-gray-800 dark:text-white">
             <CardHeader>
               <Mic className="w-8 h-8 mb-2 text-blue-600" />
               <CardTitle>口语练习</CardTitle>
@@ -64,15 +89,48 @@ export default function DashboardPage() {
           </Card>
         </Link>
 
-        <Card className="opacity-60 h-full">
-          <CardHeader>
-            <FileText className="w-8 h-8 mb-2 text-green-600" />
-            <CardTitle>写作练习</CardTitle>
-          </CardHeader>
-          <CardContent>
-            开发中，将在二期上线
-          </CardContent>
-        </Card>
+        <Link href="/write">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full dark:bg-gray-800 dark:text-white">
+            <CardHeader>
+              <FileText className="w-8 h-8 mb-2 text-green-600" />
+              <CardTitle>写作练习</CardTitle>
+            </CardHeader>
+            <CardContent>
+              今日已练习 {todaySessions.filter((s) => s.type === "WRITE").length} 次
+              <p className="text-sm text-gray-500 mt-2">点击开始今日写作任务</p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/chat">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full dark:bg-gray-800 dark:text-white">
+            <CardHeader>
+              <MessageCircle className="w-8 h-8 mb-2 text-purple-600" />
+              <CardTitle>AI 对话</CardTitle>
+            </CardHeader>
+            <CardContent>
+              与 AI 进行多轮对话练习
+              <p className="text-sm text-gray-500 mt-2">选择角色开始聊天</p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/review">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full dark:bg-gray-800 dark:text-white">
+            <CardHeader>
+              <BookOpen className="w-8 h-8 mb-2 text-orange-600" />
+              <CardTitle>错题复习</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {unreviewedErrors > 0 ? (
+                <p className="text-sm">你有 {unreviewedErrors} 条待复习错误</p>
+              ) : (
+                <p className="text-sm">暂无待复习错误</p>
+              )}
+              <p className="text-sm text-gray-500 mt-2">查看错题本与薄弱点训练</p>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       <div className="mt-8 max-w-4xl">

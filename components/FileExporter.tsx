@@ -4,13 +4,19 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/lib/store";
 import { exportToExcel, saveToStatic } from "@/lib/storage/excel";
-import { Download, Save } from "lucide-react";
+import { exportReportToWord } from "@/lib/storage/report";
+import { exportToJson } from "@/lib/storage/json";
+import { Download, Save, FileText, Database } from "lucide-react";
 
 export function FileExporter() {
   const appData = useAppStore((state) => ({
     profile: state.profile,
     assessments: state.assessments,
     sessions: state.sessions,
+    chatSessions: state.chatSessions,
+    topics: state.topics,
+    errors: state.errors,
+    theme: state.theme,
   }));
 
   const [saving, setSaving] = useState(false);
@@ -33,15 +39,44 @@ export function FileExporter() {
     exportToExcel(appData);
   }
 
+  async function handleDownloadReport() {
+    try {
+      const blob = await exportReportToWord(appData);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `english-agent-report-${new Date().toISOString().split("T")[0]}.docx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error(error);
+      alert("导出报告失败");
+    }
+  }
+
+  function handleDownloadJson() {
+    exportToJson(appData);
+  }
+
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-wrap gap-2">
       <Button variant="outline" onClick={handleSaveToStatic} disabled={saving}>
         <Save className="w-4 h-4 mr-2" />
         {saving ? "保存中..." : "保存到 static"}
       </Button>
       <Button variant="outline" onClick={handleDownload}>
         <Download className="w-4 h-4 mr-2" />
-        下载
+        下载 Excel
+      </Button>
+      <Button variant="outline" onClick={handleDownloadReport}>
+        <FileText className="w-4 h-4 mr-2" />
+        Word 报告
+      </Button>
+      <Button variant="outline" onClick={handleDownloadJson}>
+        <Database className="w-4 h-4 mr-2" />
+        JSON 备份
       </Button>
     </div>
   );
