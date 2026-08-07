@@ -1,6 +1,18 @@
+/**
+ * @file app/api/ai/chat/route.ts
+ * @description AI 对话陪练接口
+ * @author English Agent Team
+ * @date 2026-08-07
+ */
+
 import { NextResponse } from "next/server";
 import { callAI } from "@/lib/ai/provider";
 
+/**
+ * 处理 AI 对话请求
+ * @param request - HTTP 请求对象
+ * @returns AI 回复与纠错信息
+ */
 export async function POST(request: Request) {
   try {
     const { prompt } = (await request.json()) as { prompt: string };

@@ -1,3 +1,10 @@
+/**
+ * @file lib/ai/client.ts
+ * @description 前端 AI 能力统一调用客户端
+ * @author English Agent Team
+ * @date 2026-08-07
+ */
+
 import {
   buildAssessmentPrompt,
   buildSpeakPrompt,
@@ -18,6 +25,11 @@ import type {
   DrillQuestion,
 } from "@/lib/types";
 
+/**
+ * 安全解析 AI 返回的 JSON 字符串，支持去除 markdown 代码块标记
+ * @param text - AI 返回的原始文本
+ * @returns 解析后的对象，解析失败返回 null
+ */
 function safeParseJson<T>(text: string): T | null {
   try {
     // Sometimes the AI wraps JSON in markdown code fences
@@ -28,6 +40,16 @@ function safeParseJson<T>(text: string): T | null {
   }
 }
 
+/**
+ * 评估用户英语水平
+ * @param answers - 用户测评答案
+ * @param sample - 用户输入样本
+ * @returns 水平测评结果
+ * @example
+ * ```ts
+ * const result = await assessLevel(answers, sample);
+ * ```
+ */
 export async function assessLevel(
   answers: Record<string, string>,
   sample: string
@@ -50,6 +72,15 @@ export async function assessLevel(
   return parsed;
 }
 
+/**
+ * 获取口语练习反馈
+ * @param target - 学习目标
+ * @param level - 当前等级
+ * @param topic - 话题
+ * @param scenario - 场景
+ * @param userInput - 用户输入
+ * @returns 口语反馈结果
+ */
 export async function getSpeakFeedback(
   target: Target,
   level: Level,
@@ -77,6 +108,12 @@ export async function getSpeakFeedback(
   return parsed;
 }
 
+/**
+ * 生成每日口语话题
+ * @param target - 学习目标
+ * @param level - 当前等级
+ * @returns 每日话题
+ */
 export async function generateDailyTopic(
   target: Target,
   level: Level
@@ -101,6 +138,12 @@ export async function generateDailyTopic(
   return parsed;
 }
 
+/**
+ * 生成写作题目
+ * @param target - 学习目标
+ * @param level - 当前等级
+ * @returns 写作题目
+ */
 export async function generateWritingTopic(target: Target, level: Level): Promise<WritingTopic> {
   const res = await fetch("/api/ai/write", {
     method: "POST",
@@ -122,6 +165,15 @@ export async function generateWritingTopic(target: Target, level: Level): Promis
   return parsed;
 }
 
+/**
+ * 获取写作批改反馈
+ * @param target - 学习目标
+ * @param level - 当前等级
+ * @param topic - 题目
+ * @param instructions - 写作要求
+ * @param userInput - 用户作文
+ * @returns 写作批改结果
+ */
 export async function getWritingFeedback(
   target: Target,
   level: Level,
@@ -149,6 +201,15 @@ export async function getWritingFeedback(
   return parsed;
 }
 
+/**
+ * 发送聊天消息并获取 AI 回复
+ * @param target - 学习目标
+ * @param level - 当前等级
+ * @param role - 聊天角色
+ * @param history - 历史消息
+ * @param userMessage - 用户当前消息
+ * @returns AI 回复及纠错信息
+ */
 export async function sendChatMessage(
   target: Target,
   level: Level,
@@ -176,6 +237,12 @@ export async function sendChatMessage(
   return parsed;
 }
 
+/**
+ * 根据薄弱点生成专项练习题
+ * @param weakPoint - 薄弱点类型
+ * @param count - 题目数量
+ * @returns 练习题列表
+ */
 export async function generateWeakPointDrill(
   weakPoint: string,
   count: number

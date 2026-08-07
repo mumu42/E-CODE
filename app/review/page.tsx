@@ -1,3 +1,9 @@
+/**
+ * @file app/review/page.tsx
+ * @description 错题本与薄弱点训练页面
+ * @author English Agent Team
+ * @date 2026-08-07
+ */
 "use client";
 
 import { useMemo, useState } from "react";
@@ -9,6 +15,13 @@ import { generateWeakPointDrill } from "@/lib/ai/client";
 import type { DrillQuestion } from "@/lib/types";
 import { BookOpen, CheckCircle, AlertCircle } from "lucide-react";
 
+/**
+ * 错题本与薄弱点训练页面
+ * @example
+ * ```tsx
+ * <ReviewPage />
+ * ```
+ */
 export default function ReviewPage() {
   const router = useRouter();
   const profile = useAppStore((state) => state.profile);

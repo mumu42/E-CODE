@@ -1,3 +1,9 @@
+/**
+ * @file app/progress/page.tsx
+ * @description 学习进度页面
+ * @author English Agent Team
+ * @date 2026-08-07
+ */
 "use client";
 
 import { useMemo } from "react";
@@ -13,6 +19,13 @@ function formatDate(date: Date) {
   return `${date.getMonth() + 1}/${date.getDate()}`;
 }
 
+/**
+ * 学习进度页面
+ * @example
+ * ```tsx
+ * <ProgressPage />
+ * ```
+ */
 export default function ProgressPage() {
   const profile = useAppStore((state) => state.profile);
   const sessions = useAppStore((state) => state.sessions);

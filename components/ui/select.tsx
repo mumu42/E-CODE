@@ -1,13 +1,28 @@
+/**
+ * @file components/ui/select.tsx
+ * @description shadcn Select 组件
+ * @author English Agent Team
+ * @date 2026-08-07
+ */
+
 "use client"
 
 import * as React from "react"
 import { Select as SelectPrimitive } from "@base-ui/react/select"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils/cn"
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
 
+/**
+ * Select 根组件
+ */
 const Select = SelectPrimitive.Root
 
+/**
+ * SelectGroup 组件
+ * @param props - 选择器分组属性
+ * @returns 选择器分组 JSX 元素
+ */
 function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   return (
     <SelectPrimitive.Group
@@ -18,6 +33,11 @@ function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   )
 }
 
+/**
+ * SelectValue 组件
+ * @param props - 选择器值属性
+ * @returns 选择器值 JSX 元素
+ */
 function SelectValue({ className, ...props }: SelectPrimitive.Value.Props) {
   return (
     <SelectPrimitive.Value
@@ -28,6 +48,11 @@ function SelectValue({ className, ...props }: SelectPrimitive.Value.Props) {
   )
 }
 
+/**
+ * SelectTrigger 组件
+ * @param props - 选择器触发器属性
+ * @returns 选择器触发器 JSX 元素
+ */
 function SelectTrigger({
   className,
   size = "default",
@@ -56,6 +81,11 @@ function SelectTrigger({
   )
 }
 
+/**
+ * SelectContent 组件
+ * @param props - 选择器内容属性
+ * @returns 选择器内容 JSX 元素
+ */
 function SelectContent({
   className,
   children,
@@ -95,6 +125,11 @@ function SelectContent({
   )
 }
 
+/**
+ * SelectLabel 组件
+ * @param props - 选择器标签属性
+ * @returns 选择器标签 JSX 元素
+ */
 function SelectLabel({
   className,
   ...props
@@ -108,6 +143,11 @@ function SelectLabel({
   )
 }
 
+/**
+ * SelectItem 组件
+ * @param props - 选择器选项属性
+ * @returns 选择器选项 JSX 元素
+ */
 function SelectItem({
   className,
   children,
@@ -136,6 +176,11 @@ function SelectItem({
   )
 }
 
+/**
+ * SelectSeparator 组件
+ * @param props - 选择器分隔线属性
+ * @returns 选择器分隔线 JSX 元素
+ */
 function SelectSeparator({
   className,
   ...props
@@ -149,6 +194,11 @@ function SelectSeparator({
   )
 }
 
+/**
+ * SelectScrollUpButton 组件
+ * @param props - 向上滚动按钮属性
+ * @returns 向上滚动按钮 JSX 元素
+ */
 function SelectScrollUpButton({
   className,
   ...props
@@ -168,6 +218,11 @@ function SelectScrollUpButton({
   )
 }
 
+/**
+ * SelectScrollDownButton 组件
+ * @param props - 向下滚动按钮属性
+ * @returns 向下滚动按钮 JSX 元素
+ */
 function SelectScrollDownButton({
   className,
   ...props

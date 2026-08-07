@@ -1,3 +1,10 @@
+/**
+ * @file components/FileImporter.tsx
+ * @description 数据导入组件，支持从 static 文件夹或本地文件导入学习数据
+ * @author English Agent Team
+ * @date 2026-08-07
+ */
+
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -8,6 +15,13 @@ import { readStaticFile, listStaticFiles, importFromExcel } from "@/lib/storage/
 import { importFromJson } from "@/lib/storage/json";
 import { Upload, FolderOpen } from "lucide-react";
 
+/**
+ * 文件导入组件
+ * @example
+ * ```tsx
+ * <FileImporter />
+ * ```
+ */
 export function FileImporter() {
   const [mode, setMode] = useState<"static" | "local">("static");
   const [files, setFiles] = useState<{ name: string; size: number; updatedAt: string }[]>([]);
@@ -17,12 +31,14 @@ export function FileImporter() {
   const importData = useAppStore((state) => state.importData);
   const router = useRouter();
 
+  /** 切换为 static 模式时拉取文件列表 */
   useEffect(() => {
     if (mode === "static") {
       listStaticFiles().then(setFiles).catch(console.error);
     }
   }, [mode]);
 
+  /** 从 static 文件夹导入 */
   async function handleStaticImport() {
     if (!selectedFile) return;
     setIsImporting(true);
@@ -38,6 +54,7 @@ export function FileImporter() {
     }
   }
 
+  /** 从本地文件导入 */
   async function handleLocalImport(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;

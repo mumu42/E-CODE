@@ -1,3 +1,9 @@
+/**
+ * @file app/onboarding/page.tsx
+ * @description 新用户引导与英语水平测评页面
+ * @author English Agent Team
+ * @date 2026-08-07
+ */
 "use client";
 
 import { useState } from "react";
@@ -24,6 +30,13 @@ const questions = [
   { id: "q3", text: "Choose the synonym of 'happy'.", options: ["sad", "joyful", "angry", "tired"], answer: "joyful" },
 ];
 
+/**
+ * 新用户引导与英语水平测评页面
+ * @example
+ * ```tsx
+ * <OnboardingPage />
+ * ```
+ */
 export default function OnboardingPage() {
   const router = useRouter();
   const setProfile = useAppStore((state) => state.setProfile);

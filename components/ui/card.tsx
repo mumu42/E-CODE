@@ -1,7 +1,19 @@
+/**
+ * @file components/ui/card.tsx
+ * @description shadcn Card 组件
+ * @author English Agent Team
+ * @date 2026-08-07
+ */
+
 import * as React from "react"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils/cn"
 
+/**
+ * Card 容器组件
+ * @param props - 卡片容器属性
+ * @returns 卡片容器 JSX 元素
+ */
 function Card({
   className,
   size = "default",
@@ -20,6 +32,11 @@ function Card({
   )
 }
 
+/**
+ * CardHeader 组件
+ * @param props - 卡片头部属性
+ * @returns 卡片头部 JSX 元素
+ */
 function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -33,6 +50,11 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/**
+ * CardTitle 组件
+ * @param props - 卡片标题属性
+ * @returns 卡片标题 JSX 元素
+ */
 function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -46,6 +68,11 @@ function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/**
+ * CardDescription 组件
+ * @param props - 卡片描述属性
+ * @returns 卡片描述 JSX 元素
+ */
 function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -56,6 +83,11 @@ function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/**
+ * CardAction 组件
+ * @param props - 卡片操作属性
+ * @returns 卡片操作 JSX 元素
+ */
 function CardAction({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -69,6 +101,11 @@ function CardAction({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/**
+ * CardContent 组件
+ * @param props - 卡片内容属性
+ * @returns 卡片内容 JSX 元素
+ */
 function CardContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -79,6 +116,11 @@ function CardContent({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/**
+ * CardFooter 组件
+ * @param props - 卡片底部属性
+ * @returns 卡片底部 JSX 元素
+ */
 function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div

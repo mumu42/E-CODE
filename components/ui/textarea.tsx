@@ -1,7 +1,19 @@
+/**
+ * @file components/ui/textarea.tsx
+ * @description shadcn Textarea 组件
+ * @author English Agent Team
+ * @date 2026-08-07
+ */
+
 import * as React from "react"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils/cn"
 
+/**
+ * Textarea 组件
+ * @param props - 文本域属性
+ * @returns 文本域 JSX 元素
+ */
 function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
   return (
     <textarea

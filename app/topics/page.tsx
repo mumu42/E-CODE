@@ -1,3 +1,9 @@
+/**
+ * @file app/topics/page.tsx
+ * @description 历史话题列表页面
+ * @author English Agent Team
+ * @date 2026-08-07
+ */
 "use client";
 
 import { useAppStore } from "@/lib/store";
@@ -5,6 +11,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Star, Calendar } from "lucide-react";
 
+/**
+ * 历史话题列表页面
+ * @example
+ * ```tsx
+ * <TopicsPage />
+ * ```
+ */
 export default function TopicsPage() {
   const profile = useAppStore((state) => state.profile);
   const topics = useAppStore((state) =>

@@ -1,3 +1,9 @@
+/**
+ * @file app/chat/page.tsx
+ * @description AI 对话陪练页面
+ * @author English Agent Team
+ * @date 2026-08-07
+ */
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -20,6 +26,13 @@ const roles: { value: ChatRole; label: string; description: string }[] = [
   { value: "colleague", label: "同事", description: "职场话题交流" },
 ];
 
+/**
+ * AI 对话陪练页面
+ * @example
+ * ```tsx
+ * <ChatPage />
+ * ```
+ */
 export default function ChatPage() {
   const router = useRouter();
   const profile = useAppStore((state) => state.profile);

@@ -1,3 +1,10 @@
+/**
+ * @file app/dashboard/page.tsx
+ * @description 今日任务 Dashboard，展示学习概览与功能入口
+ * @author English Agent Team
+ * @date 2026-08-07
+ */
+
 "use client";
 
 import Link from "next/link";
@@ -8,6 +15,21 @@ import { FileImporter } from "@/components/FileImporter";
 import { FileExporter } from "@/components/FileExporter";
 import { Mic, FileText, MessageCircle, BookOpen, Star } from "lucide-react";
 
+/** 目标中文映射 */
+const targetMap: Record<string, string> = {
+  SCHOOL: "升学考试",
+  STUDY_ABROAD: "出国留学",
+  CET: "四六级",
+  IELTS_TOEFL: "雅思托福",
+};
+
+/**
+ * 今日任务页面
+ * @example
+ * ```tsx
+ * <DashboardPage />
+ * ```
+ */
 export default function DashboardPage() {
   const profile = useAppStore((state) => state.profile);
   const sessions = useAppStore((state) => state.sessions);
@@ -25,13 +47,6 @@ export default function DashboardPage() {
       </div>
     );
   }
-
-  const targetMap: Record<string, string> = {
-    SCHOOL: "升学考试",
-    STUDY_ABROAD: "出国留学",
-    CET: "四六级",
-    IELTS_TOEFL: "雅思托福",
-  };
 
   const today = new Date().toISOString().split("T")[0];
   const todaySessions = sessions.filter((s) => s.date.startsWith(today));
@@ -76,7 +91,7 @@ export default function DashboardPage() {
       )}
 
       <div className="grid md:grid-cols-2 gap-6 max-w-4xl">
-        <Link href="/speak">
+        <Link href="/speak" className="block h-full">
           <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full dark:bg-gray-800 dark:text-white">
             <CardHeader>
               <Mic className="w-8 h-8 mb-2 text-blue-600" />
@@ -89,7 +104,7 @@ export default function DashboardPage() {
           </Card>
         </Link>
 
-        <Link href="/write">
+        <Link href="/write" className="block h-full">
           <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full dark:bg-gray-800 dark:text-white">
             <CardHeader>
               <FileText className="w-8 h-8 mb-2 text-green-600" />
@@ -102,7 +117,7 @@ export default function DashboardPage() {
           </Card>
         </Link>
 
-        <Link href="/chat">
+        <Link href="/chat" className="block h-full">
           <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full dark:bg-gray-800 dark:text-white">
             <CardHeader>
               <MessageCircle className="w-8 h-8 mb-2 text-purple-600" />
@@ -115,7 +130,7 @@ export default function DashboardPage() {
           </Card>
         </Link>
 
-        <Link href="/review">
+        <Link href="/review" className="block h-full">
           <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full dark:bg-gray-800 dark:text-white">
             <CardHeader>
               <BookOpen className="w-8 h-8 mb-2 text-orange-600" />

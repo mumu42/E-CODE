@@ -1,3 +1,10 @@
+/**
+ * @file components/charts/TrendChart.tsx
+ * @description 分数趋势折线图组件
+ * @author English Agent Team
+ * @date 2026-08-07
+ */
+
 "use client";
 
 import {
@@ -17,6 +24,12 @@ interface ScoreTrendChartProps {
   }[];
 }
 
+/**
+ * 分数趋势图组件
+ * @param props - 趋势图属性
+ * @param props.data - 趋势图数据
+ * @returns 趋势图 JSX 元素
+ */
 export function ScoreTrendChart({ data }: ScoreTrendChartProps) {
   return (
     <ResponsiveContainer width="100%" height={300}>

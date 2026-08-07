@@ -1,6 +1,18 @@
+/**
+ * @file app/api/ai/assess/route.ts
+ * @description 英语水平测评 AI 接口
+ * @author English Agent Team
+ * @date 2026-08-07
+ */
+
 import { NextResponse } from "next/server";
 import { callAI } from "@/lib/ai/provider";
 
+/**
+ * 处理英语水平测评请求
+ * @param request - HTTP 请求对象
+ * @returns AI 测评结果
+ */
 export async function POST(request: Request) {
   try {
     const { prompt } = (await request.json()) as { prompt: string };

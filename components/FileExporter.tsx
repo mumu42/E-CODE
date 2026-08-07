@@ -1,3 +1,10 @@
+/**
+ * @file components/FileExporter.tsx
+ * @description 数据导出组件，支持 Excel、Word 报告、JSON 备份及保存到 static 文件夹
+ * @author English Agent Team
+ * @date 2026-08-07
+ */
+
 "use client";
 
 import { useState } from "react";
@@ -8,6 +15,13 @@ import { exportReportToWord } from "@/lib/storage/report";
 import { exportToJson } from "@/lib/storage/json";
 import { Download, Save, FileText, Database } from "lucide-react";
 
+/**
+ * 文件导出组件
+ * @example
+ * ```tsx
+ * <FileExporter />
+ * ```
+ */
 export function FileExporter() {
   const appData = useAppStore((state) => ({
     profile: state.profile,
@@ -21,6 +35,7 @@ export function FileExporter() {
 
   const [saving, setSaving] = useState(false);
 
+  /** 保存到项目 static 文件夹 */
   async function handleSaveToStatic() {
     setSaving(true);
     try {
@@ -35,10 +50,12 @@ export function FileExporter() {
     }
   }
 
+  /** 下载 Excel 备份 */
   function handleDownload() {
     exportToExcel(appData);
   }
 
+  /** 下载 Word 报告 */
   async function handleDownloadReport() {
     try {
       const blob = await exportReportToWord(appData);
@@ -56,6 +73,7 @@ export function FileExporter() {
     }
   }
 
+  /** 下载 JSON 备份 */
   function handleDownloadJson() {
     exportToJson(appData);
   }

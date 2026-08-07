@@ -1,11 +1,26 @@
+/**
+ * @file lib/ai/provider.ts
+ * @description AI 服务商统一封装（Anthropic / OpenAI / Gemini）
+ * @author English Agent Team
+ * @date 2026-08-07
+ */
+
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+/** AI 调用结果 */
 export interface AIResponse {
+  /** AI 返回的文本结果 */
   result: string;
 }
 
+/**
+ * 获取必填环境变量
+ * @param name - 环境变量名
+ * @returns 环境变量值
+ * @throws 当环境变量未设置时抛出错误
+ */
 function getRequiredEnv(name: string): string {
   const value = process.env[name];
   if (!value) {
@@ -14,6 +29,11 @@ function getRequiredEnv(name: string): string {
   return value;
 }
 
+/**
+ * 调用 Anthropic 兼容接口
+ * @param config - 调用配置
+ * @returns AI 响应
+ */
 async function callAnthropic(config: {
   apiKey: string;
   baseURL?: string;
@@ -39,6 +59,11 @@ async function callAnthropic(config: {
   return { result: content.text };
 }
 
+/**
+ * 调用 OpenAI 兼容接口
+ * @param config - 调用配置
+ * @returns AI 响应
+ */
 async function callOpenAI(config: {
   apiKey: string;
   baseURL: string;
@@ -64,6 +89,11 @@ async function callOpenAI(config: {
   return { result: content };
 }
 
+/**
+ * 调用 Gemini 接口
+ * @param config - 调用配置
+ * @returns AI 响应
+ */
 async function callGemini(config: {
   apiKey: string;
   model: string;
@@ -82,6 +112,15 @@ async function callGemini(config: {
   return { result: text };
 }
 
+/**
+ * 统一调用 AI 服务
+ * @param prompt - 提示词
+ * @returns AI 响应
+ * @example
+ * ```ts
+ * const { result } = await callAI("请翻译这句话");
+ * ```
+ */
 export async function callAI(prompt: string): Promise<AIResponse> {
   const provider = process.env.AI_PROVIDER?.toLowerCase() || "bailian";
 

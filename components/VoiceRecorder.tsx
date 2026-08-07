@@ -1,3 +1,10 @@
+/**
+ * @file components/VoiceRecorder.tsx
+ * @description 浏览器语音识别输入组件，支持实时转写
+ * @author English Agent Team
+ * @date 2026-08-07
+ */
+
 "use client";
 
 import { useState, useRef } from "react";
@@ -5,11 +12,22 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Mic, Square } from "lucide-react";
 
+/** VoiceRecorder 组件 props */
 interface VoiceRecorderProps {
+  /** 当前文本值 */
   value: string;
+  /** 文本变化回调 */
   onChange: (value: string) => void;
 }
 
+/**
+ * 语音输入组件
+ * @param props - 组件属性
+ * @example
+ * ```tsx
+ * <VoiceRecorder value={input} onChange={setInput} />
+ * ```
+ */
 export function VoiceRecorder({ value, onChange }: VoiceRecorderProps) {
   const [isListening, setIsListening] = useState(false);
   const [supported] = useState(() => {
@@ -18,6 +36,7 @@ export function VoiceRecorder({ value, onChange }: VoiceRecorderProps) {
   });
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
+  /** 开始语音识别 */
   function startListening() {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -49,6 +68,7 @@ export function VoiceRecorder({ value, onChange }: VoiceRecorderProps) {
     setIsListening(true);
   }
 
+  /** 停止语音识别 */
   function stopListening() {
     recognitionRef.current?.stop();
     setIsListening(false);

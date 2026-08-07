@@ -1,15 +1,27 @@
+/**
+ * @file app/page.tsx
+ * @description 首页，展示产品介绍与核心功能入口
+ * @author English Agent Team
+ * @date 2026-08-07
+ */
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mic, FileText, Lock } from "lucide-react";
 
+/**
+ * 首页组件
+ * @example
+ * ```tsx
+ * <HomePage />
+ * ```
+ */
 export default function HomePage() {
   return (
     <div className="container mx-auto px-4 py-12">
       <section className="text-center mb-16">
-        <h1 className="text-4xl md:text-5xl font-bold mb-6">
-          AI 英语学习助手
-        </h1>
+        <h1 className="text-4xl md:text-5xl font-bold mb-6">AI 英语学习助手</h1>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto mb-8">
           本地优先、完全私人的英语学习 Web Agent。
           根据你的目标（升学/留学/四六级/雅思托福）定制每日口语与写作练习，

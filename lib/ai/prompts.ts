@@ -1,5 +1,18 @@
+/**
+ * @file lib/ai/prompts.ts
+ * @description AI 提示词构建工具函数
+ * @author English Agent Team
+ * @date 2026-08-07
+ */
+
 import type { Level, Target, ChatRole } from "@/lib/types";
 
+/**
+ * 构建英语水平评估提示词
+ * @param answers - 用户测验答案
+ * @param sample - 用户口语或写作样本
+ * @returns 英语水平评估提示词字符串
+ */
 export function buildAssessmentPrompt(answers: Record<string, string>, sample: string) {
   return `You are an expert English assessor. Evaluate the user's English level based on their quiz answers and a speaking/writing sample.
 
@@ -27,6 +40,15 @@ Output a JSON object with this exact shape:
 Return only valid JSON, no markdown.`;
 }
 
+/**
+ * 构建口语练习反馈提示词
+ * @param target - 用户学习目标
+ * @param level - 用户英语水平
+ * @param topic - 练习主题
+ * @param scenario - 练习场景
+ * @param userInput - 用户输入的口语内容
+ * @returns 口语练习反馈提示词字符串
+ */
 export function buildSpeakPrompt(target: Target, level: Level, topic: string, scenario: string, userInput: string) {
   return `You are a friendly and rigorous English speaking coach. The user's goal is ${target} and their current level is ${level}.
 
@@ -46,6 +68,12 @@ Provide feedback in JSON with this exact shape:
 Return only valid JSON, no markdown.`;
 }
 
+/**
+ * 构建每日口语练习主题提示词
+ * @param target - 用户学习目标
+ * @param level - 用户英语水平
+ * @returns 每日口语练习主题提示词字符串
+ */
 export function buildDailyTopicPrompt(target: Target, level: Level) {
   return `Generate a daily English speaking practice topic for a learner preparing for ${target} at level ${level}.
 
@@ -59,6 +87,15 @@ Return a JSON object with this exact shape:
 Return only valid JSON, no markdown.`;
 }
 
+/**
+ * 构建写作练习反馈提示词
+ * @param target - 用户学习目标
+ * @param level - 用户英语水平
+ * @param topic - 写作主题
+ * @param instructions - 写作指导
+ * @param userInput - 用户输入的写作内容
+ * @returns 写作练习反馈提示词字符串
+ */
 export function buildWritePrompt(
   target: Target,
   level: Level,
@@ -95,6 +132,12 @@ Evaluate the writing and return feedback in JSON with this exact shape:
 Return only valid JSON, no markdown.`;
 }
 
+/**
+ * 构建写作练习主题提示词
+ * @param target - 用户学习目标
+ * @param level - 用户英语水平
+ * @returns 写作练习主题提示词字符串
+ */
 export function buildWritingTopicPrompt(target: Target, level: Level) {
   return `Generate a writing topic for an learner preparing for ${target} at level ${level}.
 
@@ -109,6 +152,15 @@ Return a JSON object with this exact shape:
 Return only valid JSON, no markdown.`;
 }
 
+/**
+ * 构建 AI 对话提示词
+ * @param target - 用户学习目标
+ * @param level - 用户英语水平
+ * @param role - 对话角色
+ * @param history - 对话历史
+ * @param userMessage - 用户当前消息
+ * @returns AI 对话提示词字符串
+ */
 export function buildChatPrompt(
   target: Target,
   level: Level,
@@ -146,6 +198,12 @@ Reply in JSON with this exact shape:
 Return only valid JSON, no markdown.`;
 }
 
+/**
+ * 构建薄弱点专项练习提示词
+ * @param weakPoint - 用户的薄弱知识点
+ * @param count - 练习题目数量
+ * @returns 薄弱点专项练习提示词字符串
+ */
 export function buildWeakPointDrillPrompt(
   weakPoint: string,
   count: number

@@ -1,9 +1,22 @@
+/**
+ * @file components/charts/HeatmapCalendar.tsx
+ * @description 练习热力图日历组件
+ * @author English Agent Team
+ * @date 2026-08-07
+ */
+
 "use client";
 
 interface HeatmapCalendarProps {
   data: Record<string, number>;
 }
 
+/**
+ * 热力图日历组件
+ * @param props - 热力图属性
+ * @param props.data - 日期到练习次数的映射数据
+ * @returns 热力图日历 JSX 元素
+ */
 export function HeatmapCalendar({ data }: HeatmapCalendarProps) {
   const today = new Date();
   const days: { date: Date; count: number }[] = [];

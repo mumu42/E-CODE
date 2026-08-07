@@ -1,3 +1,10 @@
+/**
+ * @file app/write/page.tsx
+ * @description 写作练习页面，生成题目并获取 AI 批改反馈
+ * @author English Agent Team
+ * @date 2026-08-07
+ */
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -11,6 +18,13 @@ import { generateWritingTopic, getWritingFeedback } from "@/lib/ai/client";
 import { saveToStatic } from "@/lib/storage/excel";
 import type { WritingTopic, WritingFeedback, GrammarError } from "@/lib/types";
 
+/**
+ * 写作练习页面
+ * @example
+ * ```tsx
+ * <WritePage />
+ * ```
+ */
 export default function WritePage() {
   const router = useRouter();
   const profile = useAppStore((state) => state.profile);
@@ -34,6 +48,7 @@ export default function WritePage() {
 
   const wordCount = userInput.trim().split(/\s+/).filter(Boolean).length;
 
+  /** 提交作文并获取 AI 批改 */
   async function handleSubmit() {
     if (!profile || !topic) return;
 

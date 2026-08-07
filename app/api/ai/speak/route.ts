@@ -1,6 +1,18 @@
+/**
+ * @file app/api/ai/speak/route.ts
+ * @description 口语练习 AI 反馈接口
+ * @author English Agent Team
+ * @date 2026-08-07
+ */
+
 import { NextResponse } from "next/server";
 import { callAI } from "@/lib/ai/provider";
 
+/**
+ * 处理口语练习反馈请求
+ * @param request - HTTP 请求对象
+ * @returns AI 反馈结果
+ */
 export async function POST(request: Request) {
   try {
     const { prompt } = (await request.json()) as { prompt: string };

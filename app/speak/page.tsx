@@ -1,3 +1,9 @@
+/**
+ * @file app/speak/page.tsx
+ * @description 口语练习页面
+ * @author English Agent Team
+ * @date 2026-08-07
+ */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -13,6 +19,13 @@ import { speak, stopSpeaking, isTTSSupported, calculateSimilarity } from "@/lib/
 import type { SpeakFeedback } from "@/lib/types";
 import { Volume2, Square, Mic, RefreshCw } from "lucide-react";
 
+/**
+ * 口语练习页面
+ * @example
+ * ```tsx
+ * <SpeakPage />
+ * ```
+ */
 export default function SpeakPage() {
   const router = useRouter();
   const profile = useAppStore((state) => state.profile);

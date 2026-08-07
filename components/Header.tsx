@@ -1,3 +1,10 @@
+/**
+ * @file components/Header.tsx
+ * @description 全局顶部导航栏组件（含主题切换、移动端菜单）
+ * @author English Agent Team
+ * @date 2026-08-07
+ */
+
 "use client";
 
 import Link from "next/link";
@@ -6,6 +13,7 @@ import { useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 
+/** 导航项配置 */
 const navItems = [
   { href: "/dashboard", label: "今日任务" },
   { href: "/speak", label: "口语" },
@@ -16,6 +24,13 @@ const navItems = [
   { href: "/progress", label: "进度" },
 ];
 
+/**
+ * 顶部导航栏
+ * @example
+ * ```tsx
+ * <Header />
+ * ```
+ */
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
