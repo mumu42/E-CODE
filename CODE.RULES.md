@@ -14,10 +14,10 @@ alwaysApply: true
 
 ```typescript
 /**
- * @file utils/ros.ts
- * @description ROS通信相关的工具函数
+ * @file utils/common.ts
+ * @description 通用工具函数
  * @author xxx
- * @date 2024-04-22
+ * @date 2026-07-22
  */
 ```
 
@@ -27,8 +27,7 @@ alwaysApply: true
 
 ```typescript
 /**
- * 向 ROS action 服务发送目标
- * @param rosConnect ROS 链接对象
+ * action
  * @param actionName action 名称
  * @param actionType action 类型
  * @param param 发送参数
@@ -39,7 +38,6 @@ alwaysApply: true
  * @returns goalId 任务ID
  */
 export function sendActionGoal(
-  rosConnect: RosConnect,
   actionName: string,
   actionType: string,
   param: any,
@@ -79,16 +77,12 @@ export function sendActionGoal(
  * ```
  *
  * @class
- * @param signalingServerUrl 信令服务器URL
- * @param roomId 房间ID
- * @param iceServers 可选，ICE服务器列表
- * @param serverId 信令服务器ID
+ * @param url 服务器URL
+ * @param serverId 服务器ID
  */
 class DataChannelManager {
   constructor(
-    signalingServerUrl: string,
-    roomId: string,
-    iceServers?: RTCIceServer[],
+    url: string,
     serverId?: string
   ) {
     // 实现
@@ -226,7 +220,6 @@ id: ''
 const tempData = JSON.parse(localStorage.getItem('data') || '{}');
 
 // HACK: 绕过第三方库的 bug
-// 详见 issue: https://github.com/xxx/xxx/issues/123
 const workaround = () => {
   // ...
 };
@@ -337,7 +330,7 @@ export function formatDate(date: Date): string {
  * @returns 用户ID
  */
 export const eventFun = (
-  sex: RosConnect,
+  sex: string,
   name: string
 ): string => {
   // ...

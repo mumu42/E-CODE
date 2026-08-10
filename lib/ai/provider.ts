@@ -6,7 +6,6 @@
  */
 
 import Anthropic from "@anthropic-ai/sdk";
-import OpenAI from "openai";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 /** AI 调用结果 */
@@ -70,18 +69,31 @@ async function callOpenAI(config: {
   model: string;
   prompt: string;
 }): Promise<AIResponse> {
-  const client = new OpenAI({
-    apiKey: config.apiKey,
-    baseURL: config.baseURL,
+  const baseURL = config.baseURL.replace(/\/$/, "");
+  const url = `${baseURL}/v1/chat/completions`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${config.apiKey}`,
+    },
+    body: JSON.stringify({
+      model: config.model,
+      messages: [{ role: "user", content: config.prompt }],
+      max_tokens: 1024,
+    }),
   });
 
-  const response = await client.chat.completions.create({
-    model: config.model,
-    messages: [{ role: "user", content: config.prompt }],
-    max_tokens: 1024,
-  });
+  if (!response.ok) {
+    const text = await response.text().catch(() => "no body");
+    throw new Error(`${response.status} status code (${text})`);
+  }
 
-  const content = response.choices[0]?.message?.content;
+  const data = (await response.json()) as {
+    choices?: { message?: { content?: string } }[];
+  };
+  const content = data.choices?.[0]?.message?.content;
   if (!content) {
     throw new Error("No response content from OpenAI-compatible API");
   }
@@ -126,10 +138,10 @@ export async function callAI(prompt: string): Promise<AIResponse> {
 
   switch (provider) {
     case "bailian": {
-      return callAnthropic({
+      return callOpenAI({
         apiKey: getRequiredEnv("BAILIAN_API_KEY"),
-        baseURL: process.env.BAILIAN_BASE_URL,
-        model: process.env.BAILIAN_MODEL || "claude-3-5-sonnet-20241022",
+        baseURL: process.env.BAILIAN_BASE_URL || "https://cloud-ai-model.rd.ubtrobot.com/",
+        model: process.env.BAILIAN_MODEL || "kimi-k2.7-code",
         prompt,
       });
     }
