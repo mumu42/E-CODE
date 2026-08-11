@@ -1,0 +1,22 @@
+{
+  "name": "English Agent - AI 英语学习助手",
+  "short_name": "English Agent",
+  "description": "本地优先、完全私人的 AI 英语学习 Web Agent",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "lang": "zh-CN",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

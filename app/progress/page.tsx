@@ -31,6 +31,7 @@ export default function ProgressPage() {
   const sessions = useAppStore((state) => state.sessions);
   const assessments = useAppStore((state) => state.assessments);
   const errors = useAppStore((state) => state.errors);
+  const examRecords = useAppStore((state) => state.examRecords);
 
   const stats = useMemo(() => {
     const total = sessions.length;
@@ -225,6 +226,33 @@ export default function ProgressPage() {
                   </span>
                 </li>
               ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>模考记录</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {examRecords.length === 0 ? (
+            <p className="text-gray-500">暂无模考记录</p>
+          ) : (
+            <ul className="space-y-2">
+              {examRecords.slice().reverse().map((record) => {
+                const percentage = record.totalScore > 0
+                  ? Math.round((record.score / record.totalScore) * 100)
+                  : 0;
+                return (
+                  <li key={record.id} className="flex justify-between border-b py-2">
+                    <span>{record.type}</span>
+                    <span className="font-medium">
+                      {percentage}分 · {new Date(record.startedAt).toLocaleDateString()}
+                    </span>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </CardContent>

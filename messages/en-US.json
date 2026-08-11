@@ -1,0 +1,71 @@
+{
+  "app": {
+    "name": "English Agent",
+    "slogan": "Your personal English learning assistant"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "speak": "Speak",
+    "write": "Write",
+    "chat": "Chat",
+    "topics": "Topics",
+    "review": "Review",
+    "exam": "Mock Exam",
+    "progress": "Progress"
+  },
+  "dashboard": {
+    "title": "Today's Tasks",
+    "goal": "Goal",
+    "level": "Level",
+    "todayTopic": "Today's Topic",
+    "practice": "Practice",
+    "speakCard": "Speaking",
+    "writeCard": "Writing",
+    "chatCard": "AI Chat",
+    "reviewCard": "Review",
+    "learningPlan": "Learning Plan",
+    "viewPlan": "View Plan",
+    "generatePlan": "Generate Plan",
+    "noPlan": "No learning plan yet, generate one now.",
+    "stats": "Statistics",
+    "totalSessions": "Total sessions",
+    "todaySessions": "Today's sessions",
+    "noProfile": "No learning profile yet",
+    "startLearning": "Start Learning"
+  },
+  "plan": {
+    "title": "Learning Plan",
+    "description": "A personalized learning plan based on your goal, level and weak points.",
+    "regenerate": "Regenerate Plan",
+    "generate": "Generate Plan",
+    "noPlan": "No learning plan",
+    "overview": "Plan Overview",
+    "totalTasks": "Total tasks",
+    "completed": "Completed",
+    "complete": "Complete task",
+    "todayTasks": "Today's tasks",
+    "type": "Type",
+    "duration": "Duration"
+  },
+  "exam": {
+    "title": "Mock Exam",
+    "description": "Choose an exam type and start a timed practice.",
+    "start": "Start Exam",
+    "again": "Try Again",
+    "viewProgress": "View Progress",
+    "score": "Score",
+    "timeLeft": "Time left",
+    "prev": "Previous",
+    "next": "Next",
+    "submit": "Submit",
+    "answered": "Answered",
+    "of": " / "
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "loading": "Loading...",
+    "minutes": "min"
+  }
+}

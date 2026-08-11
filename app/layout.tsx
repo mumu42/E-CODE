@@ -10,6 +10,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { I18nProvider } from "@/lib/i18n";
+import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { cn } from "@/lib/utils/cn";
 
 /** 无衬线字体配置 */
@@ -47,8 +49,11 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-background text-foreground transition-colors">
         <ThemeProvider>
-          <Header />
-          <main className="flex-1">{children}</main>
+          <I18nProvider>
+            <ServiceWorkerRegister />
+            <Header />
+            <main className="flex-1">{children}</main>
+          </I18nProvider>
         </ThemeProvider>
       </body>
     </html>

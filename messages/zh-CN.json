@@ -1,0 +1,72 @@
+{
+  "app": {
+    "name": "English Agent",
+    "slogan": "你的私人英语学习助手"
+  },
+  "nav": {
+    "dashboard": "今日任务",
+    "speak": "口语",
+    "write": "写作",
+    "chat": "对话",
+    "topics": "话题",
+    "review": "复习",
+    "exam": "模考",
+    "progress": "进度",
+    "plan": "学习计划"
+  },
+  "dashboard": {
+    "title": "今日任务",
+    "goal": "目标",
+    "level": "当前级别",
+    "todayTopic": "今日话题",
+    "practice": "去练习",
+    "speakCard": "口语练习",
+    "writeCard": "写作练习",
+    "chatCard": "AI 对话",
+    "reviewCard": "错题复习",
+    "learningPlan": "学习计划",
+    "viewPlan": "查看计划",
+    "generatePlan": "去生成",
+    "noPlan": "还没有学习计划，生成一份吧。",
+    "stats": "学习统计",
+    "totalSessions": "总练习次数",
+    "todaySessions": "今日练习次数",
+    "noProfile": "还没有学习档案",
+    "startLearning": "开始学习"
+  },
+  "plan": {
+    "title": "学习计划",
+    "description": "根据目标、级别和薄弱点生成的个性化学习计划",
+    "regenerate": "重新生成计划",
+    "generate": "生成学习计划",
+    "noPlan": "还没有学习计划",
+    "overview": "计划概览",
+    "totalTasks": "总任务数",
+    "completed": "已完成",
+    "complete": "完成任务",
+    "todayTasks": "今日任务",
+    "type": "类型",
+    "duration": "预计"
+  },
+  "exam": {
+    "title": "模拟考试",
+    "description": "选择一种考试类型，进行限时训练。",
+    "start": "开始考试",
+    "again": "再来一次",
+    "viewProgress": "查看进度",
+    "score": "考试成绩",
+    "timeLeft": "剩余时间",
+    "prev": "上一题",
+    "next": "下一题",
+    "submit": "提交试卷",
+    "answered": "已答",
+    "of": " / "
+  },
+  "common": {
+    "save": "保存",
+    "cancel": "取消",
+    "confirm": "确定",
+    "loading": "加载中...",
+    "minutes": "分钟"
+  }
+}

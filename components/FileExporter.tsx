@@ -23,15 +23,7 @@ import { Download, Save, FileText, Database } from "lucide-react";
  * ```
  */
 export function FileExporter() {
-  const appData = useAppStore((state) => ({
-    profile: state.profile,
-    assessments: state.assessments,
-    sessions: state.sessions,
-    chatSessions: state.chatSessions,
-    topics: state.topics,
-    errors: state.errors,
-    theme: state.theme,
-  }));
+  const appData = useAppStore((state) => state);
 
   const [saving, setSaving] = useState(false);
 

@@ -8,10 +8,13 @@
 "use client";
 
 import Link from "next/link";
-import { BookOpen, Menu, X } from "lucide-react";
+import { BookOpen, Menu, X, Settings } from "lucide-react";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
+import { ProfileManager } from "@/components/ProfileManager";
+import { BackupManager } from "@/components/BackupManager";
+import { LanguageSwitch } from "@/components/LanguageSwitch";
 
 /** 导航项配置 */
 const navItems = [
@@ -21,6 +24,7 @@ const navItems = [
   { href: "/chat", label: "对话" },
   { href: "/topics", label: "话题" },
   { href: "/review", label: "复习" },
+  { href: "/exam", label: "模考" },
   { href: "/progress", label: "进度" },
 ];
 
@@ -33,6 +37,7 @@ const navItems = [
  */
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
     <header className="border-b bg-white dark:bg-gray-900 dark:border-gray-800 sticky top-0 z-50 transition-colors">
@@ -53,10 +58,26 @@ export function Header() {
             </Link>
           ))}
           <ThemeToggle />
+          <LanguageSwitch />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setSettingsOpen(!settingsOpen)}
+          >
+            <Settings className="w-5 h-5" />
+          </Button>
         </nav>
 
         <div className="flex md:hidden items-center gap-2">
           <ThemeToggle />
+          <LanguageSwitch />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setSettingsOpen(!settingsOpen)}
+          >
+            <Settings className="w-5 h-5" />
+          </Button>
           <Button
             variant="ghost"
             size="icon"
@@ -66,6 +87,15 @@ export function Header() {
           </Button>
         </div>
       </div>
+
+      {settingsOpen && (
+        <div className="absolute right-0 top-14 z-40 p-4 bg-white dark:bg-gray-900 border-b shadow-md">
+          <div className="flex flex-col md:flex-row gap-4">
+            <ProfileManager />
+            <BackupManager />
+          </div>
+        </div>
+      )}
 
       {mobileOpen && (
         <div className="md:hidden border-t bg-white dark:bg-gray-900 dark:border-gray-800 px-4 py-3 space-y-2 transition-colors">

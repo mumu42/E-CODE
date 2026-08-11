@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAppStore } from "@/lib/store";
 import { FileImporter } from "@/components/FileImporter";
 import { FileExporter } from "@/components/FileExporter";
-import { Mic, FileText, MessageCircle, BookOpen, Star } from "lucide-react";
+import { Mic, FileText, MessageCircle, BookOpen, Star, Calendar } from "lucide-react";
 
 /** 目标中文映射 */
 const targetMap: Record<string, string> = {
@@ -35,6 +35,7 @@ export default function DashboardPage() {
   const sessions = useAppStore((state) => state.sessions);
   const topics = useAppStore((state) => state.topics);
   const errors = useAppStore((state) => state.errors);
+  const learningPlan = useAppStore((state) => state.learningPlan);
 
   if (!profile) {
     return (
@@ -54,6 +55,9 @@ export default function DashboardPage() {
     (t) => t.userId === profile.id && t.date.startsWith(today)
   );
   const unreviewedErrors = errors.filter((e) => !e.reviewed).length;
+  const todayTasks = learningPlan
+    ? learningPlan.tasks.filter((t) => t.date === today)
+    : [];
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -146,6 +150,44 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </Link>
+      </div>
+
+      <div className="mt-8 max-w-4xl">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="w-5 h-5" />
+              学习计划
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {learningPlan ? (
+              <div className="space-y-2">
+                <p className="text-sm font-medium">
+                  {learningPlan.startDate} 至 {learningPlan.endDate}
+                </p>
+                <p className="text-sm text-muted-foreground line-clamp-2">
+                  {learningPlan.description}
+                </p>
+                <p className="text-sm">
+                  今日任务：{todayTasks.length} 项 · 已完成 {todayTasks.filter((t) => t.completed).length} 项
+                </p>
+                <Link href="/plan">
+                  <Button size="sm" className="mt-2">
+                    查看计划
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">还没有学习计划，生成一份吧。</p>
+                <Link href="/plan">
+                  <Button size="sm">去生成</Button>
+                </Link>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       <div className="mt-8 max-w-4xl">

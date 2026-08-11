@@ -106,6 +106,29 @@ export interface PracticeRecord {
 export interface AppData {
   /** 当前用户档案 */
   profile: UserProfile | null;
+  /** 所有档案列表 */
+  profiles: UserProfile[];
+  /** 当前选中的档案 ID */
+  currentProfileId: string | null;
+  /** 每个档案的独立学习数据（非当前档案的快照） */
+  profileData: Record<string, ProfileData>;
+  /** 当前档案的学习数据（保持向后兼容） */
+  assessments: AssessmentRecord[];
+  sessions: PracticeRecord[];
+  chatSessions: ChatSession[];
+  topics: TopicRecord[];
+  errors: ErrorItem[];
+  examRecords: ExamRecord[];
+  /** AI 生成的学习计划 */
+  learningPlan: LearningPlan | null;
+  /** 界面语言 */
+  locale: "zh-CN" | "en-US";
+  /** 主题偏好 */
+  theme?: ThemeMode;
+}
+
+/** 单个档案下的学习数据 */
+export interface ProfileData {
   /** 测评记录列表 */
   assessments: AssessmentRecord[];
   /** 练习记录列表 */
@@ -116,8 +139,10 @@ export interface AppData {
   topics: TopicRecord[];
   /** 错题记录列表 */
   errors: ErrorItem[];
-  /** 主题偏好 */
-  theme?: ThemeMode;
+  /** 模拟考试记录列表 */
+  examRecords: ExamRecord[];
+  /** 学习计划 */
+  learningPlan: LearningPlan | null;
 }
 
 /** 水平测评结果 */
@@ -263,6 +288,14 @@ export interface ErrorItem {
   errorType: GrammarError["type"];
   /** 是否已复习 */
   reviewed?: boolean;
+  /** 下次复习日期（SM-2） */
+  nextReviewDate?: string;
+  /** 复习间隔（天，SM-2） */
+  interval?: number;
+  /** 连续复习次数（SM-2） */
+  repetitionCount?: number;
+  /** 容易度因子（SM-2） */
+  easeFactor?: number;
 }
 
 /** 薄弱点统计 */
@@ -285,4 +318,83 @@ export interface DrillQuestion {
   answer: string;
   /** 解析 */
   explanation: string;
+}
+
+/** 学习计划任务 */
+export interface PlanTask {
+  /** 任务 ID */
+  id: string;
+  /** 任务标题 */
+  title: string;
+  /** 任务类型 */
+  type: "speak" | "write" | "chat" | "review" | "exam";
+  /** 预计时长（分钟） */
+  duration: number;
+  /** 是否已完成 */
+  completed: boolean;
+  /** 建议日期 */
+  date: string;
+}
+
+/** 学习计划 */
+export interface LearningPlan {
+  /** 计划 ID */
+  id: string;
+  /** 计划周期起始日期 */
+  startDate: string;
+  /** 计划周期结束日期 */
+  endDate: string;
+  /** 每日学习任务列表 */
+  tasks: PlanTask[];
+  /** 计划说明 */
+  description: string;
+}
+
+/** 考试题型 */
+export type ExamQuestionType = "listening" | "reading" | "writing" | "speaking";
+
+/** 模拟考试题目 */
+export interface ExamQuestion {
+  /** 题目 ID */
+  id: string;
+  /** 题型 */
+  type: ExamQuestionType;
+  /** 题干 */
+  question: string;
+  /** 选项（客观题） */
+  options?: string[];
+  /** 正确答案（客观题） */
+  answer?: string;
+  /** 用户答案 */
+  userAnswer?: string;
+  /** 解析 */
+  explanation?: string;
+  /** 分值 */
+  score: number;
+  /** 建议时长（分钟） */
+  timeLimit?: number;
+  /** 音频/阅读材料（可选） */
+  passage?: string;
+}
+
+/** 模拟考试记录 */
+export interface ExamRecord {
+  /** 记录 ID */
+  id: string;
+  /** 用户 ID */
+  userId: string;
+  /** 考试类型标签 */
+  type: string;
+  /** 开始时间 */
+  startedAt: string;
+  /** 结束时间 */
+  endedAt: string;
+  /** 题目与作答 */
+  questions: ExamQuestion[];
+  /** 总分 */
+  totalScore: number;
+  /** 得分 */
+  score: number;
+  /** 分项得分 */
+  sectionScores?: Record<ExamQuestionType, number>;
 }

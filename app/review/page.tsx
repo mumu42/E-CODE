@@ -27,6 +27,7 @@ export default function ReviewPage() {
   const profile = useAppStore((state) => state.profile);
   const errors = useAppStore((state) => state.errors);
   const markErrorReviewed = useAppStore((state) => state.markErrorReviewed);
+  const scheduleReview = useAppStore((state) => state.scheduleReview);
 
   const [selectedWeakPoint, setSelectedWeakPoint] = useState<string | null>(null);
   const [drill, setDrill] = useState<DrillQuestion[]>([]);
@@ -42,6 +43,13 @@ export default function ReviewPage() {
     return Array.from(counts.entries())
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5);
+  }, [errors]);
+
+  const dueErrors = useMemo(() => {
+    const today = new Date().toISOString().split("T")[0];
+    return errors.filter(
+      (e) => !e.reviewed || (e.nextReviewDate && e.nextReviewDate <= today)
+    );
   }, [errors]);
 
   async function handleGenerateDrill(type: string) {
@@ -73,6 +81,40 @@ export default function ReviewPage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
       <h1 className="text-2xl font-bold mb-6">错题本与薄弱点训练</h1>
+
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 text-orange-500" />
+            今日待复习
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {dueErrors.length === 0 ? (
+            <p className="text-gray-500">今日没有需要复习的错题。</p>
+          ) : (
+            <ul className="space-y-3">
+              {dueErrors.map((err) => (
+                <li key={err.id} className="border-b py-2">
+                  <p className="text-sm line-through text-red-600">{err.original}</p>
+                  <p className="text-sm text-green-600">{err.correction}</p>
+                  <div className="flex gap-2 mt-2">
+                    <Button size="sm" variant="outline" onClick={() => scheduleReview(err.id, "hard")}>
+                      难
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => scheduleReview(err.id, "good")}>
+                      会
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => scheduleReview(err.id, "easy")}>
+                      易
+                    </Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
 
       <Card className="mb-8">
         <CardHeader>

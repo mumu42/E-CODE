@@ -5,7 +5,74 @@
  * @date 2026-08-07
  */
 
-import type { Level, Target, ChatRole } from "@/lib/types";
+import type { Level, Target, ChatRole, LearningPlan } from "@/lib/types";
+
+/** 弱项概览 */
+export interface WeakPointSummary {
+  label: string;
+  count: number;
+}
+
+/**
+ * 构建 AI 学习计划提示词
+ * @param target - 用户学习目标
+ * @param level - 用户英语水平
+ * @param availableMinutes - 每日可用学习时间（分钟）
+ * @param weakPoints - 薄弱点列表
+ * @param weeks - 计划周数
+ * @returns 学习计划提示词字符串
+ */
+export function buildLearningPlanPrompt(
+  target: Target,
+  level: Level,
+  availableMinutes: number,
+  weakPoints: WeakPointSummary[],
+  weeks = 4
+): string {
+  const weak = weakPoints.length
+    ? weakPoints.map((w) => `${w.label}(${w.count}次)`).join(", ")
+    : "暂无记录";
+  return `You are an expert English learning planner. Create a ${weeks}-week study plan for a learner preparing for ${target} at CEFR level ${level}.
+
+Daily available study time: ${availableMinutes} minutes.
+Observed weak points: ${weak}.
+
+Return a JSON object with this exact shape:
+{
+  "id": "unique-plan-id",
+  "startDate": "YYYY-MM-DD",
+  "endDate": "YYYY-MM-DD",
+  "description": "overall plan description in Chinese",
+  "tasks": [
+    {
+      "id": "task-1",
+      "title": "task description in Chinese",
+      "type": "speak|write|chat|review|exam",
+      "duration": minutes,
+      "completed": false,
+      "date": "YYYY-MM-DD"
+    }
+  ]
+}
+
+Rules:
+- Generate exactly one task per day for ${weeks * 7} days.
+- Keep total daily duration close to but not exceeding ${availableMinutes} minutes.
+- Balance task types across the week.
+- Address weak points with review/exam tasks at least twice a week.
+
+Return only valid JSON, no markdown.`;
+}
+
+/** 从 AI 返回的字符串安全解析学习计划 JSON */
+export function parseLearningPlanResponse(raw: string): LearningPlan {
+  const cleaned = raw.replace(/^```json\s*|\s*```$/g, "").trim();
+  const parsed = JSON.parse(cleaned);
+  if (!parsed.id || !parsed.tasks || !Array.isArray(parsed.tasks)) {
+    throw new Error("Invalid learning plan response");
+  }
+  return parsed as LearningPlan;
+}
 
 /**
  * 构建英语水平评估提示词
