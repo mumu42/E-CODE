@@ -13,7 +13,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAppStore } from "@/lib/store";
 import { FileImporter } from "@/components/FileImporter";
 import { FileExporter } from "@/components/FileExporter";
-import { Mic, FileText, MessageCircle, BookOpen, Star, Calendar } from "lucide-react";
+import { getCurrentStreak, getLongestStreak } from "@/lib/stats/checkin";
+import {
+  Mic,
+  FileText,
+  MessageCircle,
+  BookOpen,
+  Star,
+  Calendar,
+  Sparkles,
+  Flame,
+  Award,
+  CheckCircle2,
+} from "lucide-react";
 
 /** 目标中文映射 */
 const targetMap: Record<string, string> = {
@@ -34,8 +46,11 @@ export default function DashboardPage() {
   const profile = useAppStore((state) => state.profile);
   const sessions = useAppStore((state) => state.sessions);
   const topics = useAppStore((state) => state.topics);
+  const customTopics = useAppStore((state) => state.customTopics);
   const errors = useAppStore((state) => state.errors);
   const learningPlan = useAppStore((state) => state.learningPlan);
+  const checkIns = useAppStore((state) => state.checkIns);
+  const badges = useAppStore((state) => state.badges);
 
   if (!profile) {
     return (
@@ -54,6 +69,24 @@ export default function DashboardPage() {
   const todayTopic = topics.find(
     (t) => t.userId === profile.id && t.date.startsWith(today)
   );
+  const isCheckedIn = checkIns.includes(today);
+  const currentStreak = getCurrentStreak(checkIns);
+  const longestStreak = getLongestStreak(checkIns);
+  const recentBadges = badges
+    .slice()
+    .sort((a, b) => new Date(b.unlockedAt).getTime() - new Date(a.unlockedAt).getTime())
+    .slice(0, 3);
+  const recommendedTopic = (() => {
+    const all = [
+      ...customTopics.map((t) => ({ ...t, source: "custom" as const })),
+      ...topics.map((t) => ({ ...t, source: "ai" as const })),
+    ];
+    const favorite = all.find((t) => t.userId === profile.id && t.favorite);
+    if (favorite) return favorite;
+    const custom = all.find((t) => t.userId === profile.id && t.source === "custom");
+    if (custom) return custom;
+    return all.find((t) => t.userId === profile.id) ?? null;
+  })();
   const unreviewedErrors = errors.filter((e) => !e.reviewed).length;
   const todayTasks = learningPlan
     ? learningPlan.tasks.filter((t) => t.date === today)
@@ -93,6 +126,81 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       )}
+
+      {recommendedTopic && (
+        <Card className="mb-6 bg-linear-to-r from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 border-purple-200">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-purple-600" />
+              推荐话题
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="font-medium dark:text-purple-100">{recommendedTopic.topic}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{recommendedTopic.scenario}</p>
+            <Link href="/speak">
+              <Button size="sm" className="mt-3">
+                去练习
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="grid md:grid-cols-3 gap-4 mb-6">
+        <Card className="bg-linear-to-r from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/30 border-orange-200">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              {isCheckedIn ? (
+                <CheckCircle2 className="w-4 h-4 text-orange-600" />
+              ) : (
+                <Flame className="w-4 h-4 text-orange-600" />
+              )}
+              今日打卡
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="font-medium dark:text-orange-100">
+              {isCheckedIn ? "今日已打卡" : "今日还未打卡"}
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+              连续 {currentStreak} 天
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-linear-to-r from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/30 border-red-200">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Flame className="w-4 h-4 text-red-600" />
+              连续学习
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold dark:text-red-100">{currentStreak}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+              最长 {longestStreak} 天
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-linear-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/30 dark:to-yellow-800/30 border-yellow-200">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Award className="w-4 h-4 text-yellow-600" />
+              成就徽章
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold dark:text-yellow-100">{badges.length}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+              {recentBadges.length > 0
+                ? `最近：${recentBadges[0].title}`
+                : "快去练习解锁徽章吧"}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="grid md:grid-cols-2 gap-6 max-w-4xl">
         <Link href="/speak" className="block h-full">

@@ -10,6 +10,14 @@ import type { ExamQuestion } from "@/lib/types";
 /** 支持的考试类型 */
 export type ExamType = "IELTS" | "TOEFL" | "CET4" | "CET6" | "GENERAL";
 
+const EXAM_TYPE_TO_TARGET: Record<ExamType, string> = {
+  IELTS: "IELTS_TOEFL",
+  TOEFL: "IELTS_TOEFL",
+  CET4: "CET",
+  CET6: "CET",
+  GENERAL: "GENERAL",
+};
+
 /** 考试类型配置 */
 export interface ExamConfig {
   /** 考试标识 */
@@ -223,15 +231,57 @@ const PRODUCTIVE_TEMPLATES: Record<ExamType, { writing: ExamQuestion; speaking: 
  * 根据考试类型生成指定数量的题目
  * @param type - 考试类型
  * @param count - 题目数量
+ * @param customQuestions - 用户导入的自定义题库（可选）
  * @returns 题目列表
  */
-export function generateExamQuestions(type: ExamType, count: number): ExamQuestion[] {
-  const objective = [...(QUESTION_BANK[type] ?? [])];
-  while (objective.length < count) {
-    // 循环补题，避免题目不足
-    objective.push(...objective);
+export function generateExamQuestions(
+  type: ExamType,
+  count: number,
+  customQuestions: ExamQuestion[] = []
+): ExamQuestion[] {
+  // 筛选与当前考试类型匹配的自定义题目
+  const targetKeyword = EXAM_TYPE_TO_TARGET[type];
+  const matchedCustom = customQuestions.filter(
+    (q) =>
+      !q.target ||
+      q.target === targetKeyword ||
+      (type === "GENERAL" && !q.target)
+  );
+
+  const objectiveCustom = matchedCustom.filter(
+    (q) => q.type === "reading" || q.type === "listening"
+  );
+  const productiveCustom = matchedCustom.filter(
+    (q) => q.type === "writing" || q.type === "speaking"
+  );
+
+  const objectiveBuiltIn = [...(QUESTION_BANK[type] ?? [])];
+  while (objectiveBuiltIn.length < count) {
+    objectiveBuiltIn.push(...objectiveBuiltIn);
   }
-  const selected = objective.slice(0, count);
-  const { writing, speaking } = PRODUCTIVE_TEMPLATES[type] ?? PRODUCTIVE_TEMPLATES.GENERAL;
-  return [...selected, writing, speaking];
+
+  // 优先使用自定义题目，不足时从内置题库补足
+  const objective: ExamQuestion[] = [];
+  for (let i = 0; i < count; i++) {
+    if (objectiveCustom.length > 0) {
+      const [q] = objectiveCustom.splice(
+        Math.floor(Math.random() * objectiveCustom.length),
+        1
+      );
+      objective.push(q);
+    } else {
+      objective.push(objectiveBuiltIn[i % objectiveBuiltIn.length]);
+    }
+  }
+
+  const { writing, speaking } =
+    PRODUCTIVE_TEMPLATES[type] ?? PRODUCTIVE_TEMPLATES.GENERAL;
+
+  // 如果有自定义写作/口语题，替换默认模板
+  const writingQuestion =
+    productiveCustom.find((q) => q.type === "writing") ?? writing;
+  const speakingQuestion =
+    productiveCustom.find((q) => q.type === "speaking") ?? speaking;
+
+  return [...objective, writingQuestion, speakingQuestion];
 }

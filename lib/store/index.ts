@@ -19,8 +19,12 @@ import type {
   ThemeMode,
   LearningPlan,
   ExamRecord,
+  ExamQuestion,
+  Badge,
 } from "@/lib/types";
 import { createIndexedDBStorage } from "@/lib/storage/indexeddb";
+import { buildLearningProfile } from "@/lib/ai/memory";
+import { calculateBadges, getNewBadges } from "@/lib/badges";
 
 /** 数据持久化版本号，用于迁移 */
 const STORAGE_VERSION = 2;
@@ -34,6 +38,11 @@ const emptyProfileData = (): ProfileData => ({
   errors: [],
   examRecords: [],
   learningPlan: null,
+  learningProfile: null,
+  customQuestions: [],
+  customTopics: [],
+  checkIns: [],
+  badges: [],
 });
 
 /** AppStore 对外暴露的状态与操作方法 */
@@ -54,6 +63,12 @@ export interface AppState extends AppData {
   addAssessment: (assessment: AssessmentRecord) => void;
   /** 添加一条练习记录 */
   addSession: (session: PracticeRecord) => void;
+  /** 手动添加打卡 */
+  addCheckIn: (date?: string) => void;
+  /** 解锁徽章 */
+  unlockBadge: (badge: Badge) => void;
+  /** 重新计算徽章 */
+  recalculateBadges: () => void;
   /** 添加一个对话会话 */
   addChatSession: (session: ChatSession) => void;
   /** 更新指定对话会话的消息 */
@@ -76,12 +91,24 @@ export interface AppState extends AppData {
   scheduleReview: (errorId: string, grade: "hard" | "good" | "easy") => void;
   /** 添加一条模拟考试记录 */
   addExamRecord: (record: ExamRecord) => void;
+  /** 更新 AI 学习画像 */
+  updateLearningProfile: () => void;
   /** 设置主题模式 */
   setTheme: (theme: ThemeMode) => void;
   /** 设置界面语言 */
   setLocale: (locale: AppData["locale"]) => void;
   /** 导入外部数据 */
   importData: (data: Partial<AppData>) => void;
+  /** 添加自定义话题 */
+  addCustomTopic: (topic: TopicRecord) => void;
+  /** 更新自定义话题 */
+  updateCustomTopic: (id: string, partial: Partial<TopicRecord>) => void;
+  /** 删除自定义话题 */
+  removeCustomTopic: (id: string) => void;
+  /** 导入题库 */
+  importQuestionBank: (questions: ExamQuestion[]) => void;
+  /** 删除自定义题目 */
+  removeCustomQuestion: (id: string) => void;
   /** 重置所有数据 */
   resetData: () => void;
 }
@@ -99,6 +126,11 @@ const initialState: AppData = {
   errors: [],
   examRecords: [],
   learningPlan: null,
+  learningProfile: null,
+  customQuestions: [],
+  customTopics: [],
+  checkIns: [],
+  badges: [],
   locale: "zh-CN",
   theme: "system",
 };
@@ -129,6 +161,11 @@ function migrateFromLocalStorage(): AppData | undefined {
       errors: parsed.errors ?? [],
       examRecords: parsed.examRecords ?? [],
       learningPlan: null,
+      learningProfile: null,
+      customQuestions: parsed.customQuestions ?? [],
+      customTopics: parsed.customTopics ?? [],
+      checkIns: parsed.checkIns ?? [],
+      badges: parsed.badges ?? [],
     };
     return {
       ...initialState,
@@ -202,6 +239,11 @@ export const useAppStore = create<AppState>()(
         errors: [],
         examRecords: [],
         learningPlan: null,
+        learningProfile: null,
+        customQuestions: [],
+        customTopics: [],
+        checkIns: [],
+        badges: [],
       })),
       switchProfile: (id) =>
         set((state) => {
@@ -218,6 +260,11 @@ export const useAppStore = create<AppState>()(
                 errors: state.errors,
                 examRecords: state.examRecords,
                 learningPlan: state.learningPlan,
+                learningProfile: state.learningProfile,
+                customQuestions: state.customQuestions,
+                customTopics: state.customTopics,
+                checkIns: state.checkIns,
+                badges: state.badges,
               }
             : emptyProfileData();
           return {
@@ -269,10 +316,54 @@ export const useAppStore = create<AppState>()(
           assessments: [...state.assessments, assessment],
         })),
       addSession: (session) =>
-        set((state) => ({
-          ...state,
-          sessions: [...state.sessions, session],
-        })),
+        set((state) => {
+          const today = new Date().toISOString().split("T")[0];
+          const alreadyCheckedIn = state.checkIns.includes(today);
+          const updatedCheckIns = alreadyCheckedIn
+            ? state.checkIns
+            : [...state.checkIns, today];
+          const updatedSessions = [...state.sessions, session];
+          const newBadges = getNewBadges(state.badges, {
+            sessions: updatedSessions,
+            checkIns: updatedCheckIns,
+            examRecords: state.examRecords,
+            errors: state.errors,
+          });
+          return {
+            ...state,
+            sessions: updatedSessions,
+            checkIns: updatedCheckIns,
+            badges: newBadges.length > 0 ? [...state.badges, ...newBadges] : state.badges,
+          };
+        }),
+      addCheckIn: (date) =>
+        set((state) => {
+          const target = date ?? new Date().toISOString().split("T")[0];
+          if (state.checkIns.includes(target)) return state;
+          return { ...state, checkIns: [...state.checkIns, target] };
+        }),
+      unlockBadge: (badge) =>
+        set((state) => {
+          if (state.badges.some((b) => b.id === badge.id)) return state;
+          return {
+            ...state,
+            badges: [...state.badges, { ...badge, unlockedAt: new Date().toISOString() }],
+          };
+        }),
+      recalculateBadges: () =>
+        set((state) => {
+          const newly = calculateBadges({
+            sessions: state.sessions,
+            checkIns: state.checkIns,
+            examRecords: state.examRecords,
+            errors: state.errors,
+          });
+          const existingIds = new Set(state.badges.map((b) => b.id));
+          const unlocked = newly.filter((b) => !existingIds.has(b.id));
+          return unlocked.length > 0
+            ? { ...state, badges: [...state.badges, ...unlocked] }
+            : state;
+        }),
       addChatSession: (session) =>
         set((state) => ({
           ...state,
@@ -306,12 +397,22 @@ export const useAppStore = create<AppState>()(
           errors: [...state.errors, ...errors],
         })),
       markErrorReviewed: (id) =>
-        set((state) => ({
-          ...state,
-          errors: state.errors.map((e) =>
+        set((state) => {
+          const updatedErrors = state.errors.map((e) =>
             e.id === id ? { ...e, reviewed: true } : e
-          ),
-        })),
+          );
+          const newBadges = getNewBadges(state.badges, {
+            sessions: state.sessions,
+            checkIns: state.checkIns,
+            examRecords: state.examRecords,
+            errors: updatedErrors,
+          });
+          return {
+            ...state,
+            errors: updatedErrors,
+            badges: newBadges.length > 0 ? [...state.badges, ...newBadges] : state.badges,
+          };
+        }),
       scheduleReview: (errorId, grade) =>
         set((state) => {
           const newErrors = state.errors.map((e) => {
@@ -358,10 +459,30 @@ export const useAppStore = create<AppState>()(
           };
         }),
       addExamRecord: (record) =>
-        set((state) => ({
-          ...state,
-          examRecords: [...state.examRecords, record],
-        })),
+        set((state) => {
+          const updatedExamRecords = [...state.examRecords, record];
+          const newBadges = getNewBadges(state.badges, {
+            sessions: state.sessions,
+            checkIns: state.checkIns,
+            examRecords: updatedExamRecords,
+            errors: state.errors,
+          });
+          return {
+            ...state,
+            examRecords: updatedExamRecords,
+            badges: newBadges.length > 0 ? [...state.badges, ...newBadges] : state.badges,
+          };
+        }),
+      updateLearningProfile: () =>
+        set((state) => {
+          if (!state.profile) return state;
+          const profile = buildLearningProfile(
+            state.errors,
+            state.sessions,
+            state.assessments
+          );
+          return { ...state, learningProfile: profile };
+        }),
       importData: (data) =>
         set((state) => {
           const migrated = data as AppData & {
@@ -388,6 +509,11 @@ export const useAppStore = create<AppState>()(
                 errors: migrated.errors ?? [],
                 examRecords: migrated.examRecords ?? [],
                 learningPlan: null,
+                learningProfile: null,
+                customQuestions: migrated.customQuestions ?? [],
+                customTopics: migrated.customTopics ?? [],
+                checkIns: migrated.checkIns ?? [],
+                badges: migrated.badges ?? [],
               },
             };
             return {
@@ -420,8 +546,54 @@ export const useAppStore = create<AppState>()(
               (data.currentProfileId && data.profileData
                 ? data.profileData[data.currentProfileId].examRecords
                 : state.examRecords),
+            learningProfile:
+              data.learningProfile ??
+              (data.currentProfileId && data.profileData
+                ? data.profileData[data.currentProfileId].learningProfile
+                : state.learningProfile),
+            customQuestions:
+              data.customQuestions ??
+              (data.currentProfileId && data.profileData
+                ? data.profileData[data.currentProfileId].customQuestions
+                : state.customQuestions),
+            customTopics:
+              data.customTopics ??
+              (data.currentProfileId && data.profileData
+                ? data.profileData[data.currentProfileId].customTopics
+                : state.customTopics),
           };
         }),
+      addCustomTopic: (topic) =>
+        set((state) => ({
+          ...state,
+          customTopics: [...state.customTopics, topic],
+        })),
+      updateCustomTopic: (id, partial) =>
+        set((state) => ({
+          ...state,
+          customTopics: state.customTopics.map((t) =>
+            t.id === id ? { ...t, ...partial } : t
+          ),
+        })),
+      removeCustomTopic: (id) =>
+        set((state) => ({
+          ...state,
+          customTopics: state.customTopics.filter((t) => t.id !== id),
+        })),
+      importQuestionBank: (questions) =>
+        set((state) => {
+          const existing = new Set(state.customQuestions.map((q) => q.id));
+          const merged = [
+            ...state.customQuestions,
+            ...questions.filter((q) => !existing.has(q.id)),
+          ];
+          return { ...state, customQuestions: merged };
+        }),
+      removeCustomQuestion: (id) =>
+        set((state) => ({
+          ...state,
+          customQuestions: state.customQuestions.filter((q) => q.id !== id),
+        })),
       resetData: () => set(initialState),
     }),
     {
@@ -459,6 +631,11 @@ useAppStore.subscribe((state) => {
           errors: state.errors,
           examRecords: state.examRecords,
           learningPlan: state.learningPlan,
+          learningProfile: state.learningProfile,
+          customQuestions: state.customQuestions,
+          customTopics: state.customTopics,
+          checkIns: state.checkIns,
+          badges: state.badges,
         },
       };
     }

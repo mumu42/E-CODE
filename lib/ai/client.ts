@@ -14,6 +14,7 @@ import {
   buildChatPrompt,
   buildWeakPointDrillPrompt,
 } from "./prompts";
+import { buildSummaryPrompt } from "./memory";
 import type {
   AssessmentResult,
   Level,
@@ -23,6 +24,8 @@ import type {
   WritingFeedback,
   ChatRole,
   DrillQuestion,
+  PracticeRecord,
+  ErrorItem,
 } from "@/lib/types";
 
 /**
@@ -79,6 +82,7 @@ export async function assessLevel(
  * @param topic - 话题
  * @param scenario - 场景
  * @param userInput - 用户输入
+ * @param learningContext - 学习画像上下文（可选）
  * @returns 口语反馈结果
  */
 export async function getSpeakFeedback(
@@ -86,13 +90,14 @@ export async function getSpeakFeedback(
   level: Level,
   topic: string,
   scenario: string,
-  userInput: string
+  userInput: string,
+  learningContext = ""
 ): Promise<SpeakFeedback> {
   const res = await fetch("/api/ai/speak", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      prompt: buildSpeakPrompt(target, level, topic, scenario, userInput),
+      prompt: buildSpeakPrompt(target, level, topic, scenario, userInput, learningContext),
     }),
   });
 
@@ -179,13 +184,14 @@ export async function getWritingFeedback(
   level: Level,
   topic: string,
   instructions: string,
-  userInput: string
+  userInput: string,
+  learningContext = ""
 ): Promise<WritingFeedback> {
   const res = await fetch("/api/ai/write", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      prompt: buildWritePrompt(target, level, topic, instructions, userInput),
+      prompt: buildWritePrompt(target, level, topic, instructions, userInput, learningContext),
     }),
   });
 
@@ -215,13 +221,14 @@ export async function sendChatMessage(
   level: Level,
   role: ChatRole,
   history: { role: "user" | "assistant"; content: string }[],
-  userMessage: string
+  userMessage: string,
+  learningContext = ""
 ): Promise<{ reply: string; corrections: string[] }> {
   const res = await fetch("/api/ai/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      prompt: buildChatPrompt(target, level, role, history, userMessage),
+      prompt: buildChatPrompt(target, level, role, history, userMessage, learningContext),
     }),
   });
 
@@ -263,6 +270,39 @@ export async function generateWeakPointDrill(
   const parsed = safeParseJson<DrillQuestion[]>(result);
   if (!parsed) {
     throw new Error("Failed to parse drill result");
+  }
+  return parsed;
+}
+
+/**
+ * 生成周期性学习摘要
+ * @param profile - 当前档案基本信息
+ * @param sessions - 练习记录
+ * @param errors - 错题记录
+ * @param assessments - 测评记录
+ * @returns 学习摘要对象
+ */
+export async function generateLearningSummary(
+  profile: { target: string; level: string } | null,
+  sessions: PracticeRecord[],
+  errors: ErrorItem[]
+): Promise<{ summary: string; strengths: string[]; weaknesses: string[]; nextSteps: string[] }> {
+  const res = await fetch("/api/ai/summary", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      prompt: buildSummaryPrompt(profile, sessions, errors),
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Summary generation failed");
+  }
+
+  const { result } = (await res.json()) as { result: string };
+  const parsed = safeParseJson<{ summary: string; strengths: string[]; weaknesses: string[]; nextSteps: string[] }>(result);
+  if (!parsed) {
+    throw new Error("Failed to parse summary result");
   }
   return parsed;
 }

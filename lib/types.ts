@@ -17,6 +17,20 @@ export type SessionType = "SPEAK" | "WRITE" | "CHAT";
 /** 主题模式 */
 export type ThemeMode = "light" | "dark" | "system";
 
+/** 成就徽章 */
+export interface Badge {
+  /** 徽章 ID */
+  id: string;
+  /** 徽章标题 */
+  title: string;
+  /** 描述 */
+  description: string;
+  /** 图标名称（Lucide icon name） */
+  icon: string;
+  /** 解锁时间 */
+  unlockedAt: string;
+}
+
 /** 用户学习档案 */
 export interface UserProfile {
   /** 用户唯一标识 */
@@ -121,6 +135,16 @@ export interface AppData {
   examRecords: ExamRecord[];
   /** AI 生成的学习计划 */
   learningPlan: LearningPlan | null;
+  /** AI 学习画像 */
+  learningProfile: LearningProfile | null;
+  /** 自定义题库（按档案隔离） */
+  customQuestions: ExamQuestion[];
+  /** 自定义话题（按档案隔离） */
+  customTopics: TopicRecord[];
+  /** 学习打卡日期列表（按档案隔离） */
+  checkIns: string[];
+  /** 已解锁徽章（按档案隔离） */
+  badges: Badge[];
   /** 界面语言 */
   locale: "zh-CN" | "en-US";
   /** 主题偏好 */
@@ -143,6 +167,28 @@ export interface ProfileData {
   examRecords: ExamRecord[];
   /** 学习计划 */
   learningPlan: LearningPlan | null;
+  /** AI 学习画像 */
+  learningProfile: LearningProfile | null;
+  /** 自定义题库 */
+  customQuestions: ExamQuestion[];
+  /** 自定义话题 */
+  customTopics: TopicRecord[];
+  /** 学习打卡日期列表 */
+  checkIns: string[];
+  /** 已解锁徽章 */
+  badges: Badge[];
+}
+
+/** 学习画像 */
+export interface LearningProfile {
+  /** 高频错误类型及示例 */
+  commonErrors: { type: GrammarError["type"]; count: number; examples: string[] }[];
+  /** 最近练习话题摘要 */
+  recentTopics: string[];
+  /** 强项与弱项 */
+  strengthWeakness: { skill: string; status: "strong" | "weak" | "neutral" }[];
+  /** 画像生成时间 */
+  updatedAt: string;
 }
 
 /** 水平测评结果 */
@@ -264,6 +310,8 @@ export interface TopicRecord {
   hints: string[];
   /** 是否收藏 */
   favorite?: boolean;
+  /** 来源：ai 为 AI 生成，custom 为用户自建 */
+  source?: "ai" | "custom";
 }
 
 /** 错题记录 */
@@ -375,6 +423,10 @@ export interface ExamQuestion {
   timeLimit?: number;
   /** 音频/阅读材料（可选） */
   passage?: string;
+  /** 适用学习目标（可选，用于过滤） */
+  target?: Target;
+  /** 标签（可选，用于分类） */
+  tags?: string[];
 }
 
 /** 模拟考试记录 */

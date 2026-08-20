@@ -6,14 +6,18 @@
  */
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/lib/store";
 import { FileImporter } from "@/components/FileImporter";
 import { FileExporter } from "@/components/FileExporter";
+import { getCurrentStreak, getLongestStreak } from "@/lib/stats/checkin";
 import { SkillRadarChart } from "@/components/charts/RadarChart";
 import { ScoreTrendChart } from "@/components/charts/TrendChart";
 import { HeatmapCalendar } from "@/components/charts/HeatmapCalendar";
+import { generateLearningSummary } from "@/lib/ai/client";
+import { Loader2, Trophy, Award } from "lucide-react";
 
 function formatDate(date: Date) {
   return `${date.getMonth() + 1}/${date.getDate()}`;
@@ -32,6 +36,8 @@ export default function ProgressPage() {
   const assessments = useAppStore((state) => state.assessments);
   const errors = useAppStore((state) => state.errors);
   const examRecords = useAppStore((state) => state.examRecords);
+  const checkIns = useAppStore((state) => state.checkIns);
+  const badges = useAppStore((state) => state.badges);
 
   const stats = useMemo(() => {
     const total = sessions.length;
@@ -47,6 +53,9 @@ export default function ProgressPage() {
     return { total, speak, write, chat, avgScore };
   }, [sessions]);
 
+  const currentStreak = useMemo(() => getCurrentStreak(checkIns), [checkIns]);
+  const longestStreak = useMemo(() => getLongestStreak(checkIns), [checkIns]);
+
   const latestAssessment = assessments[assessments.length - 1];
 
   const radarData = useMemo(() => {
@@ -60,6 +69,32 @@ export default function ProgressPage() {
       { subject: "语法", value: scores.grammar ?? 0, fullMark: 100 },
     ];
   }, [latestAssessment]);
+
+  const [summary, setSummary] = useState<{
+    summary: string;
+    strengths: string[];
+    weaknesses: string[];
+    nextSteps: string[];
+  } | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+
+  async function handleGenerateSummary() {
+    if (!profile) return;
+    setSummaryLoading(true);
+    try {
+      const result = await generateLearningSummary(
+        { target: profile.target, level: profile.level },
+        sessions,
+        errors
+      );
+      setSummary(result);
+    } catch (error) {
+      console.error(error);
+      alert("生成学习摘要失败，请稍后重试。");
+    } finally {
+      setSummaryLoading(false);
+    }
+  }
 
   const trendData = useMemo(() => {
     const grouped = new Map<string, number[]>();
@@ -152,6 +187,55 @@ export default function ProgressPage() {
         </Card>
       </div>
 
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Trophy className="w-4 h-4 text-orange-500" />
+              当前连续
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{currentStreak}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Award className="w-4 h-4 text-yellow-500" />
+              最长连续
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{longestStreak}</p>
+          </CardContent>
+        </Card>
+        <Card className="col-span-2">
+          <CardHeader>
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Award className="w-4 h-4 text-purple-500" />
+              成就徽章
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {badges.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {badges.map((badge) => (
+                  <span
+                    key={badge.id}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-purple-100 text-purple-700 text-xs"
+                  >
+                    {badge.title}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">暂无徽章，快去练习吧</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="grid md:grid-cols-2 gap-6 mb-8">
         <Card>
           <CardHeader>
@@ -206,6 +290,55 @@ export default function ProgressPage() {
               ))}
             </ul>
           )}
+        </CardContent>
+      </Card>
+
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>AI 学习摘要</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {summary ? (
+            <div className="space-y-4">
+              <p className="text-sm text-gray-700">{summary.summary}</p>
+              <div className="grid md:grid-cols-3 gap-4">
+                <div>
+                  <h4 className="font-medium text-green-700 mb-1">优势</h4>
+                  <ul className="list-disc list-inside text-sm text-gray-700">
+                    {summary.strengths.map((s, idx) => (
+                      <li key={idx}>{s}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-medium text-red-700 mb-1">待加强</h4>
+                  <ul className="list-disc list-inside text-sm text-gray-700">
+                    {summary.weaknesses.map((w, idx) => (
+                      <li key={idx}>{w}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-medium text-blue-700 mb-1">下一步</h4>
+                  <ul className="list-disc list-inside text-sm text-gray-700">
+                    {summary.nextSteps.map((step, idx) => (
+                      <li key={idx}>{step}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">点击按钮生成近期学习摘要。</p>
+          )}
+          <Button
+            onClick={handleGenerateSummary}
+            disabled={summaryLoading}
+            className="mt-4"
+          >
+            {summaryLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            生成学习摘要
+          </Button>
         </CardContent>
       </Card>
 

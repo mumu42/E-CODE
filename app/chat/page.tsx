@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { VoiceRecorder } from "@/components/VoiceRecorder";
 import { useAppStore } from "@/lib/store";
 import { sendChatMessage } from "@/lib/ai/client";
+import { buildMemoryContext } from "@/lib/ai/memory";
 import { saveToStatic } from "@/lib/storage/excel";
 import { ChatRole } from "@/lib/types";
 import { Mic, Send } from "lucide-react";
@@ -116,12 +117,15 @@ export default function ChatPage() {
     setLoading(true);
 
     try {
+      const { errors, sessions, assessments } = useAppStore.getState();
+      const learningContext = buildMemoryContext(errors, sessions, assessments);
       const result = await sendChatMessage(
         profile.target,
         profile.level,
         activeSession.role,
         history,
-        userMessage.content
+        userMessage.content,
+        learningContext
       );
 
       const assistantMessage = {

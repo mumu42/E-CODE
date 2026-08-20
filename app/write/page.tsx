@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useAppStore } from "@/lib/store";
 import { generateWritingTopic, getWritingFeedback } from "@/lib/ai/client";
+import { buildMemoryContext } from "@/lib/ai/memory";
 import { saveToStatic } from "@/lib/storage/excel";
 import type { WritingTopic, WritingFeedback, GrammarError } from "@/lib/types";
 
@@ -30,6 +31,7 @@ export default function WritePage() {
   const profile = useAppStore((state) => state.profile);
   const addSession = useAppStore((state) => state.addSession);
   const addErrors = useAppStore((state) => state.addErrors);
+  const updateLearningProfile = useAppStore((state) => state.updateLearningProfile);
 
   const [topic, setTopic] = useState<WritingTopic | null>(null);
   const [userInput, setUserInput] = useState("");
@@ -54,12 +56,15 @@ export default function WritePage() {
 
     setLoading(true);
     try {
+      const { errors, sessions, assessments } = useAppStore.getState();
+      const learningContext = buildMemoryContext(errors, sessions, assessments);
       const result = await getWritingFeedback(
         profile.target,
         profile.level,
         topic.title,
         topic.instructions,
-        userInput
+        userInput,
+        learningContext
       );
       setFeedback(result);
 
@@ -94,6 +99,8 @@ export default function WritePage() {
           }))
         );
       }
+
+      updateLearningProfile();
 
       const current = useAppStore.getState();
       await saveToStatic(current, `english-agent-data-${new Date().toISOString().split("T")[0]}.xlsx`);

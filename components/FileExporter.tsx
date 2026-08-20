@@ -7,13 +7,15 @@
 
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/lib/store";
 import { exportToExcel, saveToStatic } from "@/lib/storage/excel";
 import { exportReportToWord } from "@/lib/storage/report";
+import { exportReportToPdf } from "@/lib/storage/pdf";
 import { exportToJson } from "@/lib/storage/json";
-import { Download, Save, FileText, Database } from "lucide-react";
+import { ReportPreview } from "@/components/ReportPreview";
+import { Download, Save, FileText, Database, FileDown } from "lucide-react";
 
 /**
  * 文件导出组件
@@ -24,6 +26,7 @@ import { Download, Save, FileText, Database } from "lucide-react";
  */
 export function FileExporter() {
   const appData = useAppStore((state) => state);
+  const reportRef = useRef<HTMLDivElement>(null);
 
   const [saving, setSaving] = useState(false);
 
@@ -65,6 +68,20 @@ export function FileExporter() {
     }
   }
 
+  /** 下载 PDF 报告 */
+  async function handleDownloadPdf() {
+    if (!reportRef.current) return;
+    try {
+      await exportReportToPdf(
+        reportRef.current,
+        `english-agent-report-${new Date().toISOString().split("T")[0]}`
+      );
+    } catch (error) {
+      console.error(error);
+      alert("导出 PDF 失败");
+    }
+  }
+
   /** 下载 JSON 备份 */
   function handleDownloadJson() {
     exportToJson(appData);
@@ -84,10 +101,17 @@ export function FileExporter() {
         <FileText className="w-4 h-4 mr-2" />
         Word 报告
       </Button>
+      <Button variant="outline" onClick={handleDownloadPdf}>
+        <FileDown className="w-4 h-4 mr-2" />
+        PDF 报告
+      </Button>
       <Button variant="outline" onClick={handleDownloadJson}>
         <Database className="w-4 h-4 mr-2" />
         JSON 备份
       </Button>
+      <div className="fixed left-[-9999px] top-0">
+        <ReportPreview ref={reportRef} data={appData} />
+      </div>
     </div>
   );
 }

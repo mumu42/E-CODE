@@ -7,7 +7,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,8 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { EXAM_CONFIGS, type ExamType } from "@/lib/exam/questions";
-import { Clock, BookOpen } from "lucide-react";
+import { parseQuestionBank } from "@/lib/exam/import";
+import { Clock, BookOpen, Upload } from "lucide-react";
 
 /** 模拟考试入口页面 */
 export default function ExamPage() {
@@ -28,6 +29,14 @@ export default function ExamPage() {
   const [selected, setSelected] = useState<ExamType>("GENERAL");
 
   const config = EXAM_CONFIGS.find((c) => c.type === selected) ?? EXAM_CONFIGS[0];
+  const customQuestions = useAppStore((state) => state.customQuestions);
+  const importQuestionBank = useAppStore((state) => state.importQuestionBank);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<{
+    success: number;
+    errors: string[];
+  } | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   if (!profile) {
     return (
@@ -42,6 +51,34 @@ export default function ExamPage() {
   function startExam() {
     router.push(`/exam/session?type=${selected}`);
   }
+
+  async function handleImport(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    setImportResult(null);
+    try {
+      const { questions, errors } = await parseQuestionBank(file);
+      if (questions.length > 0) {
+        importQuestionBank(questions);
+      }
+      setImportResult({ success: questions.length, errors });
+    } catch {
+      setImportResult({ success: 0, errors: ["导入失败"] });
+    } finally {
+      setImporting(false);
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
+    }
+  }
+
+  const objectiveCount = customQuestions.filter(
+    (q) => q.type === "reading" || q.type === "listening"
+  ).length;
+  const productiveCount = customQuestions.filter(
+    (q) => q.type === "writing" || q.type === "speaking"
+  ).length;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -76,6 +113,51 @@ export default function ExamPage() {
           </Card>
         ))}
       </div>
+
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle>自定义题库</CardTitle>
+          <CardDescription>
+            已导入 {customQuestions.length} 道题目（客观题 {objectiveCount}，主观题 {productiveCount}）
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <input
+            type="file"
+            accept=".json,.xlsx,.xls"
+            ref={inputRef}
+            className="hidden"
+            onChange={handleImport}
+          />
+          <Button
+            variant="outline"
+            onClick={() => inputRef.current?.click()}
+            disabled={importing}
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            {importing ? "导入中..." : "导入 JSON / Excel 题库"}
+          </Button>
+          {importResult && (
+            <div className="text-sm space-y-1">
+              <p>
+                成功导入 {importResult.success} 道题
+                {importResult.errors.length > 0 && (
+                  <span className="text-red-600 ml-2">
+                    失败 {importResult.errors.length} 道
+                  </span>
+                )}
+              </p>
+              {importResult.errors.length > 0 && (
+                <ul className="text-red-600 list-disc list-inside">
+                  {importResult.errors.slice(0, 5).map((err, idx) => (
+                    <li key={idx}>{err}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardContent className="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

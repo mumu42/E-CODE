@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { VoiceRecorder } from "@/components/VoiceRecorder";
 import { useAppStore } from "@/lib/store";
 import { generateDailyTopic, getSpeakFeedback } from "@/lib/ai/client";
+import { buildMemoryContext } from "@/lib/ai/memory";
 import { saveToStatic } from "@/lib/storage/excel";
 import { speak, stopSpeaking, isTTSSupported, calculateSimilarity } from "@/lib/tts";
 import type { SpeakFeedback } from "@/lib/types";
@@ -33,6 +34,7 @@ export default function SpeakPage() {
   const addTopic = useAppStore((state) => state.addTopic);
   const addSession = useAppStore((state) => state.addSession);
   const addErrors = useAppStore((state) => state.addErrors);
+  const updateLearningProfile = useAppStore((state) => state.updateLearningProfile);
 
   const [topic, setTopic] = useState<{ topic: string; scenario: string; hints: string[] } | null>(null);
   const [userInput, setUserInput] = useState("");
@@ -77,6 +79,7 @@ export default function SpeakPage() {
           topic: generated.topic,
           scenario: generated.scenario,
           hints: generated.hints,
+          source: "ai",
         });
       })
       .catch((err) => console.error(err));
@@ -111,12 +114,15 @@ export default function SpeakPage() {
 
     setLoading(true);
     try {
+      const { errors: errorItems, sessions, assessments } = useAppStore.getState();
+      const learningContext = buildMemoryContext(errorItems, sessions, assessments);
       const result = await getSpeakFeedback(
         profile.target,
         profile.level,
         topic.topic,
         topic.scenario,
-        userInput
+        userInput,
+        learningContext
       );
       setFeedback(result);
 
@@ -159,6 +165,7 @@ export default function SpeakPage() {
         })),
       ];
       addErrors(errors);
+      updateLearningProfile();
 
       const current = useAppStore.getState();
       await saveToStatic(current, `english-agent-data-${new Date().toISOString().split("T")[0]}.xlsx`);

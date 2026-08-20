@@ -114,15 +114,23 @@ Return only valid JSON, no markdown.`;
  * @param topic - 练习主题
  * @param scenario - 练习场景
  * @param userInput - 用户输入的口语内容
+ * @param learningContext - 学习画像上下文（可选）
  * @returns 口语练习反馈提示词字符串
  */
-export function buildSpeakPrompt(target: Target, level: Level, topic: string, scenario: string, userInput: string) {
+export function buildSpeakPrompt(
+  target: Target,
+  level: Level,
+  topic: string,
+  scenario: string,
+  userInput: string,
+  learningContext = ""
+) {
   return `You are a friendly and rigorous English speaking coach. The user's goal is ${target} and their current level is ${level}.
 
 Scenario: ${scenario}
 Topic: ${topic}
 User's answer: ${userInput}
-
+${learningContext ? `Learning context:\n${learningContext}\n` : ""}
 Provide feedback in JSON with this exact shape:
 {
   "grammarIssues": ["issue 1", "issue 2"],
@@ -168,14 +176,15 @@ export function buildWritePrompt(
   level: Level,
   topic: string,
   instructions: string,
-  userInput: string
+  userInput: string,
+  learningContext = ""
 ) {
   return `You are a rigorous English writing coach. The user's goal is ${target} and their current level is ${level}.
 
 Writing topic: ${topic}
 Instructions: ${instructions}
 User's writing: ${userInput}
-
+${learningContext ? `Learning context:\n${learningContext}\n` : ""}
 Evaluate the writing and return feedback in JSON with this exact shape:
 {
   "score": 0-100,
@@ -233,7 +242,8 @@ export function buildChatPrompt(
   level: Level,
   role: ChatRole,
   history: { role: "user" | "assistant"; content: string }[],
-  userMessage: string
+  userMessage: string,
+  learningContext = ""
 ) {
   const roleDescriptions: Record<ChatRole, string> = {
     friend: "a friendly native speaker chatting casually",
@@ -248,7 +258,7 @@ export function buildChatPrompt(
     .join("\n");
 
   return `You are ${roleDescriptions[role]}. The user is preparing for ${target} and is at level ${level}.
-
+${learningContext ? `Learning context:\n${learningContext}\n` : ""}
 Keep the conversation natural. After your reply, optionally include a short correction or suggestion if the user made a clear mistake, but keep it brief and encouraging.
 
 Conversation history:

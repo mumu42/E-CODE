@@ -29,6 +29,7 @@ export function ExamSession() {
   const typeParam = searchParams.get("type") ?? "GENERAL";
   const profile = useAppStore((state) => state.profile);
   const addExamRecord = useAppStore((state) => state.addExamRecord);
+  const customQuestions = useAppStore((state) => state.customQuestions);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -49,8 +50,8 @@ export function ExamSession() {
   );
 
   const questions = useMemo(
-    () => (profile ? generateExamQuestions(examType, config.questionCount) : []),
-    [profile, examType, config.questionCount]
+    () => (profile ? generateExamQuestions(examType, config.questionCount, customQuestions) : []),
+    [profile, examType, config.questionCount, customQuestions]
   );
 
   function handleSelect(questionId: string, value: string) {
