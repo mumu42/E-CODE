@@ -196,6 +196,8 @@ export interface AppData {
   checkIns: string[];
   /** 已解锁徽章（按档案隔离） */
   badges: Badge[];
+  /** 词汇本（按档案隔离） */
+  vocabulary: VocabularyItem[];
   /** 界面语言 */
   locale: "zh-CN" | "en-US";
   /** 主题偏好 */
@@ -234,8 +236,36 @@ export interface ProfileData {
   checkIns: string[];
   /** 已解锁徽章 */
   badges: Badge[];
+  /** 词汇本 */
+  vocabulary: VocabularyItem[];
   /** 应用设置 */
   settings: AppSettings;
+}
+
+/** 词汇本条目 */
+export interface VocabularyItem {
+  /** 条目 ID */
+  id: string;
+  /** 用户 ID */
+  userId: string;
+  /** 单词或短语 */
+  word: string;
+  /** 释义 */
+  meaning: string;
+  /** 例句（可选） */
+  example?: string;
+  /** 来源 */
+  source: "manual" | "error" | "import";
+  /** 创建时间 */
+  createdAt: string;
+  /** 下次复习日期（SM-2） */
+  nextReviewDate?: string;
+  /** 复习间隔（天，SM-2） */
+  interval?: number;
+  /** 连续复习次数（SM-2） */
+  repetitionCount?: number;
+  /** 容易度因子（SM-2） */
+  easeFactor?: number;
 }
 
 /** 学习画像 */

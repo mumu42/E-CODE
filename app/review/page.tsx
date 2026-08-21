@@ -18,7 +18,7 @@ import { FlashcardMode } from "@/components/review/FlashcardMode";
 import { DictationMode } from "@/components/review/DictationMode";
 import { FillBlankMode } from "@/components/review/FillBlankMode";
 import { ChallengeMode } from "@/components/review/ChallengeMode";
-import type { DrillQuestion } from "@/lib/types";
+import type { DrillQuestion, ErrorItem } from "@/lib/types";
 import { BookOpen, CheckCircle, AlertCircle, Layers, Headphones, PenTool, Zap } from "lucide-react";
 
 type ReviewMode = "flashcard" | "dictation" | "fillblank" | "challenge";
@@ -36,6 +36,7 @@ export default function ReviewPage() {
   const errors = useAppStore((state) => state.errors);
   const markErrorReviewed = useAppStore((state) => state.markErrorReviewed);
   const scheduleReview = useAppStore((state) => state.scheduleReview);
+  const addVocabulary = useAppStore((state) => state.addVocabulary);
 
   const [mode, setMode] = useState<ReviewMode>("flashcard");
   const [selectedWeakPoint, setSelectedWeakPoint] = useState<string | null>(null);
@@ -56,6 +57,20 @@ export default function ReviewPage() {
   }, [errors]);
 
   const dueErrors = useMemo(() => getDueErrors(errors), [errors]);
+
+  function handleAddToVocabulary(err: ErrorItem) {
+    if (!profile) return;
+    const word = err.correction || err.original;
+    addVocabulary({
+      id: crypto.randomUUID(),
+      userId: profile.id,
+      word,
+      meaning: err.explanation || "",
+      example: err.original,
+      source: "error",
+      createdAt: new Date().toISOString(),
+    });
+  }
 
   async function handleGenerateDrill(type: string) {
     setSelectedWeakPoint(type);
@@ -131,6 +146,9 @@ export default function ReviewPage() {
                     </Button>
                     <Button size="sm" variant="outline" onClick={() => scheduleReview(err.id, "easy")}>
                       易
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => handleAddToVocabulary(err)}>
+                      加入词汇本
                     </Button>
                   </div>
                 </li>
@@ -278,6 +296,9 @@ export default function ReviewPage() {
                         标记已复习
                       </Button>
                     )}
+                    <Button size="sm" variant="ghost" onClick={() => handleAddToVocabulary(err)}>
+                      加入词汇本
+                    </Button>
                   </li>
                 ))}
             </ul>

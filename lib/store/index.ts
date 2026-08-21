@@ -24,6 +24,7 @@ import type {
   AppSettings,
   ReadingRecord,
   ListeningItem,
+  VocabularyItem,
 } from "@/lib/types";
 import { createIndexedDBStorage } from "@/lib/storage/indexeddb";
 import { autoSaveToDirectory } from "@/lib/storage/directory";
@@ -51,6 +52,7 @@ const emptyProfileData = (): ProfileData => ({
   customTopics: [],
   checkIns: [],
   badges: [],
+  vocabulary: [],
   settings: DEFAULT_SETTINGS,
 });
 
@@ -104,6 +106,14 @@ export interface AppState extends AppData {
   addReadingRecord: (record: ReadingRecord) => void;
   /** 添加一条听力理解练习记录 */
   addListeningRecord: (record: ListeningItem) => void;
+  /** 添加词汇本条目 */
+  addVocabulary: (item: VocabularyItem) => void;
+  /** 删除词汇本条目 */
+  removeVocabulary: (id: string) => void;
+  /** 批量导入词汇 */
+  importVocabulary: (items: VocabularyItem[]) => void;
+  /** 对词汇应用 SM-2 调度 */
+  scheduleVocabularyReview: (id: string, grade: "hard" | "good" | "easy") => void;
   /** 更新 AI 学习画像 */
   updateLearningProfile: () => void;
   /** 设置主题模式 */
@@ -150,6 +160,7 @@ const initialState: AppData = {
   customTopics: [],
   checkIns: [],
   badges: [],
+  vocabulary: [],
   locale: "zh-CN",
   theme: "system",
   settings: DEFAULT_SETTINGS,
@@ -188,6 +199,7 @@ function migrateFromLocalStorage(): AppData | undefined {
       customTopics: parsed.customTopics ?? [],
       checkIns: parsed.checkIns ?? [],
       badges: parsed.badges ?? [],
+      vocabulary: parsed.vocabulary ?? [],
       settings: parsed.settings ?? DEFAULT_SETTINGS,
     };
     return {
@@ -269,6 +281,7 @@ export const useAppStore = create<AppState>()(
         customTopics: [],
         checkIns: [],
         badges: [],
+        vocabulary: [],
         settings: DEFAULT_SETTINGS,
       })),
       switchProfile: (id) =>
@@ -293,6 +306,7 @@ export const useAppStore = create<AppState>()(
                 customTopics: state.customTopics,
                 checkIns: state.checkIns,
                 badges: state.badges,
+                vocabulary: state.vocabulary,
                 settings: state.settings,
               }
             : emptyProfileData();
@@ -512,6 +526,49 @@ export const useAppStore = create<AppState>()(
           ...state,
           listeningRecords: [...state.listeningRecords, record],
         })),
+      addVocabulary: (item) =>
+        set((state) => ({
+          ...state,
+          vocabulary: [...state.vocabulary, item],
+        })),
+      removeVocabulary: (id) =>
+        set((state) => ({
+          ...state,
+          vocabulary: state.vocabulary.filter((v) => v.id !== id),
+        })),
+      importVocabulary: (items) =>
+        set((state) => {
+          const existing = new Set(state.vocabulary.map((v) => v.id));
+          const merged = [...state.vocabulary, ...items.filter((v) => !existing.has(v.id))];
+          return { ...state, vocabulary: merged };
+        }),
+      scheduleVocabularyReview: (id, grade) =>
+        set((state) => ({
+          ...state,
+          vocabulary: state.vocabulary.map((v) => {
+            if (v.id !== id) return v;
+            const repetition = (v.repetitionCount ?? 0) + 1;
+            const oldEase = v.easeFactor ?? 2.5;
+            let ease = oldEase;
+            if (grade === "hard") ease = Math.max(1.3, oldEase - 0.2);
+            if (grade === "good") ease = oldEase;
+            if (grade === "easy") ease = oldEase + 0.15;
+            let interval = 1;
+            if (grade === "hard") interval = 1;
+            else if (repetition === 1) interval = 1;
+            else if (repetition === 2) interval = 6;
+            else interval = Math.round((v.interval ?? 1) * ease);
+            const nextDate = new Date();
+            nextDate.setDate(nextDate.getDate() + interval);
+            return {
+              ...v,
+              repetitionCount: repetition,
+              easeFactor: ease,
+              interval,
+              nextReviewDate: nextDate.toISOString().split("T")[0],
+            };
+          }),
+        })),
       updateLearningProfile: () =>
         set((state) => {
           if (!state.profile) return state;
@@ -555,6 +612,7 @@ export const useAppStore = create<AppState>()(
                 customTopics: migrated.customTopics ?? [],
                 checkIns: migrated.checkIns ?? [],
                 badges: migrated.badges ?? [],
+                vocabulary: migrated.vocabulary ?? [],
                 settings: migrated.settings ?? DEFAULT_SETTINGS,
               },
             };
@@ -635,6 +693,7 @@ export const useAppStore = create<AppState>()(
             customTopics: merged.customTopics ?? state.customTopics,
             checkIns: merged.checkIns ?? state.checkIns,
             badges: merged.badges ?? state.badges,
+            vocabulary: merged.vocabulary ?? state.vocabulary,
             ...(nextData ? nextData : {}),
           };
         }),
@@ -718,6 +777,7 @@ useAppStore.subscribe((state) => {
           customTopics: state.customTopics,
           checkIns: state.checkIns,
           badges: state.badges,
+          vocabulary: state.vocabulary,
           settings: state.settings,
         },
       };
