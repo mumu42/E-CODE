@@ -13,6 +13,10 @@ import {
   buildWritingTopicPrompt,
   buildChatPrompt,
   buildWeakPointDrillPrompt,
+  buildReadingPrompt,
+  buildListeningPrompt,
+  parseReadingResponse,
+  parseListeningResponse,
 } from "./prompts";
 import { buildSummaryPrompt } from "./memory";
 import type {
@@ -26,6 +30,8 @@ import type {
   DrillQuestion,
   PracticeRecord,
   ErrorItem,
+  ReadingPassage,
+  ListeningItem,
 } from "@/lib/types";
 
 /**
@@ -316,4 +322,54 @@ export async function generateLearningSummary(
     throw new Error("Failed to parse summary result");
   }
   return parsed;
+}
+
+/**
+ * 生成阅读理解文章与题目
+ * @param target - 学习目标
+ * @param level - 当前等级
+ * @returns 阅读理解文章与题目
+ */
+export async function generateReadingPassage(
+  target: Target,
+  level: Level,
+  customPrompt?: string
+): Promise<ReadingPassage> {
+  const res = await fetch("/api/ai/reading", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt: buildReadingPrompt(target, level, customPrompt) }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Reading generation failed");
+  }
+
+  const { result } = (await res.json()) as { result: string };
+  return parseReadingResponse(result);
+}
+
+/**
+ * 生成听力理解材料与题目
+ * @param target - 学习目标
+ * @param level - 当前等级
+ * @returns 听力文本与题目
+ */
+export async function generateListeningItem(
+  target: Target,
+  level: Level,
+  customPrompt?: string
+): Promise<Omit<ListeningItem, "id" | "userId" | "date" | "score">> {
+  const res = await fetch("/api/ai/listening", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt: buildListeningPrompt(target, level, customPrompt) }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Listening generation failed");
+  }
+
+  const { result } = (await res.json()) as { result: string };
+  return parseListeningResponse(result);
 }

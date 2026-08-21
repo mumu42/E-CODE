@@ -18,7 +18,7 @@ export type SessionType = "SPEAK" | "WRITE" | "CHAT";
 export type ThemeMode = "light" | "dark" | "system";
 
 /** 可自定义 Prompt 类型 */
-export type PromptType = "speak" | "write" | "chat" | "plan" | "assessment" | "drill" | "summary";
+export type PromptType = "speak" | "write" | "chat" | "plan" | "assessment" | "drill" | "summary" | "reading" | "listening";
 
 /** 自定义 Prompt 模板 */
 export interface PromptSettings {
@@ -36,6 +36,10 @@ export interface PromptSettings {
   drill: string;
   /** 学习摘要 Prompt */
   summary: string;
+  /** 阅读理解生成 Prompt */
+  reading: string;
+  /** 听力理解生成 Prompt */
+  listening: string;
 }
 
 /** 学习提醒设置 */
@@ -178,6 +182,8 @@ export interface AppData {
   topics: TopicRecord[];
   errors: ErrorItem[];
   examRecords: ExamRecord[];
+  readingRecords: ReadingRecord[];
+  listeningRecords: ListeningItem[];
   /** AI 生成的学习计划 */
   learningPlan: LearningPlan | null;
   /** AI 学习画像 */
@@ -212,6 +218,10 @@ export interface ProfileData {
   errors: ErrorItem[];
   /** 模拟考试记录列表 */
   examRecords: ExamRecord[];
+  /** 阅读理解练习记录列表 */
+  readingRecords: ReadingRecord[];
+  /** 听力理解练习记录列表 */
+  listeningRecords: ListeningItem[];
   /** 学习计划 */
   learningPlan: LearningPlan | null;
   /** AI 学习画像 */
@@ -498,4 +508,96 @@ export interface ExamRecord {
   score: number;
   /** 分项得分 */
   sectionScores?: Record<ExamQuestionType, number>;
+}
+
+/** 阅读理解选择题 */
+export interface ReadingQuestion {
+  /** 题目 */
+  question: string;
+  /** 选项 */
+  options: string[];
+  /** 正确答案索引 */
+  answerIndex: number;
+  /** 解析 */
+  explanation: string;
+}
+
+/** 阅读理解文章与题目 */
+export interface ReadingPassage {
+  /** 文章标题 */
+  title: string;
+  /** 文章正文 */
+  passage: string;
+  /** 题目列表 */
+  questions: ReadingQuestion[];
+}
+
+/** 阅读理解练习记录 */
+export interface ReadingRecord {
+  /** 记录 ID */
+  id: string;
+  /** 用户 ID */
+  userId: string;
+  /** 练习日期 */
+  date: string;
+  /** 学习目标 */
+  target: Target;
+  /** 当前等级 */
+  level: Level;
+  /** 文章标题 */
+  title: string;
+  /** 文章正文 */
+  passage: string;
+  /** 题目与作答 */
+  questions: ReadingQuestion[];
+  /** 得分 */
+  score: number;
+}
+
+/** 听力理解题目 */
+export interface ListeningQuestion {
+  /** 题目 */
+  question: string;
+  /** 选项 */
+  options: string[];
+  /** 正确答案索引 */
+  answerIndex: number;
+  /** 解析 */
+  explanation: string;
+}
+
+/** 听力理解练习项 */
+export interface ListeningItem {
+  /** 记录 ID */
+  id: string;
+  /** 用户 ID */
+  userId: string;
+  /** 练习日期 */
+  date: string;
+  /** 学习目标 */
+  target: Target;
+  /** 当前等级 */
+  level: Level;
+  /** 音频对应的文本 */
+  transcript: string;
+  /** 题目列表 */
+  questions: ListeningQuestion[];
+  /** 得分 */
+  score: number;
+}
+
+/** 听写记录 */
+export interface DictationRecord {
+  /** 记录 ID */
+  id: string;
+  /** 用户 ID */
+  userId: string;
+  /** 练习日期 */
+  date: string;
+  /** 原句 */
+  sentence: string;
+  /** 用户输入 */
+  userInput: string;
+  /** 相似度得分 */
+  similarity: number;
 }

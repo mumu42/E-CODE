@@ -22,6 +22,8 @@ const navItems = [
   { href: "/speak", label: "口语" },
   { href: "/write", label: "写作" },
   { href: "/chat", label: "对话" },
+  { href: "/reading", label: "阅读" },
+  { href: "/listening", label: "听力" },
   { href: "/topics", label: "话题" },
   { href: "/review", label: "复习" },
   { href: "/exam", label: "模考" },

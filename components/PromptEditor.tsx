@@ -21,6 +21,8 @@ const PROMPT_LABELS: Record<PromptType, string> = {
   assessment: "水平测评",
   drill: "薄弱点专项练习",
   summary: "学习摘要",
+  reading: "阅读理解生成",
+  listening: "听力理解生成",
 };
 
 const PROMPT_VARIABLES: Record<PromptType, string[]> = {
@@ -31,6 +33,8 @@ const PROMPT_VARIABLES: Record<PromptType, string[]> = {
   assessment: ["answers", "sample"],
   drill: ["weakPoint", "count"],
   summary: ["target", "level", "sessionCount", "errorCount", "recentTopics", "commonErrors"],
+  reading: ["target", "level"],
+  listening: ["target", "level"],
 };
 
 /** Prompt 编辑器组件 */

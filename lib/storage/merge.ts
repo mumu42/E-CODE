@@ -17,6 +17,8 @@ import type {
   ExamRecord,
   ExamQuestion,
   Badge,
+  ReadingRecord,
+  ListeningItem,
 } from "@/lib/types";
 
 /** 带唯一标识的数据项 */
@@ -51,6 +53,8 @@ export function mergeProfileData(target: ProfileData, source: Partial<ProfileDat
     topics: mergeById(target.topics, source.topics ?? []),
     errors: mergeById(target.errors, source.errors ?? []),
     examRecords: mergeById(target.examRecords, source.examRecords ?? []),
+    readingRecords: mergeById(target.readingRecords, source.readingRecords ?? []),
+    listeningRecords: mergeById(target.listeningRecords, source.listeningRecords ?? []),
     learningPlan: source.learningPlan ?? target.learningPlan,
     learningProfile: source.learningProfile ?? target.learningProfile,
     customQuestions: mergeById(target.customQuestions, source.customQuestions ?? []),
@@ -98,6 +102,8 @@ export function mergeAppData(snapshots: Partial<AppData>[]): Partial<AppData> {
   const topics: TopicRecord[] = [];
   const errors: ErrorItem[] = [];
   const examRecords: ExamRecord[] = [];
+  const readingRecords: ReadingRecord[] = [];
+  const listeningRecords: ListeningItem[] = [];
   const customQuestions: ExamQuestion[] = [];
   const customTopics: TopicRecord[] = [];
   const checkIns: string[] = [];
@@ -110,6 +116,8 @@ export function mergeAppData(snapshots: Partial<AppData>[]): Partial<AppData> {
     topics.push(...(snapshot.topics ?? []));
     errors.push(...(snapshot.errors ?? []));
     examRecords.push(...(snapshot.examRecords ?? []));
+    readingRecords.push(...(snapshot.readingRecords ?? []));
+    listeningRecords.push(...(snapshot.listeningRecords ?? []));
     customQuestions.push(...(snapshot.customQuestions ?? []));
     customTopics.push(...(snapshot.customTopics ?? []));
     checkIns.push(...(snapshot.checkIns ?? []));
@@ -122,6 +130,8 @@ export function mergeAppData(snapshots: Partial<AppData>[]): Partial<AppData> {
   result.topics = mergeById(topics, []);
   result.errors = mergeById(errors, []);
   result.examRecords = mergeById(examRecords, []);
+  result.readingRecords = mergeById(readingRecords, []);
+  result.listeningRecords = mergeById(listeningRecords, []);
   result.customQuestions = mergeById(customQuestions, []);
   result.customTopics = mergeById(customTopics, []);
   result.checkIns = Array.from(new Set(checkIns)).sort();

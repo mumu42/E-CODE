@@ -5,7 +5,7 @@
  * @date 2026-08-21
  */
 
-import type { Level, Target, ChatRole, LearningPlan } from "@/lib/types";
+import type { Level, Target, ChatRole, LearningPlan, ReadingPassage, ListeningItem } from "@/lib/types";
 import { renderPromptTemplate } from "@/lib/settings/promptTemplate";
 
 /** 弱项概览 */
@@ -385,4 +385,97 @@ Return a JSON array with this exact shape:
 ]
 
 Return only valid JSON, no markdown.`;
+}
+
+/**
+ * 构建阅读理解生成提示词
+ * @param target - 用户学习目标
+ * @param level - 用户英语水平
+ * @param customPrompt - 自定义提示词模板（可选）
+ * @returns 阅读理解生成提示词字符串
+ */
+export function buildReadingPrompt(target: Target, level: Level, customPrompt?: string): string {
+  if (customPrompt) {
+    return renderPromptTemplate(customPrompt, { target, level });
+  }
+
+  return `You are an expert English reading coach. Generate a reading comprehension passage and 3-5 multiple-choice questions for a learner preparing for ${target} at CEFR level ${level}.
+
+Return a JSON object with this exact shape:
+{
+  "title": "short title in English",
+  "passage": "the reading passage text in English",
+  "questions": [
+    {
+      "question": "question text in English or Chinese-English mix",
+      "options": ["A. option 1", "B. option 2", "C. option 3", "D. option 4"],
+      "answerIndex": 0,
+      "explanation": "explanation in Chinese"
+    }
+  ]
+}
+
+Rules:
+- The passage length and vocabulary should match level ${level}.
+- Each question should test reading comprehension, not just vocabulary.
+- answerIndex is the zero-based index of the correct option.
+- Include concise explanations in Chinese.
+
+Return only valid JSON, no markdown.`;
+}
+
+/** 从 AI 返回的字符串安全解析阅读理解 JSON */
+export function parseReadingResponse(raw: string): ReadingPassage {
+  const cleaned = raw.replace(/^```json\s*|\s*```$/g, "").trim();
+  const parsed = JSON.parse(cleaned);
+  if (!parsed.passage || !Array.isArray(parsed.questions)) {
+    throw new Error("Invalid reading response");
+  }
+  return parsed as ReadingPassage;
+}
+
+/**
+ * 构建听力理解生成提示词
+ * @param target - 用户学习目标
+ * @param level - 用户英语水平
+ * @param customPrompt - 自定义提示词模板（可选）
+ * @returns 听力理解生成提示词字符串
+ */
+export function buildListeningPrompt(target: Target, level: Level, customPrompt?: string): string {
+  if (customPrompt) {
+    return renderPromptTemplate(customPrompt, { target, level });
+  }
+
+  return `You are an expert English listening coach. Generate a short listening comprehension script (about 80-120 words) and 3-5 multiple-choice questions for a learner preparing for ${target} at CEFR level ${level}.
+
+Return a JSON object with this exact shape:
+{
+  "transcript": "the listening script in English",
+  "questions": [
+    {
+      "question": "question text in English or Chinese-English mix",
+      "options": ["A. option 1", "B. option 2", "C. option 3", "D. option 4"],
+      "answerIndex": 0,
+      "explanation": "explanation in Chinese"
+    }
+  ]
+}
+
+Rules:
+- The transcript should be suitable for ${level} listening practice.
+- Questions should test comprehension, not just literal matching.
+- answerIndex is the zero-based index of the correct option.
+- Include concise explanations in Chinese.
+
+Return only valid JSON, no markdown.`;
+}
+
+/** 从 AI 返回的字符串安全解析听力理解 JSON */
+export function parseListeningResponse(raw: string): Omit<ListeningItem, "id" | "userId" | "date" | "score"> {
+  const cleaned = raw.replace(/^```json\s*|\s*```$/g, "").trim();
+  const parsed = JSON.parse(cleaned);
+  if (!parsed.transcript || !Array.isArray(parsed.questions)) {
+    throw new Error("Invalid listening response");
+  }
+  return parsed as Omit<ListeningItem, "id" | "userId" | "date" | "score">;
 }

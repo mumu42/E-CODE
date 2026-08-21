@@ -155,6 +155,53 @@ Provide a summary in JSON with this exact shape:
 }
 
 Return only valid JSON, no markdown.`,
+
+  reading: `You are an expert English reading coach. Generate a reading comprehension passage and 3-5 multiple-choice questions for a learner preparing for {{target}} at CEFR level {{level}}.
+
+Return a JSON object with this exact shape:
+{
+  "title": "short title in English",
+  "passage": "the reading passage text in English",
+  "questions": [
+    {
+      "question": "question text in English or Chinese-English mix",
+      "options": ["A. option 1", "B. option 2", "C. option 3", "D. option 4"],
+      "answerIndex": 0,
+      "explanation": "explanation in Chinese"
+    }
+  ]
+}
+
+Rules:
+- The passage length and vocabulary should match level {{level}}.
+- Each question should test reading comprehension, not just vocabulary.
+- answerIndex is the zero-based index of the correct option.
+- Include concise explanations in Chinese.
+
+Return only valid JSON, no markdown.`,
+
+  listening: `You are an expert English listening coach. Generate a short listening comprehension script (about 80-120 words) and 3-5 multiple-choice questions for a learner preparing for {{target}} at CEFR level {{level}}.
+
+Return a JSON object with this exact shape:
+{
+  "transcript": "the listening script in English",
+  "questions": [
+    {
+      "question": "question text in English or Chinese-English mix",
+      "options": ["A. option 1", "B. option 2", "C. option 3", "D. option 4"],
+      "answerIndex": 0,
+      "explanation": "explanation in Chinese"
+    }
+  ]
+}
+
+Rules:
+- The transcript should be suitable for {{level}} listening practice.
+- Questions should test comprehension, not just literal matching.
+- answerIndex is the zero-based index of the correct option.
+- Include concise explanations in Chinese.
+
+Return only valid JSON, no markdown.`,
 };
 
 /** 默认应用设置 */

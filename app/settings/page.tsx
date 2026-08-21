@@ -61,7 +61,7 @@ export default function SettingsPage() {
         <CardContent>
           <p className="text-sm text-gray-700 mb-2">Alt + 1~9 快速跳转页面</p>
           <p className="text-xs text-gray-500">
-            1 今日任务 · 2 口语 · 3 写作 · 4 对话 · 5 复习 · 6 计划 · 7 模考 · 8 进度 · 9 设置
+            1 今日任务 · 2 口语 · 3 写作 · 4 对话 · 5 复习 · 6 计划 · 7 模考 · 8 进度 · 9 设置 · R 阅读 · L 听力
           </p>
         </CardContent>
       </Card>

@@ -22,6 +22,8 @@ import type {
   ExamQuestion,
   Badge,
   AppSettings,
+  ReadingRecord,
+  ListeningItem,
 } from "@/lib/types";
 import { createIndexedDBStorage } from "@/lib/storage/indexeddb";
 import { autoSaveToDirectory } from "@/lib/storage/directory";
@@ -41,6 +43,8 @@ const emptyProfileData = (): ProfileData => ({
   topics: [],
   errors: [],
   examRecords: [],
+  readingRecords: [],
+  listeningRecords: [],
   learningPlan: null,
   learningProfile: null,
   customQuestions: [],
@@ -96,6 +100,10 @@ export interface AppState extends AppData {
   scheduleReview: (errorId: string, grade: "hard" | "good" | "easy") => void;
   /** 添加一条模拟考试记录 */
   addExamRecord: (record: ExamRecord) => void;
+  /** 添加一条阅读理解练习记录 */
+  addReadingRecord: (record: ReadingRecord) => void;
+  /** 添加一条听力理解练习记录 */
+  addListeningRecord: (record: ListeningItem) => void;
   /** 更新 AI 学习画像 */
   updateLearningProfile: () => void;
   /** 设置主题模式 */
@@ -134,6 +142,8 @@ const initialState: AppData = {
   topics: [],
   errors: [],
   examRecords: [],
+  readingRecords: [],
+  listeningRecords: [],
   learningPlan: null,
   learningProfile: null,
   customQuestions: [],
@@ -170,6 +180,8 @@ function migrateFromLocalStorage(): AppData | undefined {
       topics: parsed.topics ?? [],
       errors: parsed.errors ?? [],
       examRecords: parsed.examRecords ?? [],
+      readingRecords: parsed.readingRecords ?? [],
+      listeningRecords: parsed.listeningRecords ?? [],
       learningPlan: null,
       learningProfile: null,
       customQuestions: parsed.customQuestions ?? [],
@@ -249,6 +261,8 @@ export const useAppStore = create<AppState>()(
         topics: [],
         errors: [],
         examRecords: [],
+        readingRecords: [],
+        listeningRecords: [],
         learningPlan: null,
         learningProfile: null,
         customQuestions: [],
@@ -271,6 +285,8 @@ export const useAppStore = create<AppState>()(
                 topics: state.topics,
                 errors: state.errors,
                 examRecords: state.examRecords,
+                readingRecords: state.readingRecords,
+                listeningRecords: state.listeningRecords,
                 learningPlan: state.learningPlan,
                 learningProfile: state.learningProfile,
                 customQuestions: state.customQuestions,
@@ -486,6 +502,16 @@ export const useAppStore = create<AppState>()(
             badges: newBadges.length > 0 ? [...state.badges, ...newBadges] : state.badges,
           };
         }),
+      addReadingRecord: (record) =>
+        set((state) => ({
+          ...state,
+          readingRecords: [...state.readingRecords, record],
+        })),
+      addListeningRecord: (record) =>
+        set((state) => ({
+          ...state,
+          listeningRecords: [...state.listeningRecords, record],
+        })),
       updateLearningProfile: () =>
         set((state) => {
           if (!state.profile) return state;
@@ -521,6 +547,8 @@ export const useAppStore = create<AppState>()(
                 topics: migrated.topics ?? [],
                 errors: migrated.errors ?? [],
                 examRecords: migrated.examRecords ?? [],
+                readingRecords: migrated.readingRecords ?? [],
+                listeningRecords: migrated.listeningRecords ?? [],
                 learningPlan: null,
                 learningProfile: null,
                 customQuestions: migrated.customQuestions ?? [],
@@ -599,6 +627,8 @@ export const useAppStore = create<AppState>()(
             topics: merged.topics ?? state.topics,
             errors: merged.errors ?? state.errors,
             examRecords: merged.examRecords ?? state.examRecords,
+            readingRecords: merged.readingRecords ?? state.readingRecords,
+            listeningRecords: merged.listeningRecords ?? state.listeningRecords,
             learningPlan: merged.learningPlan ?? state.learningPlan,
             learningProfile: merged.learningProfile ?? state.learningProfile,
             customQuestions: merged.customQuestions ?? state.customQuestions,
@@ -680,6 +710,8 @@ useAppStore.subscribe((state) => {
           topics: state.topics,
           errors: state.errors,
           examRecords: state.examRecords,
+          readingRecords: state.readingRecords,
+          listeningRecords: state.listeningRecords,
           learningPlan: state.learningPlan,
           learningProfile: state.learningProfile,
           customQuestions: state.customQuestions,

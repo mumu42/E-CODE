@@ -23,6 +23,11 @@ const SHORTCUTS: Record<string, string> = {
   "9": "/settings",
 };
 
+const LETTER_SHORTCUTS: Record<string, string> = {
+  r: "/reading",
+  l: "/listening",
+};
+
 /** 全局键盘快捷键组件 */
 export function KeyboardShortcuts() {
   const router = useRouter();
@@ -39,8 +44,8 @@ export function KeyboardShortcuts() {
       }
 
       if (event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
-        const key = event.key;
-        const path = SHORTCUTS[key];
+        const key = event.key.toLowerCase();
+        const path = SHORTCUTS[key] ?? LETTER_SHORTCUTS[key];
         if (path) {
           event.preventDefault();
           router.push(path);
