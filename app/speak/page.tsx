@@ -18,6 +18,7 @@ import { buildMemoryContext } from "@/lib/ai/memory";
 import { saveToStatic } from "@/lib/storage/excel";
 import { speak, stopSpeaking, isTTSSupported, calculateSimilarity } from "@/lib/tts";
 import type { SpeakFeedback } from "@/lib/types";
+import { useCustomPrompt } from "@/hooks/usePrompts";
 import { Volume2, Square, Mic, RefreshCw } from "lucide-react";
 
 /**
@@ -35,6 +36,7 @@ export default function SpeakPage() {
   const addSession = useAppStore((state) => state.addSession);
   const addErrors = useAppStore((state) => state.addErrors);
   const updateLearningProfile = useAppStore((state) => state.updateLearningProfile);
+  const speakPrompt = useCustomPrompt("speak");
 
   const [topic, setTopic] = useState<{ topic: string; scenario: string; hints: string[] } | null>(null);
   const [userInput, setUserInput] = useState("");
@@ -122,7 +124,8 @@ export default function SpeakPage() {
         topic.topic,
         topic.scenario,
         userInput,
-        learningContext
+        learningContext,
+        speakPrompt
       );
       setFeedback(result);
 

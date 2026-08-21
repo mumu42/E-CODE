@@ -19,6 +19,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Loader2, Calendar, Target, ArrowLeft } from "lucide-react";
+import { useCustomPrompt } from "@/hooks/usePrompts";
 import type { LearningPlan as LearningPlanType } from "@/lib/types";
 
 /** 学习计划页面 */
@@ -28,6 +29,7 @@ export default function PlanPage() {
   const errors = useAppStore((state) => state.errors);
   const setLearningPlan = useAppStore((state) => state.setLearningPlan);
   const completePlanTask = useAppStore((state) => state.completePlanTask);
+  const planPrompt = useCustomPrompt("plan");
 
   const [loading, setLoading] = useState(false);
 
@@ -53,6 +55,7 @@ export default function PlanPage() {
           availableMinutes: 30,
           weakPoints,
           weeks: 4,
+          customPrompt: planPrompt,
         }),
       });
       const data = (await response.json()) as { plan?: LearningPlanType; error?: string };

@@ -5,6 +5,7 @@
  * @date 2026-08-17
  */
 
+import { renderPromptTemplate } from "@/lib/settings/promptTemplate";
 import type { ErrorItem, PracticeRecord, AssessmentRecord, LearningProfile, GrammarError } from "@/lib/types";
 
 /** 统计指定数量内的高频错误（默认 5 个） */
@@ -102,10 +103,27 @@ export function buildMemoryContext(
 export function buildSummaryPrompt(
   profile: { target: string; level: string } | null,
   sessions: PracticeRecord[],
-  errors: ErrorItem[]
+  errors: ErrorItem[],
+  customPrompt?: string
 ): string {
   const periodSessions = sessions.slice(-20);
   const periodErrors = errors.slice(-20);
+  const target = profile ? `${profile.target} at ${profile.level}` : "Unknown";
+
+  if (customPrompt) {
+    return renderPromptTemplate(customPrompt, {
+      target,
+      level: profile?.level ?? "Unknown",
+      sessionCount: periodSessions.length,
+      errorCount: periodErrors.length,
+      recentTopics: periodSessions.map((s) => s.topic).join(", ") || "N/A",
+      commonErrors:
+        getCommonErrors(periodErrors, 3)
+          .map((e) => `${e.type}(×${e.count})`)
+          .join(", ") || "N/A",
+    });
+  }
+
   return `You are an encouraging English learning coach. Summarize the user's recent learning progress.
 
 User: ${profile ? `${profile.target} at ${profile.level}` : "Unknown"}

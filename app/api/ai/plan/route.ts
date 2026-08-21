@@ -21,6 +21,8 @@ export interface GeneratePlanRequest {
   weakPoints: { label: string; count: number }[];
   /** 计划周期（周数，默认 4） */
   weeks?: number;
+  /** 自定义学习计划 Prompt */
+  customPrompt?: string;
 }
 
 /**
@@ -30,7 +32,7 @@ export interface GeneratePlanRequest {
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as GeneratePlanRequest;
-    const { target, level, availableMinutes, weakPoints, weeks } = body;
+    const { target, level, availableMinutes, weakPoints, weeks, customPrompt } = body;
 
     if (!target || !level || !availableMinutes) {
       return NextResponse.json(
@@ -44,7 +46,8 @@ export async function POST(request: Request) {
       level,
       Number(availableMinutes),
       weakPoints ?? [],
-      weeks ?? 4
+      weeks ?? 4,
+      customPrompt
     );
     const { result } = await callAI(prompt);
     const plan = parseLearningPlanResponse(result);

@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAppStore } from "@/lib/store";
 import { assessLevel } from "@/lib/ai/client";
 import { saveToStatic } from "@/lib/storage/excel";
+import { useCustomPrompt } from "@/hooks/usePrompts";
 import type { Level, Target } from "@/lib/types";
 
 const targets = [
@@ -41,6 +42,7 @@ export default function OnboardingPage() {
   const router = useRouter();
   const setProfile = useAppStore((state) => state.setProfile);
   const addAssessment = useAppStore((state) => state.addAssessment);
+  const assessmentPrompt = useCustomPrompt("assessment");
 
   const [step, setStep] = useState<"target" | "quiz" | "sample" | "result">("target");
   const [target, setTarget] = useState<Target | null>(null);
@@ -62,7 +64,7 @@ export default function OnboardingPage() {
     if (!target) return;
     setLoading(true);
     try {
-      const result = await assessLevel(answers, sample);
+      const result = await assessLevel(answers, sample, assessmentPrompt);
       setLevel(result.level);
 
       const userId = crypto.randomUUID();

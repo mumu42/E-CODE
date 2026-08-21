@@ -15,6 +15,7 @@ import { VoiceRecorder } from "@/components/VoiceRecorder";
 import { useAppStore } from "@/lib/store";
 import { sendChatMessage } from "@/lib/ai/client";
 import { buildMemoryContext } from "@/lib/ai/memory";
+import { useCustomPrompt } from "@/hooks/usePrompts";
 import { saveToStatic } from "@/lib/storage/excel";
 import { ChatRole } from "@/lib/types";
 import { Mic, Send } from "lucide-react";
@@ -40,6 +41,7 @@ export default function ChatPage() {
   const chatSessions = useAppStore((state) => state.chatSessions);
   const addChatSession = useAppStore((state) => state.addChatSession);
   const updateChatSession = useAppStore((state) => state.updateChatSession);
+  const chatPrompt = useCustomPrompt("chat");
 
   const [selectedRole, setSelectedRole] = useState<ChatRole>("friend");
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
@@ -125,7 +127,8 @@ export default function ChatPage() {
         activeSession.role,
         history,
         userMessage.content,
-        learningContext
+        learningContext,
+        chatPrompt
       );
 
       const assistantMessage = {

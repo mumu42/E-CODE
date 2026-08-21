@@ -94,6 +94,15 @@ export function Header() {
             <ProfileManager />
             <BackupManager />
           </div>
+          <div className="mt-4 border-t pt-4">
+            <Link
+              href="/settings"
+              onClick={() => setSettingsOpen(false)}
+              className="text-sm text-blue-600 hover:underline dark:text-blue-400"
+            >
+              打开设置中心 →
+            </Link>
+          </div>
         </div>
       )}
 

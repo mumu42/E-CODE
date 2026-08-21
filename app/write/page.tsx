@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useAppStore } from "@/lib/store";
 import { generateWritingTopic, getWritingFeedback } from "@/lib/ai/client";
 import { buildMemoryContext } from "@/lib/ai/memory";
+import { useCustomPrompt } from "@/hooks/usePrompts";
 import { saveToStatic } from "@/lib/storage/excel";
 import type { WritingTopic, WritingFeedback, GrammarError } from "@/lib/types";
 
@@ -32,6 +33,7 @@ export default function WritePage() {
   const addSession = useAppStore((state) => state.addSession);
   const addErrors = useAppStore((state) => state.addErrors);
   const updateLearningProfile = useAppStore((state) => state.updateLearningProfile);
+  const writePrompt = useCustomPrompt("write");
 
   const [topic, setTopic] = useState<WritingTopic | null>(null);
   const [userInput, setUserInput] = useState("");
@@ -64,7 +66,8 @@ export default function WritePage() {
         topic.title,
         topic.instructions,
         userInput,
-        learningContext
+        learningContext,
+        writePrompt
       );
       setFeedback(result);
 

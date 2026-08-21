@@ -55,12 +55,13 @@ function safeParseJson<T>(text: string): T | null {
  */
 export async function assessLevel(
   answers: Record<string, string>,
-  sample: string
+  sample: string,
+  customPrompt?: string
 ): Promise<AssessmentResult> {
   const res = await fetch("/api/ai/assess", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt: buildAssessmentPrompt(answers, sample) }),
+    body: JSON.stringify({ prompt: buildAssessmentPrompt(answers, sample, customPrompt) }),
   });
 
   if (!res.ok) {
@@ -91,13 +92,14 @@ export async function getSpeakFeedback(
   topic: string,
   scenario: string,
   userInput: string,
-  learningContext = ""
+  learningContext = "",
+  customPrompt?: string
 ): Promise<SpeakFeedback> {
   const res = await fetch("/api/ai/speak", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      prompt: buildSpeakPrompt(target, level, topic, scenario, userInput, learningContext),
+      prompt: buildSpeakPrompt(target, level, topic, scenario, userInput, learningContext, customPrompt),
     }),
   });
 
@@ -121,13 +123,14 @@ export async function getSpeakFeedback(
  */
 export async function generateDailyTopic(
   target: Target,
-  level: Level
+  level: Level,
+  customPrompt?: string
 ): Promise<{ topic: string; scenario: string; hints: string[] }> {
   const res = await fetch("/api/ai/speak", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      prompt: buildDailyTopicPrompt(target, level),
+      prompt: buildDailyTopicPrompt(target, level, customPrompt),
     }),
   });
 
@@ -149,12 +152,16 @@ export async function generateDailyTopic(
  * @param level - 当前等级
  * @returns 写作题目
  */
-export async function generateWritingTopic(target: Target, level: Level): Promise<WritingTopic> {
+export async function generateWritingTopic(
+  target: Target,
+  level: Level,
+  customPrompt?: string
+): Promise<WritingTopic> {
   const res = await fetch("/api/ai/write", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      prompt: buildWritingTopicPrompt(target, level),
+      prompt: buildWritingTopicPrompt(target, level, customPrompt),
     }),
   });
 
@@ -185,13 +192,14 @@ export async function getWritingFeedback(
   topic: string,
   instructions: string,
   userInput: string,
-  learningContext = ""
+  learningContext = "",
+  customPrompt?: string
 ): Promise<WritingFeedback> {
   const res = await fetch("/api/ai/write", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      prompt: buildWritePrompt(target, level, topic, instructions, userInput, learningContext),
+      prompt: buildWritePrompt(target, level, topic, instructions, userInput, learningContext, customPrompt),
     }),
   });
 
@@ -222,13 +230,14 @@ export async function sendChatMessage(
   role: ChatRole,
   history: { role: "user" | "assistant"; content: string }[],
   userMessage: string,
-  learningContext = ""
+  learningContext = "",
+  customPrompt?: string
 ): Promise<{ reply: string; corrections: string[] }> {
   const res = await fetch("/api/ai/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      prompt: buildChatPrompt(target, level, role, history, userMessage, learningContext),
+      prompt: buildChatPrompt(target, level, role, history, userMessage, learningContext, customPrompt),
     }),
   });
 
@@ -252,13 +261,14 @@ export async function sendChatMessage(
  */
 export async function generateWeakPointDrill(
   weakPoint: string,
-  count: number
+  count: number,
+  customPrompt?: string
 ): Promise<DrillQuestion[]> {
   const res = await fetch("/api/ai/write", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      prompt: buildWeakPointDrillPrompt(weakPoint, count),
+      prompt: buildWeakPointDrillPrompt(weakPoint, count, customPrompt),
     }),
   });
 
@@ -285,13 +295,14 @@ export async function generateWeakPointDrill(
 export async function generateLearningSummary(
   profile: { target: string; level: string } | null,
   sessions: PracticeRecord[],
-  errors: ErrorItem[]
+  errors: ErrorItem[],
+  customPrompt?: string
 ): Promise<{ summary: string; strengths: string[]; weaknesses: string[]; nextSteps: string[] }> {
   const res = await fetch("/api/ai/summary", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      prompt: buildSummaryPrompt(profile, sessions, errors),
+      prompt: buildSummaryPrompt(profile, sessions, errors, customPrompt),
     }),
   });
 

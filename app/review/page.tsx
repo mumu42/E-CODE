@@ -12,8 +12,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAppStore } from "@/lib/store";
 import { generateWeakPointDrill } from "@/lib/ai/client";
+import { getDueErrors } from "@/lib/review/utils";
+import { useCustomPrompt } from "@/hooks/usePrompts";
+import { FlashcardMode } from "@/components/review/FlashcardMode";
+import { DictationMode } from "@/components/review/DictationMode";
+import { FillBlankMode } from "@/components/review/FillBlankMode";
+import { ChallengeMode } from "@/components/review/ChallengeMode";
 import type { DrillQuestion } from "@/lib/types";
-import { BookOpen, CheckCircle, AlertCircle } from "lucide-react";
+import { BookOpen, CheckCircle, AlertCircle, Layers, Headphones, PenTool, Zap } from "lucide-react";
+
+type ReviewMode = "flashcard" | "dictation" | "fillblank" | "challenge";
 
 /**
  * 错题本与薄弱点训练页面
@@ -29,11 +37,13 @@ export default function ReviewPage() {
   const markErrorReviewed = useAppStore((state) => state.markErrorReviewed);
   const scheduleReview = useAppStore((state) => state.scheduleReview);
 
+  const [mode, setMode] = useState<ReviewMode>("flashcard");
   const [selectedWeakPoint, setSelectedWeakPoint] = useState<string | null>(null);
   const [drill, setDrill] = useState<DrillQuestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [showResult, setShowResult] = useState(false);
+  const drillPrompt = useCustomPrompt("drill");
 
   const weakPoints = useMemo(() => {
     const counts = new Map<string, number>();
@@ -45,12 +55,7 @@ export default function ReviewPage() {
       .slice(0, 5);
   }, [errors]);
 
-  const dueErrors = useMemo(() => {
-    const today = new Date().toISOString().split("T")[0];
-    return errors.filter(
-      (e) => !e.reviewed || (e.nextReviewDate && e.nextReviewDate <= today)
-    );
-  }, [errors]);
+  const dueErrors = useMemo(() => getDueErrors(errors), [errors]);
 
   async function handleGenerateDrill(type: string) {
     setSelectedWeakPoint(type);
@@ -59,7 +64,7 @@ export default function ReviewPage() {
     setAnswers({});
     setShowResult(false);
     try {
-      const questions = await generateWeakPointDrill(type, 5);
+      const questions = await generateWeakPointDrill(type, 5, drillPrompt);
       setDrill(questions);
     } catch (error) {
       console.error(error);
@@ -81,6 +86,25 @@ export default function ReviewPage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
       <h1 className="text-2xl font-bold mb-6">错题本与薄弱点训练</h1>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-8">
+        {[
+          { key: "flashcard", label: "闪卡", icon: Layers },
+          { key: "dictation", label: "听写", icon: Headphones },
+          { key: "fillblank", label: "填空", icon: PenTool },
+          { key: "challenge", label: "挑战", icon: Zap },
+        ].map((m) => (
+          <Button
+            key={m.key}
+            variant={mode === m.key ? "default" : "outline"}
+            onClick={() => setMode(m.key as ReviewMode)}
+            className="flex items-center gap-2"
+          >
+            <m.icon className="w-4 h-4" />
+            {m.label}
+          </Button>
+        ))}
+      </div>
 
       <Card className="mb-8">
         <CardHeader>
@@ -113,6 +137,27 @@ export default function ReviewPage() {
               ))}
             </ul>
           )}
+        </CardContent>
+      </Card>
+
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            {mode === "flashcard" && <Layers className="w-5 h-5 text-blue-500" />}
+            {mode === "dictation" && <Headphones className="w-5 h-5 text-green-500" />}
+            {mode === "fillblank" && <PenTool className="w-5 h-5 text-purple-500" />}
+            {mode === "challenge" && <Zap className="w-5 h-5 text-orange-500" />}
+            {mode === "flashcard" && "闪卡复习"}
+            {mode === "dictation" && "听写复习"}
+            {mode === "fillblank" && "填空复习"}
+            {mode === "challenge" && "每日挑战"}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {mode === "flashcard" && <FlashcardMode errors={dueErrors} onGrade={scheduleReview} />}
+          {mode === "dictation" && <DictationMode errors={dueErrors} onGrade={scheduleReview} />}
+          {mode === "fillblank" && <FillBlankMode errors={dueErrors} onGrade={scheduleReview} />}
+          {mode === "challenge" && <ChallengeMode errors={dueErrors} onGrade={scheduleReview} />}
         </CardContent>
       </Card>
 

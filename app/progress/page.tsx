@@ -17,6 +17,7 @@ import { SkillRadarChart } from "@/components/charts/RadarChart";
 import { ScoreTrendChart } from "@/components/charts/TrendChart";
 import { HeatmapCalendar } from "@/components/charts/HeatmapCalendar";
 import { generateLearningSummary } from "@/lib/ai/client";
+import { useCustomPrompt } from "@/hooks/usePrompts";
 import { Loader2, Trophy, Award } from "lucide-react";
 
 function formatDate(date: Date) {
@@ -38,6 +39,7 @@ export default function ProgressPage() {
   const examRecords = useAppStore((state) => state.examRecords);
   const checkIns = useAppStore((state) => state.checkIns);
   const badges = useAppStore((state) => state.badges);
+  const summaryPrompt = useCustomPrompt("summary");
 
   const stats = useMemo(() => {
     const total = sessions.length;
@@ -85,7 +87,8 @@ export default function ProgressPage() {
       const result = await generateLearningSummary(
         { target: profile.target, level: profile.level },
         sessions,
-        errors
+        errors,
+        summaryPrompt
       );
       setSummary(result);
     } catch (error) {

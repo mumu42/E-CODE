@@ -15,7 +15,8 @@ import { exportReportToWord } from "@/lib/storage/report";
 import { exportReportToPdf } from "@/lib/storage/pdf";
 import { exportToJson } from "@/lib/storage/json";
 import { ReportPreview } from "@/components/ReportPreview";
-import { Download, Save, FileText, Database, FileDown } from "lucide-react";
+import { exportToZip } from "@/lib/storage/zip";
+import { Download, Save, FileText, Database, FileDown, Package } from "lucide-react";
 
 /**
  * 文件导出组件
@@ -87,6 +88,16 @@ export function FileExporter() {
     exportToJson(appData);
   }
 
+  /** 下载 ZIP 归档 */
+  async function handleDownloadZip() {
+    try {
+      await exportToZip(appData);
+    } catch (error) {
+      console.error(error);
+      alert("导出 ZIP 失败");
+    }
+  }
+
   return (
     <div className="flex flex-wrap gap-2">
       <Button variant="outline" onClick={handleSaveToStatic} disabled={saving}>
@@ -108,6 +119,10 @@ export function FileExporter() {
       <Button variant="outline" onClick={handleDownloadJson}>
         <Database className="w-4 h-4 mr-2" />
         JSON 备份
+      </Button>
+      <Button variant="outline" onClick={handleDownloadZip}>
+        <Package className="w-4 h-4 mr-2" />
+        ZIP 归档
       </Button>
       <div className="fixed left-[-9999px] top-0">
         <ReportPreview ref={reportRef} data={appData} />

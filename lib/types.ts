@@ -17,6 +17,51 @@ export type SessionType = "SPEAK" | "WRITE" | "CHAT";
 /** 主题模式 */
 export type ThemeMode = "light" | "dark" | "system";
 
+/** 可自定义 Prompt 类型 */
+export type PromptType = "speak" | "write" | "chat" | "plan" | "assessment" | "drill" | "summary";
+
+/** 自定义 Prompt 模板 */
+export interface PromptSettings {
+  /** 口语练习反馈 Prompt */
+  speak: string;
+  /** 写作批改反馈 PROMPT */
+  write: string;
+  /** AI 对话 Prompt */
+  chat: string;
+  /** 学习计划生成 Prompt */
+  plan: string;
+  /** 水平测评 Prompt */
+  assessment: string;
+  /** 薄弱点专项练习 Prompt */
+  drill: string;
+  /** 学习摘要 Prompt */
+  summary: string;
+}
+
+/** 学习提醒设置 */
+export interface ReminderSettings {
+  /** 是否开启每日提醒 */
+  enabled: boolean;
+  /** 提醒时间 HH:mm */
+  time: string;
+}
+
+/** 键盘快捷键设置 */
+export interface ShortcutSettings {
+  /** 是否启用快捷键 */
+  enabled: boolean;
+}
+
+/** 应用设置 */
+export interface AppSettings {
+  /** 自定义 Prompt 模板 */
+  prompts: PromptSettings;
+  /** 学习提醒 */
+  reminders: ReminderSettings;
+  /** 键盘快捷键 */
+  shortcuts: ShortcutSettings;
+}
+
 /** 成就徽章 */
 export interface Badge {
   /** 徽章 ID */
@@ -149,6 +194,8 @@ export interface AppData {
   locale: "zh-CN" | "en-US";
   /** 主题偏好 */
   theme?: ThemeMode;
+  /** 应用设置 */
+  settings: AppSettings;
 }
 
 /** 单个档案下的学习数据 */
@@ -177,6 +224,8 @@ export interface ProfileData {
   checkIns: string[];
   /** 已解锁徽章 */
   badges: Badge[];
+  /** 应用设置 */
+  settings: AppSettings;
 }
 
 /** 学习画像 */

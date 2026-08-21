@@ -1,8 +1,8 @@
 /**
  * @file components/FileImporter.tsx
- * @description 数据导入组件，支持从 static 文件夹或本地文件导入学习数据
+ * @description 数据导入组件，支持 static 文件夹导入、本地单文件导入和批量历史文件合并导入
  * @author English Agent Team
- * @date 2026-08-07
+ * @date 2026-08-21
  */
 
 "use client";
@@ -13,22 +13,31 @@ import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/lib/store";
 import { readStaticFile, listStaticFiles, importFromExcel } from "@/lib/storage/excel";
 import { importFromJson } from "@/lib/storage/json";
-import { Upload, FolderOpen } from "lucide-react";
+import { mergeAppData } from "@/lib/storage/merge";
+import type { AppData } from "@/lib/types";
+import { Upload, FolderOpen, Layers } from "lucide-react";
+
+interface FileImporterProps {
+  /** 是否启用批量合并导入模式 */
+  batch?: boolean;
+}
 
 /**
  * 文件导入组件
  * @example
  * ```tsx
- * <FileImporter />
+ * <FileImporter batch />
  * ```
  */
-export function FileImporter() {
+export function FileImporter({ batch }: FileImporterProps) {
   const [mode, setMode] = useState<"static" | "local">("static");
   const [files, setFiles] = useState<{ name: string; size: number; updatedAt: string }[]>([]);
   const [selectedFile, setSelectedFile] = useState<string>("");
   const [isImporting, setIsImporting] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const importData = useAppStore((state) => state.importData);
+  const mergeData = useAppStore((state) => state.mergeData);
   const router = useRouter();
 
   /** 切换为 static 模式时拉取文件列表 */
@@ -54,7 +63,7 @@ export function FileImporter() {
     }
   }
 
-  /** 从本地文件导入 */
+  /** 从单个本地文件导入 */
   async function handleLocalImport(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -75,6 +84,64 @@ export function FileImporter() {
     } finally {
       setIsImporting(false);
     }
+  }
+
+  /** 批量合并导入多个历史文件 */
+  async function handleBatchImport() {
+    if (selectedFiles.length === 0) return;
+    setIsImporting(true);
+    try {
+      const snapshots = await Promise.all(
+        selectedFiles.map(async (file) => {
+          if (file.name.endsWith(".json")) {
+            return importFromJson(file);
+          }
+          return importFromExcel(file);
+        })
+      );
+      const merged = mergeAppData(snapshots as Partial<AppData>[]);
+      mergeData(merged);
+      setSelectedFiles([]);
+      alert(`成功合并导入 ${snapshots.length} 个文件`);
+      router.push("/dashboard");
+    } catch (error) {
+      console.error(error);
+      alert("批量导入失败，请检查文件格式是否正确。");
+    } finally {
+      setIsImporting(false);
+    }
+  }
+
+  if (batch) {
+    return (
+      <div className="flex flex-col gap-3">
+        <input
+          type="file"
+          accept=".xlsx,.xls,.json"
+          multiple
+          ref={inputRef}
+          className="hidden"
+          onChange={(e) => setSelectedFiles(Array.from(e.target.files ?? []))}
+        />
+        <Button variant="outline" onClick={() => inputRef.current?.click()} disabled={isImporting}>
+          <Layers className="w-4 h-4 mr-2" />
+          选择多个历史文件
+        </Button>
+        {selectedFiles.length > 0 && (
+          <div className="text-sm text-gray-600">
+            已选择 {selectedFiles.length} 个文件：
+            <ul className="list-disc list-inside mt-1">
+              {selectedFiles.map((file) => (
+                <li key={file.name}>{file.name}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        <Button onClick={handleBatchImport} disabled={selectedFiles.length === 0 || isImporting}>
+          {isImporting ? "导入中..." : "合并导入"}
+        </Button>
+      </div>
+    );
   }
 
   return (
@@ -119,11 +186,7 @@ export function FileImporter() {
             className="hidden"
             onChange={handleLocalImport}
           />
-          <Button
-            variant="outline"
-            onClick={() => inputRef.current?.click()}
-            disabled={isImporting}
-          >
+          <Button variant="outline" onClick={() => inputRef.current?.click()} disabled={isImporting}>
             <Upload className="w-4 h-4 mr-2" />
             {isImporting ? "导入中..." : "选择本地 Excel/JSON 文件"}
           </Button>

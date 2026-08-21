@@ -21,10 +21,14 @@ import type {
   ExamRecord,
   ExamQuestion,
   Badge,
+  AppSettings,
 } from "@/lib/types";
 import { createIndexedDBStorage } from "@/lib/storage/indexeddb";
+import { autoSaveToDirectory } from "@/lib/storage/directory";
+import { DEFAULT_SETTINGS } from "@/lib/settings/defaults";
 import { buildLearningProfile } from "@/lib/ai/memory";
 import { calculateBadges, getNewBadges } from "@/lib/badges";
+import { mergeIntoAppData } from "@/lib/storage/merge";
 
 /** 数据持久化版本号，用于迁移 */
 const STORAGE_VERSION = 2;
@@ -43,6 +47,7 @@ const emptyProfileData = (): ProfileData => ({
   customTopics: [],
   checkIns: [],
   badges: [],
+  settings: DEFAULT_SETTINGS,
 });
 
 /** AppStore 对外暴露的状态与操作方法 */
@@ -99,6 +104,10 @@ export interface AppState extends AppData {
   setLocale: (locale: AppData["locale"]) => void;
   /** 导入外部数据 */
   importData: (data: Partial<AppData>) => void;
+  /** 合并外部数据到当前状态（去重） */
+  mergeData: (data: Partial<AppData>) => void;
+  /** 更新应用设置 */
+  updateSettings: (settings: Partial<AppSettings>) => void;
   /** 添加自定义话题 */
   addCustomTopic: (topic: TopicRecord) => void;
   /** 更新自定义话题 */
@@ -133,6 +142,7 @@ const initialState: AppData = {
   badges: [],
   locale: "zh-CN",
   theme: "system",
+  settings: DEFAULT_SETTINGS,
 };
 
 /** 迁移旧版 localStorage 数据到新版结构 */
@@ -166,6 +176,7 @@ function migrateFromLocalStorage(): AppData | undefined {
       customTopics: parsed.customTopics ?? [],
       checkIns: parsed.checkIns ?? [],
       badges: parsed.badges ?? [],
+      settings: parsed.settings ?? DEFAULT_SETTINGS,
     };
     return {
       ...initialState,
@@ -244,6 +255,7 @@ export const useAppStore = create<AppState>()(
         customTopics: [],
         checkIns: [],
         badges: [],
+        settings: DEFAULT_SETTINGS,
       })),
       switchProfile: (id) =>
         set((state) => {
@@ -265,6 +277,7 @@ export const useAppStore = create<AppState>()(
                 customTopics: state.customTopics,
                 checkIns: state.checkIns,
                 badges: state.badges,
+                settings: state.settings,
               }
             : emptyProfileData();
           return {
@@ -514,6 +527,7 @@ export const useAppStore = create<AppState>()(
                 customTopics: migrated.customTopics ?? [],
                 checkIns: migrated.checkIns ?? [],
                 badges: migrated.badges ?? [],
+                settings: migrated.settings ?? DEFAULT_SETTINGS,
               },
             };
             return {
@@ -561,7 +575,43 @@ export const useAppStore = create<AppState>()(
               (data.currentProfileId && data.profileData
                 ? data.profileData[data.currentProfileId].customTopics
                 : state.customTopics),
+            settings:
+              data.settings ??
+              (data.currentProfileId && data.profileData
+                ? data.profileData[data.currentProfileId].settings
+                : state.settings),
           };
+        }),
+      mergeData: (data) =>
+        set((state) => {
+          const merged = mergeIntoAppData(state as unknown as AppData, data);
+          const currentId = merged.currentProfileId ?? state.currentProfileId;
+          const nextData = currentId ? merged.profileData?.[currentId] : undefined;
+          return {
+            ...state,
+            profile: merged.profile ?? state.profile,
+            profiles: merged.profiles ?? state.profiles,
+            currentProfileId: currentId ?? state.currentProfileId,
+            profileData: merged.profileData ?? state.profileData,
+            assessments: merged.assessments ?? state.assessments,
+            sessions: merged.sessions ?? state.sessions,
+            chatSessions: merged.chatSessions ?? state.chatSessions,
+            topics: merged.topics ?? state.topics,
+            errors: merged.errors ?? state.errors,
+            examRecords: merged.examRecords ?? state.examRecords,
+            learningPlan: merged.learningPlan ?? state.learningPlan,
+            learningProfile: merged.learningProfile ?? state.learningProfile,
+            customQuestions: merged.customQuestions ?? state.customQuestions,
+            customTopics: merged.customTopics ?? state.customTopics,
+            checkIns: merged.checkIns ?? state.checkIns,
+            badges: merged.badges ?? state.badges,
+            ...(nextData ? nextData : {}),
+          };
+        }),
+      updateSettings: (partial) =>
+        set((state) => {
+          const settings = { ...state.settings, ...partial };
+          return { ...state, settings };
         }),
       addCustomTopic: (topic) =>
         set((state) => ({
@@ -636,6 +686,7 @@ useAppStore.subscribe((state) => {
           customTopics: state.customTopics,
           checkIns: state.checkIns,
           badges: state.badges,
+          settings: state.settings,
         },
       };
     }
@@ -646,5 +697,12 @@ useAppStore.subscribe((state) => {
     }).catch((error) => {
       console.error("Auto backup failed:", error);
     });
+
+    // 本地文件夹自动保存（仅在用户授权后生效）
+    if (window.localStorage.getItem("ea-auto-save-directory") === "true") {
+      autoSaveToDirectory(payload).catch((error) => {
+        console.error("Directory auto save failed:", error);
+      });
+    }
   }, 2000);
 });

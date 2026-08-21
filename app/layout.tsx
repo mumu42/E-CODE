@@ -12,6 +12,8 @@ import { Header } from "@/components/Header";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { I18nProvider } from "@/lib/i18n";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
+import { LearningReminder } from "@/components/LearningReminder";
+import { KeyboardShortcuts } from "@/components/KeyboardShortcuts";
 import { cn } from "@/lib/utils/cn";
 
 /** 无衬线字体配置 */
@@ -51,6 +53,8 @@ export default function RootLayout({
         <ThemeProvider>
           <I18nProvider>
             <ServiceWorkerRegister />
+            <LearningReminder />
+            <KeyboardShortcuts />
             <Header />
             <main className="flex-1">{children}</main>
           </I18nProvider>

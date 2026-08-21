@@ -21,7 +21,7 @@ import type {
  * @param data - 应用全局数据
  * @returns 工作簿对象
  */
-function buildWorkbook(data: AppData) {
+export function buildWorkbook(data: AppData) {
   const workbook = XLSX.utils.book_new();
 
   const profileSheet = data.profile

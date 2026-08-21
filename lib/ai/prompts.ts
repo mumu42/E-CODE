@@ -2,10 +2,11 @@
  * @file lib/ai/prompts.ts
  * @description AI 提示词构建工具函数
  * @author English Agent Team
- * @date 2026-08-07
+ * @date 2026-08-21
  */
 
 import type { Level, Target, ChatRole, LearningPlan } from "@/lib/types";
+import { renderPromptTemplate } from "@/lib/settings/promptTemplate";
 
 /** 弱项概览 */
 export interface WeakPointSummary {
@@ -20,6 +21,7 @@ export interface WeakPointSummary {
  * @param availableMinutes - 每日可用学习时间（分钟）
  * @param weakPoints - 薄弱点列表
  * @param weeks - 计划周数
+ * @param customPrompt - 自定义提示词模板（可选）
  * @returns 学习计划提示词字符串
  */
 export function buildLearningPlanPrompt(
@@ -27,11 +29,24 @@ export function buildLearningPlanPrompt(
   level: Level,
   availableMinutes: number,
   weakPoints: WeakPointSummary[],
-  weeks = 4
+  weeks = 4,
+  customPrompt?: string
 ): string {
   const weak = weakPoints.length
     ? weakPoints.map((w) => `${w.label}(${w.count}次)`).join(", ")
     : "暂无记录";
+
+  if (customPrompt) {
+    return renderPromptTemplate(customPrompt, {
+      target,
+      level,
+      availableMinutes,
+      weakPoints: weak,
+      weeks,
+      totalDays: weeks * 7,
+    });
+  }
+
   return `You are an expert English learning planner. Create a ${weeks}-week study plan for a learner preparing for ${target} at CEFR level ${level}.
 
 Daily available study time: ${availableMinutes} minutes.
@@ -78,15 +93,29 @@ export function parseLearningPlanResponse(raw: string): LearningPlan {
  * 构建英语水平评估提示词
  * @param answers - 用户测验答案
  * @param sample - 用户口语或写作样本
+ * @param customPrompt - 自定义提示词模板（可选）
  * @returns 英语水平评估提示词字符串
  */
-export function buildAssessmentPrompt(answers: Record<string, string>, sample: string) {
+export function buildAssessmentPrompt(
+  answers: Record<string, string>,
+  sample: string,
+  customPrompt?: string
+): string {
+  const answersText = Object.entries(answers)
+    .map(([key, value]) => `${key}: ${value}`)
+    .join("\n");
+
+  if (customPrompt) {
+    return renderPromptTemplate(customPrompt, {
+      answers: answersText,
+      sample,
+    });
+  }
+
   return `You are an expert English assessor. Evaluate the user's English level based on their quiz answers and a speaking/writing sample.
 
 Quiz answers:
-${Object.entries(answers)
-  .map(([key, value]) => `${key}: ${value}`)
-  .join("\n")}
+${answersText}
 
 User sample:
 ${sample}
@@ -115,6 +144,7 @@ Return only valid JSON, no markdown.`;
  * @param scenario - 练习场景
  * @param userInput - 用户输入的口语内容
  * @param learningContext - 学习画像上下文（可选）
+ * @param customPrompt - 自定义提示词模板（可选）
  * @returns 口语练习反馈提示词字符串
  */
 export function buildSpeakPrompt(
@@ -123,8 +153,20 @@ export function buildSpeakPrompt(
   topic: string,
   scenario: string,
   userInput: string,
-  learningContext = ""
-) {
+  learningContext = "",
+  customPrompt?: string
+): string {
+  if (customPrompt) {
+    return renderPromptTemplate(customPrompt, {
+      target,
+      level,
+      topic,
+      scenario,
+      userInput,
+      learningContext,
+    });
+  }
+
   return `You are a friendly and rigorous English speaking coach. The user's goal is ${target} and their current level is ${level}.
 
 Scenario: ${scenario}
@@ -147,9 +189,14 @@ Return only valid JSON, no markdown.`;
  * 构建每日口语练习主题提示词
  * @param target - 用户学习目标
  * @param level - 用户英语水平
+ * @param customPrompt - 自定义提示词模板（可选）
  * @returns 每日口语练习主题提示词字符串
  */
-export function buildDailyTopicPrompt(target: Target, level: Level) {
+export function buildDailyTopicPrompt(target: Target, level: Level, customPrompt?: string): string {
+  if (customPrompt) {
+    return renderPromptTemplate(customPrompt, { target, level });
+  }
+
   return `Generate a daily English speaking practice topic for a learner preparing for ${target} at level ${level}.
 
 Return a JSON object with this exact shape:
@@ -169,7 +216,9 @@ Return only valid JSON, no markdown.`;
  * @param topic - 写作主题
  * @param instructions - 写作指导
  * @param userInput - 用户输入的写作内容
- * @returns 写作练习反馈提示词字符串
+ * @param learningContext - 学习画像上下文（可选）
+ * @param customPrompt - 自定义提示词模板（可选）
+ * @returns 写作批改反馈提示词字符串
  */
 export function buildWritePrompt(
   target: Target,
@@ -177,8 +226,20 @@ export function buildWritePrompt(
   topic: string,
   instructions: string,
   userInput: string,
-  learningContext = ""
-) {
+  learningContext = "",
+  customPrompt?: string
+): string {
+  if (customPrompt) {
+    return renderPromptTemplate(customPrompt, {
+      target,
+      level,
+      topic,
+      instructions,
+      userInput,
+      learningContext,
+    });
+  }
+
   return `You are a rigorous English writing coach. The user's goal is ${target} and their current level is ${level}.
 
 Writing topic: ${topic}
@@ -212,9 +273,14 @@ Return only valid JSON, no markdown.`;
  * 构建写作练习主题提示词
  * @param target - 用户学习目标
  * @param level - 用户英语水平
+ * @param customPrompt - 自定义提示词模板（可选）
  * @returns 写作练习主题提示词字符串
  */
-export function buildWritingTopicPrompt(target: Target, level: Level) {
+export function buildWritingTopicPrompt(target: Target, level: Level, customPrompt?: string): string {
+  if (customPrompt) {
+    return renderPromptTemplate(customPrompt, { target, level });
+  }
+
   return `Generate a writing topic for an learner preparing for ${target} at level ${level}.
 
 Return a JSON object with this exact shape:
@@ -235,6 +301,8 @@ Return only valid JSON, no markdown.`;
  * @param role - 对话角色
  * @param history - 对话历史
  * @param userMessage - 用户当前消息
+ * @param learningContext - 学习画像上下文（可选）
+ * @param customPrompt - 自定义提示词模板（可选）
  * @returns AI 对话提示词字符串
  */
 export function buildChatPrompt(
@@ -243,8 +311,9 @@ export function buildChatPrompt(
   role: ChatRole,
   history: { role: "user" | "assistant"; content: string }[],
   userMessage: string,
-  learningContext = ""
-) {
+  learningContext = "",
+  customPrompt?: string
+): string {
   const roleDescriptions: Record<ChatRole, string> = {
     friend: "a friendly native speaker chatting casually",
     interviewer: "a job interviewer asking behavioral and situational questions",
@@ -256,6 +325,18 @@ export function buildChatPrompt(
   const historyText = history
     .map((h) => `${h.role === "user" ? "User" : "Assistant"}: ${h.content}`)
     .join("\n");
+
+  if (customPrompt) {
+    return renderPromptTemplate(customPrompt, {
+      target,
+      level,
+      role,
+      roleDescription: roleDescriptions[role],
+      history: historyText,
+      userMessage,
+      learningContext,
+    });
+  }
 
   return `You are ${roleDescriptions[role]}. The user is preparing for ${target} and is at level ${level}.
 ${learningContext ? `Learning context:\n${learningContext}\n` : ""}
@@ -279,12 +360,18 @@ Return only valid JSON, no markdown.`;
  * 构建薄弱点专项练习提示词
  * @param weakPoint - 用户的薄弱知识点
  * @param count - 练习题目数量
+ * @param customPrompt - 自定义提示词模板（可选）
  * @returns 薄弱点专项练习提示词字符串
  */
 export function buildWeakPointDrillPrompt(
   weakPoint: string,
-  count: number
-) {
+  count: number,
+  customPrompt?: string
+): string {
+  if (customPrompt) {
+    return renderPromptTemplate(customPrompt, { weakPoint, count });
+  }
+
   return `The user is weak in the following English area: ${weakPoint}. They want to practice ${count} questions.
 
 Return a JSON array with this exact shape:
