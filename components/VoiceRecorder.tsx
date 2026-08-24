@@ -1,16 +1,22 @@
 /**
  * @file components/VoiceRecorder.tsx
- * @description 浏览器语音识别输入组件，支持实时转写
+ * @description 浏览器语音识别输入组件，支持实时转写和置信度反馈
  * @author English Agent Team
- * @date 2026-08-07
+ * @date 2026-08-24
  */
 
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Mic, Square } from "lucide-react";
+
+/** 单词置信度 */
+export interface WordConfidence {
+  word: string;
+  confidence: number;
+}
 
 /** VoiceRecorder 组件 props */
 interface VoiceRecorderProps {
@@ -18,6 +24,8 @@ interface VoiceRecorderProps {
   value: string;
   /** 文本变化回调 */
   onChange: (value: string) => void;
+  /** 置信度变化回调（可选） */
+  onConfidenceChange?: (words: WordConfidence[]) => void;
 }
 
 /**
@@ -28,13 +36,41 @@ interface VoiceRecorderProps {
  * <VoiceRecorder value={input} onChange={setInput} />
  * ```
  */
-export function VoiceRecorder({ value, onChange }: VoiceRecorderProps) {
+export function VoiceRecorder({ value, onChange, onConfidenceChange }: VoiceRecorderProps) {
   const [isListening, setIsListening] = useState(false);
   const [supported] = useState(() => {
     if (typeof window === "undefined") return false;
     return "webkitSpeechRecognition" in window || "SpeechRecognition" in window;
   });
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+  const extractConfidence = useCallback(
+    (event: SpeechRecognitionEvent) => {
+      if (!onConfidenceChange) return;
+
+      const words: WordConfidence[] = [];
+      for (let i = 0; i < event.results.length; i++) {
+        const result = event.results[i];
+        if (!result.isFinal && i !== event.results.length - 1) continue;
+        const alt = result[0];
+        if (alt && Array.isArray((alt as unknown as { confidence?: number }).confidence)) {
+          // some browsers provide word-level confidence
+          continue;
+        }
+        // Fallback: split transcript into words and assign result confidence to each word
+        const transcript = alt.transcript.trim();
+        const confidence = alt.confidence ?? 0;
+        transcript
+          .split(/\s+/)
+          .filter(Boolean)
+          .forEach((word) => {
+            words.push({ word, confidence });
+          });
+      }
+      onConfidenceChange(words);
+    },
+    [onConfidenceChange]
+  );
 
   /** 开始语音识别 */
   function startListening() {
@@ -52,6 +88,7 @@ export function VoiceRecorder({ value, onChange }: VoiceRecorderProps) {
         .map((result) => result[0].transcript)
         .join("");
       onChange(transcript);
+      extractConfidence(event);
     };
 
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {

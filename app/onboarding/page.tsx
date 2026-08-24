@@ -1,8 +1,8 @@
 /**
  * @file app/onboarding/page.tsx
- * @description 新用户引导与英语水平测评页面
+ * @description 新用户引导与英语水平自适应测评页面
  * @author English Agent Team
- * @date 2026-08-07
+ * @date 2026-08-24
  */
 "use client";
 
@@ -17,6 +17,12 @@ import { assessLevel } from "@/lib/ai/client";
 import { saveToStatic } from "@/lib/storage/excel";
 import { useCustomPrompt } from "@/hooks/usePrompts";
 import type { Level, Target } from "@/lib/types";
+import {
+  startAdaptiveAssessment,
+  submitAnswer,
+  evaluateAdaptiveAssessment,
+} from "@/lib/assessment/adaptive";
+import type { AdaptiveQuestion } from "@/lib/assessment/questionBank";
 
 const targets = [
   { value: "SCHOOL", label: "升学考试" },
@@ -25,11 +31,11 @@ const targets = [
   { value: "IELTS_TOEFL", label: "雅思托福" },
 ] as const;
 
-const questions = [
-  { id: "q1", text: "She ______ to school every day.", options: ["go", "goes", "going", "went"], answer: "goes" },
-  { id: "q2", text: "If I ______ rich, I would travel around the world.", options: ["am", "were", "be", "was"], answer: "were" },
-  { id: "q3", text: "Choose the synonym of 'happy'.", options: ["sad", "joyful", "angry", "tired"], answer: "joyful" },
-];
+interface AnswerHistory {
+  question: AdaptiveQuestion;
+  userAnswer: string;
+  isCorrect: boolean;
+}
 
 /**
  * 新用户引导与英语水平测评页面
@@ -46,26 +52,97 @@ export default function OnboardingPage() {
 
   const [step, setStep] = useState<"target" | "quiz" | "sample" | "result">("target");
   const [target, setTarget] = useState<Target | null>(null);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [session, setSession] = useState<ReturnType<typeof startAdaptiveAssessment> | null>(null);
+  const [history, setHistory] = useState<AnswerHistory[]>([]);
+  const [usedIds, setUsedIds] = useState<Set<string>>(new Set());
   const [sample, setSample] = useState("");
   const [level, setLevel] = useState<Level | null>(null);
   const [loading, setLoading] = useState(false);
+  const [feedback, setFeedback] = useState("");
+  const [fillAnswer, setFillAnswer] = useState("");
 
-  async function handleTargetSelect(value: Target) {
+  function handleTargetSelect(value: Target) {
     setTarget(value);
+    const initial = startAdaptiveAssessment(12);
+    setSession(initial);
+    setHistory([]);
+    setUsedIds(new Set([initial.question.id]));
     setStep("quiz");
   }
 
-  function handleAnswer(questionId: string, option: string) {
-    setAnswers((prev) => ({ ...prev, [questionId]: option }));
+  function handleAnswer(option: string) {
+    if (!session) return;
+
+    const isCorrect =
+      option.trim().toLowerCase() === session.question.answer.trim().toLowerCase();
+    const record: AnswerHistory = {
+      question: session.question,
+      userAnswer: option,
+      isCorrect,
+    };
+    const nextHistory = [...history, record];
+    const nextUsed = new Set(usedIds);
+    nextUsed.add(session.question.id);
+
+    if (nextHistory.length >= session.totalCount) {
+      setHistory(nextHistory);
+      setStep("sample");
+      return;
+    }
+
+    const nextSession = submitAnswer(session, option, nextUsed);
+    nextUsed.add(nextSession.question.id);
+
+    setHistory(nextHistory);
+    setSession(nextSession);
+    setUsedIds(nextUsed);
+    setFillAnswer("");
+  }
+
+  function handleFillAnswer(option: string) {
+    if (!session) return;
+    if (!option.trim()) return;
+
+    const isCorrect =
+      option.trim().toLowerCase() === session.question.answer.trim().toLowerCase();
+    const record: AnswerHistory = {
+      question: session.question,
+      userAnswer: option,
+      isCorrect,
+    };
+    const nextHistory = [...history, record];
+    const nextUsed = new Set(usedIds);
+    nextUsed.add(session.question.id);
+
+    if (nextHistory.length >= session.totalCount) {
+      setHistory(nextHistory);
+      setStep("sample");
+      setFillAnswer("");
+      return;
+    }
+
+    const nextSession = submitAnswer(session, option, nextUsed);
+    nextUsed.add(nextSession.question.id);
+
+    setHistory(nextHistory);
+    setSession(nextSession);
+    setUsedIds(nextUsed);
+    setFillAnswer("");
   }
 
   async function handleSubmitSample() {
     if (!target) return;
     setLoading(true);
     try {
-      const result = await assessLevel(answers, sample, assessmentPrompt);
-      setLevel(result.level);
+      const result = await assessLevel(
+        history.reduce((acc, h) => ({ ...acc, [h.question.id]: h.userAnswer }), {}),
+        sample,
+        assessmentPrompt
+      );
+
+      const adaptive = evaluateAdaptiveAssessment(history, sample, result.level);
+      setLevel(adaptive.level);
+      setFeedback(adaptive.feedback);
 
       const userId = crypto.randomUUID();
       const now = new Date().toISOString();
@@ -73,7 +150,7 @@ export default function OnboardingPage() {
       setProfile({
         id: userId,
         target,
-        level: result.level,
+        level: adaptive.level,
         createdAt: now,
         updatedAt: now,
       });
@@ -124,31 +201,63 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {step === "quiz" && (
+          {step === "quiz" && session && (
             <div className="space-y-6">
-              <h3 className="font-medium">快速测评（{questions.length} 题）</h3>
-              {questions.map((q, idx) => (
-                <div key={q.id} className="space-y-2">
-                  <p className="text-sm text-gray-600">
-                    {idx + 1}. {q.text}
-                  </p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {q.options.map((option) => (
-                      <Button
-                        key={option}
-                        variant={answers[q.id] === option ? "default" : "outline"}
-                        onClick={() => handleAnswer(q.id, option)}
-                        className="text-left justify-start"
-                      >
-                        {option}
-                      </Button>
-                    ))}
-                  </div>
+              <div className="flex items-center justify-between">
+                <h3 className="font-medium">自适应测评</h3>
+                <span className="text-sm text-muted-foreground">
+                  {history.length + 1} / {session.totalCount}
+                </span>
+              </div>
+
+              <div className="w-full bg-muted rounded-full h-2">
+                <div
+                  className="bg-primary h-2 rounded-full transition-all"
+                  style={{ width: `${((history.length + 1) / session.totalCount) * 100}%` }}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  难度：{session.question.level} · 知识点：{session.question.tag}
+                </p>
+                <p className="text-lg font-medium">{session.question.text}</p>
+              </div>
+
+              {session.question.type === "choice" && session.question.options && (
+                <div className="grid grid-cols-2 gap-2">
+                  {session.question.options.map((option) => (
+                    <Button
+                      key={option}
+                      variant="outline"
+                      onClick={() => handleAnswer(option)}
+                      className="text-left justify-start"
+                    >
+                      {option}
+                    </Button>
+                  ))}
                 </div>
-              ))}
-              <Button onClick={() => setStep("sample")} className="w-full">
-                下一步：提交口语/写作样本
-              </Button>
+              )}
+
+              {session.question.type === "fillBlank" && (
+                <div className="space-y-2">
+                  <Textarea
+                    placeholder="请输入你的答案"
+                    rows={2}
+                    value={fillAnswer}
+                    onChange={(e) => setFillAnswer(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleFillAnswer(fillAnswer);
+                      }
+                    }}
+                  />
+                  <Button onClick={() => handleFillAnswer(fillAnswer)} disabled={!fillAnswer.trim()}>
+                    提交答案
+                  </Button>
+                </div>
+              )}
             </div>
           )}
 
@@ -177,6 +286,7 @@ export default function OnboardingPage() {
               <p className="text-lg">
                 你的英语水平约为：<span className="font-bold text-blue-600 text-2xl">{level}</span>
               </p>
+              <p className="text-gray-600">{feedback}</p>
               <p className="text-gray-600">
                 系统已根据你的目标“{targets.find((t) => t.value === target)?.label}”和当前级别生成练习计划。
               </p>

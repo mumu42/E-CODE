@@ -19,6 +19,7 @@ import { buildMemoryContext } from "@/lib/ai/memory";
 import { useCustomPrompt } from "@/hooks/usePrompts";
 import { saveToStatic } from "@/lib/storage/excel";
 import type { WritingTopic, WritingFeedback, GrammarError } from "@/lib/types";
+import { GrammarHighlight } from "@/components/GrammarHighlight";
 
 /**
  * 写作练习页面
@@ -181,7 +182,9 @@ export default function WritePage() {
 
               {feedback.errors.length > 0 && (
                 <div className="space-y-2">
-                  <h4 className="font-medium">语法/表达纠错</h4>
+                  <h4 className="font-medium">原文高亮</h4>
+                  <GrammarHighlight text={userInput} errors={feedback.errors} className="text-sm border p-3 rounded-lg bg-gray-50" />
+                  <h4 className="font-medium pt-2">语法/表达纠错</h4>
                   <ul className="space-y-2">
                     {feedback.errors.map((err, idx) => (
                       <li key={idx} className="text-sm border p-3 rounded-lg bg-red-50">

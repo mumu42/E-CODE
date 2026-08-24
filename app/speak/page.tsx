@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { VoiceRecorder } from "@/components/VoiceRecorder";
+import { VoiceRecorder, type WordConfidence } from "@/components/VoiceRecorder";
 import { useAppStore } from "@/lib/store";
 import { generateDailyTopic, getSpeakFeedback } from "@/lib/ai/client";
 import { buildMemoryContext } from "@/lib/ai/memory";
@@ -47,6 +47,9 @@ export default function SpeakPage() {
   const [shadowInput, setShadowInput] = useState("");
   const [shadowScore, setShadowScore] = useState<number | null>(null);
   const [playbackRate, setPlaybackRate] = useState(1);
+  const [wordConfidences, setWordConfidences] = useState<WordConfidence[]>([]);
+
+  const LOW_CONFIDENCE_THRESHOLD = 0.7;
 
   useEffect(() => {
     if (!profile) {
@@ -264,7 +267,39 @@ export default function SpeakPage() {
 
           <div className="space-y-2">
             <Label>你的回答</Label>
-            <VoiceRecorder value={userInput} onChange={setUserInput} />
+            <VoiceRecorder value={userInput} onChange={setUserInput} onConfidenceChange={setWordConfidences} />
+            {wordConfidences.length > 0 && (
+              <div className="text-sm p-3 rounded-lg bg-gray-50">
+                <p className="font-medium mb-2">识别置信度：</p>
+                <div className="flex flex-wrap gap-2">
+                  {wordConfidences.map((w, idx) => (
+                    <span
+                      key={idx}
+                      className={`inline-flex items-center gap-1 px-2 py-1 rounded ${
+                        w.confidence < LOW_CONFIDENCE_THRESHOLD
+                          ? "bg-red-100 text-red-700"
+                          : "bg-green-100 text-green-700"
+                      }`}
+                    >
+                      {w.word}
+                      {w.confidence < LOW_CONFIDENCE_THRESHOLD && (
+                        <button
+                          type="button"
+                          onClick={() => speak(w.word, 1)}
+                          className="text-xs underline"
+                          title="播放标准发音"
+                        >
+                          🔊
+                        </button>
+                      )}
+                    </span>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  红色为低置信度词汇，可点击 🔊 听取标准发音。
+                </p>
+              </div>
+            )}
           </div>
 
           <Button
