@@ -6,6 +6,7 @@
  */
 
 "use client";
+import { t } from "@/lib/i18n/translate";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -46,9 +47,9 @@ export default function WritePage() {
       router.push("/onboarding");
       return;
     }
-    generateWritingTopic(profile.target, profile.level)
-      .then(setTopic)
-      .catch((err) => console.error(err));
+    generateWritingTopic(profile.target, profile.level).
+    then(setTopic).
+    catch((err) => console.error(err));
   }, [profile, router]);
 
   const wordCount = userInput.trim().split(/\s+/).filter(Boolean).length;
@@ -83,7 +84,7 @@ export default function WritePage() {
         aiFeedback: result.feedback,
         grammarScore: result.grammarScore,
         fluencyScore: result.score,
-        errors: result.errors,
+        errors: result.errors
       };
 
       addSession(session);
@@ -99,7 +100,7 @@ export default function WritePage() {
             original: err.original,
             correction: err.correction,
             explanation: err.explanation,
-            errorType: err.type,
+            errorType: err.type
           }))
         );
       }
@@ -124,104 +125,104 @@ export default function WritePage() {
     <div className="container mx-auto px-4 py-8 max-w-3xl">
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl">写作练习</CardTitle>
+          <CardTitle className="text-2xl">{t("\u5199\u4F5C\u7EC3\u4E60")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          {topic ? (
-            <div className="bg-blue-50 p-4 rounded-lg">
+          {topic ?
+          <div className="bg-blue-50 p-4 rounded-lg">
               <p className="font-medium text-blue-900 mb-1">{topic.title}</p>
               <p className="text-sm text-blue-800">{topic.instructions}</p>
               <div className="flex gap-4 mt-2 text-xs text-blue-700">
-                <span>建议字数：{topic.wordLimit} 词</span>
-                <span>建议时长：{topic.timeLimit} 分钟</span>
+                <span>{t("\u5EFA\u8BAE\u5B57\u6570\uFF1A")}{topic.wordLimit}{t("\u8BCD")}</span>
+                <span>{t("\u5EFA\u8BAE\u65F6\u957F\uFF1A")}{topic.timeLimit}{t("\u5206\u949F")}</span>
               </div>
-            </div>
-          ) : (
-            <p className="text-gray-500">正在生成写作题目...</p>
-          )}
+            </div> :
+
+          <p className="text-gray-500">{t("\u6B63\u5728\u751F\u6210\u5199\u4F5C\u9898\u76EE...")}</p>
+          }
 
           <div className="space-y-2">
-            <Label htmlFor="writing-input">你的作文</Label>
+            <Label htmlFor="writing-input">{t("\u4F60\u7684\u4F5C\u6587")}</Label>
             <Textarea
               id="writing-input"
               value={userInput}
               onChange={(e) => setUserInput(e.target.value)}
-              placeholder="请输入你的英文作文..."
+              placeholder={t("\u8BF7\u8F93\u5165\u4F60\u7684\u82F1\u6587\u4F5C\u6587...")}
               rows={12}
-              className="resize-none"
-            />
+              className="resize-none" />
+            
             <div className="flex justify-between text-sm text-gray-500">
-              <span>字数：{wordCount} 词</span>
+              <span>{t("\u5B57\u6570\uFF1A")}{wordCount}{t("\u8BCD")}</span>
             </div>
           </div>
 
           <Button
             onClick={handleSubmit}
             disabled={loading || userInput.trim().length < 10}
-            className="w-full"
-          >
+            className="w-full">
+            
             {loading ? "AI 批改中..." : "提交并获取批改"}
           </Button>
 
-          {feedback && (
-            <div className="space-y-4 border-t pt-6">
+          {feedback &&
+          <div className="space-y-4 border-t pt-6">
               <div className="grid grid-cols-3 gap-4">
                 <div className="text-center p-3 bg-gray-100 rounded-lg">
-                    <p className="text-sm text-gray-600">总分</p>
+                    <p className="text-sm text-gray-600">{t("\u603B\u5206")}</p>
                     <p className="text-2xl font-bold text-blue-600">{feedback.score}</p>
                 </div>
                 <div className="text-center p-3 bg-gray-100 rounded-lg">
-                    <p className="text-sm text-gray-600">语法</p>
+                    <p className="text-sm text-gray-600">{t("\u8BED\u6CD5")}</p>
                     <p className="text-2xl font-bold text-green-600">{feedback.grammarScore}</p>
                 </div>
                 <div className="text-center p-3 bg-gray-100 rounded-lg">
-                    <p className="text-sm text-gray-600">词汇/结构</p>
+                    <p className="text-sm text-gray-600">{t("\u8BCD\u6C47/\u7ED3\u6784")}</p>
                     <p className="text-2xl font-bold text-purple-600">{feedback.vocabularyScore}</p>
                 </div>
               </div>
 
-              {feedback.errors.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="font-medium">原文高亮</h4>
+              {feedback.errors.length > 0 &&
+            <div className="space-y-2">
+                  <h4 className="font-medium">{t("\u539F\u6587\u9AD8\u4EAE")}</h4>
                   <GrammarHighlight text={userInput} errors={feedback.errors} className="text-sm border p-3 rounded-lg bg-gray-50" />
-                  <h4 className="font-medium pt-2">语法/表达纠错</h4>
+                  <h4 className="font-medium pt-2">{t("\u8BED\u6CD5/\u8868\u8FBE\u7EA0\u9519")}</h4>
                   <ul className="space-y-2">
-                    {feedback.errors.map((err, idx) => (
-                      <li key={idx} className="text-sm border p-3 rounded-lg bg-red-50">
+                    {feedback.errors.map((err, idx) =>
+                <li key={idx} className="text-sm border p-3 rounded-lg bg-red-50">
                         <p className="text-red-700">
                           <span className="line-through">{err.original}</span> → {err.correction}
                         </p>
                         <p className="text-gray-600 mt-1">{err.explanation}</p>
                       </li>
-                    ))}
+                )}
                   </ul>
                 </div>
-              )}
+            }
 
-              {feedback.suggestions.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="font-medium">提升建议</h4>
+              {feedback.suggestions.length > 0 &&
+            <div className="space-y-2">
+                  <h4 className="font-medium">{t("\u63D0\u5347\u5EFA\u8BAE")}</h4>
                   <ul className="list-disc list-inside text-sm text-gray-700">
-                    {feedback.suggestions.map((s, idx) => (
-                      <li key={idx}>{s}</li>
-                    ))}
+                    {feedback.suggestions.map((s, idx) =>
+                <li key={idx}>{s}</li>
+                )}
                   </ul>
                 </div>
-              )}
+            }
 
               <div className="bg-gray-100 p-4 rounded-lg">
-                <h4 className="font-medium mb-2">参考范文</h4>
+                <h4 className="font-medium mb-2">{t("\u53C2\u8003\u8303\u6587")}</h4>
                 <p className="text-sm text-gray-700 whitespace-pre-wrap">{feedback.improvedVersion}</p>
               </div>
 
               <div className="bg-blue-50 p-4 rounded-lg">
-                <h4 className="font-medium mb-2">整体评价</h4>
+                <h4 className="font-medium mb-2">{t("\u6574\u4F53\u8BC4\u4EF7")}</h4>
                 <p className="text-sm text-gray-700">{feedback.feedback}</p>
               </div>
             </div>
-          )}
+          }
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>);
+
 }

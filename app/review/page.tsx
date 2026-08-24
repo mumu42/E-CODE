@@ -5,6 +5,8 @@
  * @date 2026-08-07
  */
 "use client";
+import { formatDate } from "@/lib/i18n/format";
+import { t } from "@/lib/i18n/translate";
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -56,9 +58,9 @@ export default function ReviewPage() {
     errors.forEach((err) => {
       counts.set(err.errorType, (counts.get(err.errorType) || 0) + 1);
     });
-    return Array.from(counts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5);
+    return Array.from(counts.entries()).
+    sort((a, b) => b[1] - a[1]).
+    slice(0, 5);
   }, [errors]);
 
   const dueErrors = useMemo(() => getDueErrors(errors), [errors]);
@@ -73,7 +75,7 @@ export default function ReviewPage() {
       meaning: err.explanation || "",
       example: err.original,
       source: "error",
-      createdAt: new Date().toISOString(),
+      createdAt: new Date().toISOString()
     });
   }
 
@@ -119,84 +121,84 @@ export default function ReviewPage() {
   if (!profile) {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold mb-4">暂无学习档案</h1>
-        <Button onClick={() => router.push("/onboarding")}>开始学习</Button>
-      </div>
-    );
+        <h1 className="text-2xl font-bold mb-4">{t("\u6682\u65E0\u5B66\u4E60\u6863\u6848")}</h1>
+        <Button onClick={() => router.push("/onboarding")}>{t("\u5F00\u59CB\u5B66\u4E60")}</Button>
+      </div>);
+
   }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
-      <h1 className="text-2xl font-bold mb-6">错题本与薄弱点训练</h1>
+      <h1 className="text-2xl font-bold mb-6">{t("\u9519\u9898\u672C\u4E0E\u8584\u5F31\u70B9\u8BAD\u7EC3")}</h1>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-8">
         {[
-          { key: "flashcard", label: "闪卡", icon: Layers },
-          { key: "dictation", label: "听写", icon: Headphones },
-          { key: "fillblank", label: "填空", icon: PenTool },
-          { key: "challenge", label: "挑战", icon: Zap },
-        ].map((m) => (
-          <Button
-            key={m.key}
-            variant={mode === m.key ? "default" : "outline"}
-            onClick={() => setMode(m.key as ReviewMode)}
-            className="flex items-center gap-2"
-          >
+        { key: "flashcard", label: "闪卡", icon: Layers },
+        { key: "dictation", label: "听写", icon: Headphones },
+        { key: "fillblank", label: "填空", icon: PenTool },
+        { key: "challenge", label: "挑战", icon: Zap }].
+        map((m) =>
+        <Button
+          key={m.key}
+          variant={mode === m.key ? "default" : "outline"}
+          onClick={() => setMode(m.key as ReviewMode)}
+          className="flex items-center gap-2">
+          
             <m.icon className="w-4 h-4" />
             {m.label}
           </Button>
-        ))}
+        )}
       </div>
 
       <Card className="mb-8">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-orange-500" />
-            今日待复习
+            <AlertCircle className="w-5 h-5 text-orange-500" />{t("\u4ECA\u65E5\u5F85\u590D\u4E60")}
+
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {dueErrors.length === 0 ? (
-            <p className="text-gray-500">今日没有需要复习的错题。</p>
-          ) : (
-            <ul className="space-y-3">
-              {dueErrors.map((err) => (
-                <li key={err.id} className="border-b py-2">
+          {dueErrors.length === 0 ?
+          <p className="text-gray-500">{t("\u4ECA\u65E5\u6CA1\u6709\u9700\u8981\u590D\u4E60\u7684\u9519\u9898\u3002")}</p> :
+
+          <ul className="space-y-3">
+              {dueErrors.map((err) =>
+            <li key={err.id} className="border-b py-2">
                   <p className="text-sm line-through text-red-600">{err.original}</p>
                   <p className="text-sm text-green-600">{err.correction}</p>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    <Button size="sm" variant="outline" onClick={() => scheduleReview(err.id, "hard")}>
-                      难
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => scheduleReview(err.id, "good")}>
-                      会
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => scheduleReview(err.id, "easy")}>
-                      易
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => handleAddToVocabulary(err)}>
-                      加入词汇本
-                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => scheduleReview(err.id, "hard")}>{t("\u96BE")}
+
+                </Button>
+                    <Button size="sm" variant="outline" onClick={() => scheduleReview(err.id, "good")}>{t("\u4F1A")}
+
+                </Button>
+                    <Button size="sm" variant="outline" onClick={() => scheduleReview(err.id, "easy")}>{t("\u6613")}
+
+                </Button>
+                    <Button size="sm" variant="outline" onClick={() => handleAddToVocabulary(err)}>{t("\u52A0\u5165\u8BCD\u6C47\u672C")}
+
+                </Button>
                     <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleExplain(err)}
-                      disabled={explainingId === err.id}
-                    >
-                      {explainingId === err.id && <Loader2 className="w-3 h-3 mr-1 animate-spin" />}
-                      AI 讲解
-                    </Button>
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleExplain(err)}
+                  disabled={explainingId === err.id}>
+                  
+                      {explainingId === err.id && <Loader2 className="w-3 h-3 mr-1 animate-spin" />}{t("AI \u8BB2\u89E3")}
+
+                </Button>
                   </div>
-                  {explanations[err.id] && (
-                    <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 text-sm rounded-md">
-                      <p className="font-medium mb-1">AI 讲解</p>
+                  {explanations[err.id] &&
+              <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 text-sm rounded-md">
+                      <p className="font-medium mb-1">{t("AI \u8BB2\u89E3")}</p>
                       <p className="whitespace-pre-wrap">{explanations[err.id]}</p>
                     </div>
-                  )}
+              }
                 </li>
-              ))}
+            )}
             </ul>
-          )}
+          }
         </CardContent>
       </Card>
 
@@ -224,148 +226,148 @@ export default function ReviewPage() {
       <Card className="mb-8">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-orange-500" />
-            薄弱点分析
+            <AlertCircle className="w-5 h-5 text-orange-500" />{t("\u8584\u5F31\u70B9\u5206\u6790")}
+
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {weakPoints.length === 0 ? (
-            <p className="text-gray-500">暂无薄弱点数据，快去练习吧。</p>
-          ) : (
-            <div className="space-y-2">
-              {weakPoints.map(([type, count]) => (
-                <div
-                  key={type}
-                  className="flex items-center justify-between border-b py-2"
-                >
+          {weakPoints.length === 0 ?
+          <p className="text-gray-500">{t("\u6682\u65E0\u8584\u5F31\u70B9\u6570\u636E\uFF0C\u5FEB\u53BB\u7EC3\u4E60\u5427\u3002")}</p> :
+
+          <div className="space-y-2">
+              {weakPoints.map(([type, count]) =>
+            <div
+              key={type}
+              className="flex items-center justify-between border-b py-2">
+              
                   <span className="capitalize font-medium">{type}</span>
                   <div className="flex items-center gap-4">
-                    <span className="text-sm text-gray-500">{count} 次</span>
-                    <Button size="sm" onClick={() => handleGenerateDrill(type)}>
-                      专项练习
-                    </Button>
+                    <span className="text-sm text-gray-500">{count}{t("\u6B21")}</span>
+                    <Button size="sm" onClick={() => handleGenerateDrill(type)}>{t("\u4E13\u9879\u7EC3\u4E60")}
+
+                </Button>
                   </div>
                 </div>
-              ))}
+            )}
             </div>
-          )}
+          }
         </CardContent>
       </Card>
 
-      {selectedWeakPoint && (
-        <Card className="mb-8">
+      {selectedWeakPoint &&
+      <Card className="mb-8">
           <CardHeader>
-            <CardTitle>专项练习：{selectedWeakPoint}</CardTitle>
+            <CardTitle>{t("\u4E13\u9879\u7EC3\u4E60\uFF1A")}{selectedWeakPoint}</CardTitle>
           </CardHeader>
           <CardContent>
-            {loading && <p className="text-gray-500">AI 正在生成练习题...</p>}
-            {drill.length > 0 && (
-              <div className="space-y-6">
-                {drill.map((q, idx) => (
-                  <div key={idx} className="space-y-2">
+            {loading && <p className="text-gray-500">{t("AI \u6B63\u5728\u751F\u6210\u7EC3\u4E60\u9898...")}</p>}
+            {drill.length > 0 &&
+          <div className="space-y-6">
+                {drill.map((q, idx) =>
+            <div key={idx} className="space-y-2">
                     <p className="font-medium">
                       {idx + 1}. {q.question}
                     </p>
                     <div className="grid gap-2">
-                      {q.options.map((option) => (
-                        <Button
-                          key={option}
-                          variant={answers[idx] === option ? "default" : "outline"}
-                          onClick={() =>
-                            setAnswers((prev) => ({ ...prev, [idx]: option }))
-                          }
-                          className="justify-start"
-                        >
+                      {q.options.map((option) =>
+                <Button
+                  key={option}
+                  variant={answers[idx] === option ? "default" : "outline"}
+                  onClick={() =>
+                  setAnswers((prev) => ({ ...prev, [idx]: option }))
+                  }
+                  className="justify-start">
+                  
                           {option}
                         </Button>
-                      ))}
+                )}
                     </div>
-                    {showResult && (
-                      <div
-                        className={`text-sm p-2 rounded ${
-                          answers[idx] === q.answer
-                            ? "bg-green-50 text-green-700"
-                            : "bg-red-50 text-red-700"
-                        }`}
-                      >
-                        <p>正确答案：{q.answer}</p>
+                    {showResult &&
+              <div
+                className={`text-sm p-2 rounded ${
+                answers[idx] === q.answer ?
+                "bg-green-50 text-green-700" :
+                "bg-red-50 text-red-700"}`
+                }>
+                
+                        <p>{t("\u6B63\u786E\u7B54\u6848\uFF1A")}{q.answer}</p>
                         <p>{q.explanation}</p>
                       </div>
-                    )}
+              }
                   </div>
-                ))}
-                <Button onClick={() => setShowResult(true)} disabled={showResult}>
-                  查看答案
-                </Button>
-              </div>
             )}
+                <Button onClick={() => setShowResult(true)} disabled={showResult}>{t("\u67E5\u770B\u7B54\u6848")}
+
+            </Button>
+              </div>
+          }
           </CardContent>
         </Card>
-      )}
+      }
 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-blue-500" />
-            错题本
+            <BookOpen className="w-5 h-5 text-blue-500" />{t("\u9519\u9898\u672C")}
+
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {errors.length === 0 ? (
-            <p className="text-gray-500">暂无错题记录</p>
-          ) : (
-            <ul className="space-y-3">
-              {errors
-                .slice()
-                .reverse()
-                .map((err) => (
-                  <li
-                    key={err.id}
-                    className="border-b py-2 flex items-start justify-between gap-4"
-                  >
+          {errors.length === 0 ?
+          <p className="text-gray-500">{t("\u6682\u65E0\u9519\u9898\u8BB0\u5F55")}</p> :
+
+          <ul className="space-y-3">
+              {errors.
+            slice().
+            reverse().
+            map((err) =>
+            <li
+              key={err.id}
+              className="border-b py-2 flex items-start justify-between gap-4">
+              
                     <div>
                       <p className="text-sm">
                         <span className="line-through text-red-600">{err.original}</span> →{" "}
                         <span className="text-green-600">{err.correction || err.explanation}</span>
                       </p>
                       <p className="text-xs text-gray-500 mt-1">
-                        {err.errorType} · {new Date(err.date).toLocaleDateString()}
+                        {err.errorType} · {formatDate(err.date)}
                       </p>
                     </div>
                     <div className="flex flex-col gap-2">
                       <div className="flex flex-wrap gap-2">
-                        {!err.reviewed && (
-                          <Button size="sm" variant="ghost" onClick={() => markErrorReviewed(err.id)}>
-                            <CheckCircle className="w-4 h-4 mr-1" />
-                            标记已复习
-                          </Button>
-                        )}
-                        <Button size="sm" variant="ghost" onClick={() => handleAddToVocabulary(err)}>
-                          加入词汇本
-                        </Button>
+                        {!err.reviewed &&
+                  <Button size="sm" variant="ghost" onClick={() => markErrorReviewed(err.id)}>
+                            <CheckCircle className="w-4 h-4 mr-1" />{t("\u6807\u8BB0\u5DF2\u590D\u4E60")}
+
+                  </Button>
+                  }
+                        <Button size="sm" variant="ghost" onClick={() => handleAddToVocabulary(err)}>{t("\u52A0\u5165\u8BCD\u6C47\u672C")}
+
+                  </Button>
                         <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleExplain(err)}
-                          disabled={explainingId === err.id}
-                        >
-                          {explainingId === err.id && <Loader2 className="w-3 h-3 mr-1 animate-spin" />}
-                          AI 讲解
-                        </Button>
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleExplain(err)}
+                    disabled={explainingId === err.id}>
+                    
+                          {explainingId === err.id && <Loader2 className="w-3 h-3 mr-1 animate-spin" />}{t("AI \u8BB2\u89E3")}
+
+                  </Button>
                       </div>
-                      {explanations[err.id] && (
-                        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-sm rounded-md">
-                          <p className="font-medium mb-1">AI 讲解</p>
+                      {explanations[err.id] &&
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-sm rounded-md">
+                          <p className="font-medium mb-1">{t("AI \u8BB2\u89E3")}</p>
                           <p className="whitespace-pre-wrap">{explanations[err.id]}</p>
                         </div>
-                      )}
+                }
                     </div>
                   </li>
-                ))}
+            )}
             </ul>
-          )}
+          }
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>);
+
 }

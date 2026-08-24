@@ -6,14 +6,15 @@
  */
 
 "use client";
+import { t } from "@/lib/i18n/translate";
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   requestDirectoryAccess,
   clearAuthorizedDirectory,
-  loadAuthorizedDirectory,
-} from "@/lib/storage/directory";
+  loadAuthorizedDirectory } from
+"@/lib/storage/directory";
 import { Folder, FolderOpen, Trash2 } from "lucide-react";
 
 const AUTO_SAVE_KEY = "ea-auto-save-directory";
@@ -30,11 +31,11 @@ export function DirectoryAutoSave() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    loadAuthorizedDirectory()
-      .then((handle) => {
-        if (handle) setFolderName(handle.name);
-      })
-      .catch(console.error);
+    loadAuthorizedDirectory().
+    then((handle) => {
+      if (handle) setFolderName(handle.name);
+    }).
+    catch(console.error);
   }, []);
 
   async function handleAuthorize() {
@@ -64,17 +65,17 @@ export function DirectoryAutoSave() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        {folderName ? (
-          <>
+        {folderName ?
+        <>
             <FolderOpen className="w-5 h-5 text-green-600" />
             <span className="text-sm font-medium">{folderName}</span>
-          </>
-        ) : (
-          <>
+          </> :
+
+        <>
             <Folder className="w-5 h-5 text-gray-400" />
-            <span className="text-sm text-gray-500">未授权本地文件夹</span>
+            <span className="text-sm text-gray-500">{t("\u672A\u6388\u6743\u672C\u5730\u6587\u4EF6\u5939")}</span>
           </>
-        )}
+        }
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -82,11 +83,11 @@ export function DirectoryAutoSave() {
           <FolderOpen className="w-4 h-4 mr-2" />
           {folderName ? "重新授权文件夹" : "授权本地文件夹"}
         </Button>
-        {folderName && (
-          <Button variant="ghost" size="icon" onClick={handleClear}>
+        {folderName &&
+        <Button variant="ghost" size="icon" onClick={handleClear}>
             <Trash2 className="w-4 h-4 text-red-500" />
           </Button>
-        )}
+        }
       </div>
 
       <label className="flex items-center gap-2 text-sm">
@@ -94,10 +95,10 @@ export function DirectoryAutoSave() {
           type="checkbox"
           checked={autoSave}
           onChange={(e) => handleToggleAutoSave(e.target.checked)}
-          className="w-4 h-4"
-        />
-        数据变化时自动保存到授权文件夹
+          className="w-4 h-4" />{t("\u6570\u636E\u53D8\u5316\u65F6\u81EA\u52A8\u4FDD\u5B58\u5230\u6388\u6743\u6587\u4EF6\u5939")}
+
+
       </label>
-    </div>
-  );
+    </div>);
+
 }

@@ -6,6 +6,7 @@
  */
 
 "use client";
+import { t } from "@/lib/i18n/translate";
 
 import { useState } from "react";
 import { useAppStore } from "@/lib/store";
@@ -24,15 +25,15 @@ import { RotateCcw, Database, RefreshCw } from "lucide-react";
  */
 export function BackupManager() {
   const importData = useAppStore((state) => state.importData);
-  const [backups, setBackups] = useState<{ name: string; updatedAt: string }[]>([]);
+  const [backups, setBackups] = useState<{name: string;updatedAt: string;}[]>([]);
   const [loading, setLoading] = useState(false);
 
   async function loadBackups() {
     try {
       const files = await listStaticFiles();
-      const backupFiles = files
-        .filter((f) => f.name.startsWith("backup-") && f.name.endsWith(".json"))
-        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+      const backupFiles = files.
+      filter((f) => f.name.startsWith("backup-") && f.name.endsWith(".json")).
+      sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
       setBackups(backupFiles);
     } catch (error) {
       console.error("Failed to list backups:", error);
@@ -47,10 +48,10 @@ export function BackupManager() {
       const response = await fetch("/api/files/restore", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ filename }),
+        body: JSON.stringify({ filename })
       });
       if (!response.ok) throw new Error("Restore failed");
-      const { data } = (await response.json()) as { data: AppData };
+      const { data } = (await response.json()) as {data: AppData;};
       importData(data);
       alert("恢复成功");
     } catch (error) {
@@ -65,39 +66,39 @@ export function BackupManager() {
     <Card className="w-80">
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
-          <Database className="w-4 h-4" />
-          历史备份
+          <Database className="w-4 h-4" />{t("\u5386\u53F2\u5907\u4EFD")}
+
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <Button variant="outline" size="sm" className="w-full" onClick={loadBackups}>
-          <RefreshCw className="w-4 h-4 mr-2" />
-          刷新列表
+          <RefreshCw className="w-4 h-4 mr-2" />{t("\u5237\u65B0\u5217\u8868")}
+
         </Button>
-        {backups.length === 0 ? (
-          <p className="text-sm text-muted-foreground">暂无历史备份。</p>
-        ) : (
-          <ul className="space-y-2 max-h-60 overflow-auto">
-            {backups.map((backup) => (
-              <li
-                key={backup.name}
-                className="flex items-center justify-between p-2 rounded-md border text-sm"
-              >
+        {backups.length === 0 ?
+        <p className="text-sm text-muted-foreground">{t("\u6682\u65E0\u5386\u53F2\u5907\u4EFD\u3002")}</p> :
+
+        <ul className="space-y-2 max-h-60 overflow-auto">
+            {backups.map((backup) =>
+          <li
+            key={backup.name}
+            className="flex items-center justify-between p-2 rounded-md border text-sm">
+            
                 <span className="truncate">{backup.name}</span>
                 <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7"
-                  onClick={() => handleRestore(backup.name)}
-                  disabled={loading}
-                >
+              size="icon"
+              variant="ghost"
+              className="h-7 w-7"
+              onClick={() => handleRestore(backup.name)}
+              disabled={loading}>
+              
                   <RotateCcw className="w-4 h-4" />
                 </Button>
               </li>
-            ))}
+          )}
           </ul>
-        )}
+        }
       </CardContent>
-    </Card>
-  );
+    </Card>);
+
 }

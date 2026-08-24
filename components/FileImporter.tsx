@@ -6,6 +6,7 @@
  */
 
 "use client";
+import { t } from "@/lib/i18n/translate";
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -31,7 +32,7 @@ interface FileImporterProps {
  */
 export function FileImporter({ batch }: FileImporterProps) {
   const [mode, setMode] = useState<"static" | "local">("static");
-  const [files, setFiles] = useState<{ name: string; size: number; updatedAt: string }[]>([]);
+  const [files, setFiles] = useState<{name: string;size: number;updatedAt: string;}[]>([]);
   const [selectedFile, setSelectedFile] = useState<string>("");
   const [isImporting, setIsImporting] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -121,77 +122,77 @@ export function FileImporter({ batch }: FileImporterProps) {
           multiple
           ref={inputRef}
           className="hidden"
-          onChange={(e) => setSelectedFiles(Array.from(e.target.files ?? []))}
-        />
+          onChange={(e) => setSelectedFiles(Array.from(e.target.files ?? []))} />
+        
         <Button variant="outline" onClick={() => inputRef.current?.click()} disabled={isImporting}>
-          <Layers className="w-4 h-4 mr-2" />
-          选择多个历史文件
+          <Layers className="w-4 h-4 mr-2" />{t("\u9009\u62E9\u591A\u4E2A\u5386\u53F2\u6587\u4EF6")}
+
         </Button>
-        {selectedFiles.length > 0 && (
-          <div className="text-sm text-gray-600">
-            已选择 {selectedFiles.length} 个文件：
-            <ul className="list-disc list-inside mt-1">
-              {selectedFiles.map((file) => (
-                <li key={file.name}>{file.name}</li>
-              ))}
+        {selectedFiles.length > 0 &&
+        <div className="text-sm text-gray-600">{t("\u5DF2\u9009\u62E9")}
+          {selectedFiles.length}{t("\u4E2A\u6587\u4EF6\uFF1A")}
+          <ul className="list-disc list-inside mt-1">
+              {selectedFiles.map((file) =>
+            <li key={file.name}>{file.name}</li>
+            )}
             </ul>
           </div>
-        )}
+        }
         <Button onClick={handleBatchImport} disabled={selectedFiles.length === 0 || isImporting}>
           {isImporting ? "导入中..." : "合并导入"}
         </Button>
-      </div>
-    );
+      </div>);
+
   }
 
   return (
     <div className="flex flex-col gap-2">
       <div className="flex gap-2">
         <Button variant="outline" onClick={() => setMode("static")}>
-          <FolderOpen className="w-4 h-4 mr-2" />
-          static 文件夹
+          <FolderOpen className="w-4 h-4 mr-2" />{t("static \u6587\u4EF6\u5939")}
+
         </Button>
         <Button variant="outline" onClick={() => setMode("local")}>
-          <Upload className="w-4 h-4 mr-2" />
-          本地文件
+          <Upload className="w-4 h-4 mr-2" />{t("\u672C\u5730\u6587\u4EF6")}
+
         </Button>
       </div>
 
-      {mode === "static" && (
-        <div className="flex items-center gap-2">
+      {mode === "static" &&
+      <div className="flex items-center gap-2">
           <select
-            value={selectedFile}
-            onChange={(e) => setSelectedFile(e.target.value)}
-            className="border rounded px-2 py-1 text-sm"
-          >
-            <option value="">选择 static 文件夹中的文件</option>
-            {files.map((file) => (
-              <option key={file.name} value={file.name}>
+          value={selectedFile}
+          onChange={(e) => setSelectedFile(e.target.value)}
+          className="border rounded px-2 py-1 text-sm">
+          
+            <option value="">{t("\u9009\u62E9 static \u6587\u4EF6\u5939\u4E2D\u7684\u6587\u4EF6")}</option>
+            {files.map((file) =>
+          <option key={file.name} value={file.name}>
                 {file.name}
               </option>
-            ))}
+          )}
           </select>
           <Button onClick={handleStaticImport} disabled={!selectedFile || isImporting}>
             {isImporting ? "导入中..." : "导入"}
           </Button>
         </div>
-      )}
+      }
 
-      {mode === "local" && (
-        <>
+      {mode === "local" &&
+      <>
           <input
-            type="file"
-            accept=".xlsx,.xls,.json"
-            ref={inputRef}
-            className="hidden"
-            onChange={handleLocalImport}
-          />
+          type="file"
+          accept=".xlsx,.xls,.json"
+          ref={inputRef}
+          className="hidden"
+          onChange={handleLocalImport} />
+        
           <Button variant="outline" onClick={() => inputRef.current?.click()} disabled={isImporting}>
             <Upload className="w-4 h-4 mr-2" />
             {isImporting ? "导入中..." : "选择本地 Excel/JSON 文件"}
           </Button>
         </>
-      )}
-    </div>
-  );
+      }
+    </div>);
+
 }

@@ -6,6 +6,7 @@
  */
 
 "use client";
+import { t } from "@/lib/i18n/translate";
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -14,25 +15,25 @@ import { Download, CheckCircle } from "lucide-react";
 const CACHE_NAME = "english-agent-v2";
 
 const OFFLINE_URLS = [
-  "/",
-  "/dashboard",
-  "/speak",
-  "/write",
-  "/chat",
-  "/review",
-  "/topics",
-  "/progress",
-  "/plan",
-  "/exam",
-  "/exam/full",
-  "/reading",
-  "/listening",
-  "/vocabulary",
-  "/vocabulary/review",
-  "/advisor",
-  "/report",
-  "/settings",
-];
+"/",
+"/dashboard",
+"/speak",
+"/write",
+"/chat",
+"/review",
+"/topics",
+"/progress",
+"/plan",
+"/exam",
+"/exam/full",
+"/reading",
+"/listening",
+"/vocabulary",
+"/vocabulary/review",
+"/advisor",
+"/report",
+"/settings"];
+
 
 /**
  * 离线练习包组件
@@ -54,7 +55,7 @@ export function OfflinePackage() {
         const cache = await caches.open(CACHE_NAME);
         const keys = await cache.keys();
         const hasAll = OFFLINE_URLS.every((url) =>
-          keys.some((request) => request.url.endsWith(url))
+        keys.some((request) => request.url.endsWith(url))
         );
         setCached(hasAll);
       } catch {
@@ -75,9 +76,9 @@ export function OfflinePackage() {
       const cache = await caches.open(CACHE_NAME);
       await Promise.all(
         OFFLINE_URLS.map((url) =>
-          cache.add(url).catch((error) => {
-            console.warn("Failed to cache:", url, error);
-          })
+        cache.add(url).catch((error) => {
+          console.warn("Failed to cache:", url, error);
+        })
         )
       );
       setCached(true);
@@ -91,23 +92,23 @@ export function OfflinePackage() {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        {cached ? (
-          <>
-            <CheckCircle className="w-4 h-4 text-green-500" />
-            核心页面已缓存
-          </>
-        ) : (
-          <>
-            <Download className="w-4 h-4" />
-            尚未缓存核心页面
-          </>
-        )}
+        {cached ?
+        <>
+            <CheckCircle className="w-4 h-4 text-green-500" />{t("\u6838\u5FC3\u9875\u9762\u5DF2\u7F13\u5B58")}
+
+        </> :
+
+        <>
+            <Download className="w-4 h-4" />{t("\u5C1A\u672A\u7F13\u5B58\u6838\u5FC3\u9875\u9762")}
+
+        </>
+        }
       </div>
       <Button onClick={handleCache} disabled={cached}>
         <Download className="w-4 h-4 mr-2" />
         {cached ? "已缓存" : "下载离线练习包"}
       </Button>
       {status && <p className="text-sm text-muted-foreground">{status}</p>}
-    </div>
-  );
+    </div>);
+
 }

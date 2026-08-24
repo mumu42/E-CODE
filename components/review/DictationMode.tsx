@@ -6,6 +6,7 @@
  */
 
 "use client";
+import { t } from "@/lib/i18n/translate";
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -57,23 +58,23 @@ export function DictationMode({ errors, onGrade }: DictationModeProps) {
     return (
       <Card>
         <CardContent className="py-8 text-center">
-          <p className="text-gray-500">暂无可用错题</p>
+          <p className="text-gray-500">{t("\u6682\u65E0\u53EF\u7528\u9519\u9898")}</p>
         </CardContent>
-      </Card>
-    );
+      </Card>);
+
   }
 
-  const similarity = showResult
-    ? calculateSimilarity(current.correction, input)
-    : 0;
+  const similarity = showResult ?
+  calculateSimilarity(current.correction, input) :
+  0;
   const grade: "hard" | "good" | "easy" =
-    similarity >= 90 ? "easy" : similarity >= 60 ? "good" : "hard";
+  similarity >= 90 ? "easy" : similarity >= 60 ? "good" : "hard";
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between text-sm text-gray-500">
-        <span>
-          第 {index + 1} / {errors.length} 题
+        <span>{t("\u7B2C")}
+          {index + 1} / {errors.length}{t("\u9898")}
         </span>
         <span className="capitalize">{current.errorType}</span>
       </div>
@@ -81,8 +82,8 @@ export function DictationMode({ errors, onGrade }: DictationModeProps) {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Volume2 className="w-5 h-5" />
-            听写
+            <Volume2 className="w-5 h-5" />{t("\u542C\u5199")}
+
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -93,42 +94,42 @@ export function DictationMode({ errors, onGrade }: DictationModeProps) {
 
           <textarea
             className="w-full min-h-[120px] p-3 border rounded-md text-sm"
-            placeholder="请输入你听到的句子"
+            placeholder={t("\u8BF7\u8F93\u5165\u4F60\u542C\u5230\u7684\u53E5\u5B50")}
             value={input}
-            onChange={(e) => setInput(e.target.value)}
-          />
+            onChange={(e) => setInput(e.target.value)} />
+          
 
-          {!showResult ? (
-            <Button onClick={handleSubmit} disabled={!input.trim()}>
-              提交
-            </Button>
-          ) : (
-            <div className="space-y-4">
+          {!showResult ?
+          <Button onClick={handleSubmit} disabled={!input.trim()}>{t("\u63D0\u4EA4")}
+
+          </Button> :
+
+          <div className="space-y-4">
               <div
-                className={`flex items-start gap-2 p-3 rounded-md ${
-                  similarity >= 80
-                    ? "bg-green-50 text-green-700"
-                    : "bg-red-50 text-red-700"
-                }`}
-              >
-                {similarity >= 80 ? (
-                  <CheckCircle className="w-5 h-5 mt-0.5" />
-                ) : (
-                  <XCircle className="w-5 h-5 mt-0.5" />
-                )}
+              className={`flex items-start gap-2 p-3 rounded-md ${
+              similarity >= 80 ?
+              "bg-green-50 text-green-700" :
+              "bg-red-50 text-red-700"}`
+              }>
+              
+                {similarity >= 80 ?
+              <CheckCircle className="w-5 h-5 mt-0.5" /> :
+
+              <XCircle className="w-5 h-5 mt-0.5" />
+              }
                 <div>
-                  <p className="font-medium">
-                    相似度 {similarity}% · {grade === "easy" ? "优秀" : grade === "good" ? "良好" : "再练练"}
+                  <p className="font-medium">{t("\u76F8\u4F3C\u5EA6")}
+                  {similarity}% · {grade === "easy" ? "优秀" : grade === "good" ? "良好" : "再练练"}
                   </p>
-                  <p className="text-sm">正确答案：{current.correction}</p>
+                  <p className="text-sm">{t("\u6B63\u786E\u7B54\u6848\uFF1A")}{current.correction}</p>
                   <p className="text-sm mt-1">{current.explanation}</p>
                 </div>
               </div>
-              <Button onClick={() => handleNext(grade)}>下一题</Button>
+              <Button onClick={() => handleNext(grade)}>{t("\u4E0B\u4E00\u9898")}</Button>
             </div>
-          )}
+          }
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>);
+
 }

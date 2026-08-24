@@ -6,6 +6,7 @@
  */
 
 "use client";
+import { t } from "@/lib/i18n/translate";
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -33,7 +34,7 @@ const types: ChallengeType[] = ["flashcard", "dictation", "fillblank"];
 function buildChallengeItems(errors: ErrorItem[]): ChallengeItem[] {
   return errors.slice(0, 10).map((err, i) => ({
     error: err,
-    type: types[i % types.length],
+    type: types[i % types.length]
   }));
 }
 
@@ -105,32 +106,32 @@ export function ChallengeMode({ errors, onGrade }: ChallengeModeProps) {
 
   const minutes = Math.floor(secondsLeft / 60);
   const seconds = secondsLeft % 60;
-  const progress = items.length > 0 ? Math.round(((index + (showResult || finished ? 1 : 0)) / items.length) * 100) : 0;
+  const progress = items.length > 0 ? Math.round((index + (showResult || finished ? 1 : 0)) / items.length * 100) : 0;
 
   if (items.length === 0 || !current) {
     return (
       <Card>
         <CardContent className="py-8 text-center">
-          <p className="text-gray-500">暂无可用错题</p>
+          <p className="text-gray-500">{t("\u6682\u65E0\u53EF\u7528\u9519\u9898")}</p>
         </CardContent>
-      </Card>
-    );
+      </Card>);
+
   }
 
   if (finished) {
-    const score = Math.round((correctCount / items.length) * 100);
+    const score = Math.round(correctCount / items.length * 100);
     return (
       <Card>
         <CardContent className="py-12 text-center space-y-4">
           <Trophy className="w-12 h-12 mx-auto text-yellow-500" />
-          <h2 className="text-2xl font-bold">挑战结束</h2>
-          <p className="text-lg">
-            得分：{correctCount}/{items.length}（{score}%）
+          <h2 className="text-2xl font-bold">{t("\u6311\u6218\u7ED3\u675F")}</h2>
+          <p className="text-lg">{t("\u5F97\u5206\uFF1A")}
+            {correctCount}/{items.length}（{score}%）
           </p>
-          <Button onClick={() => window.location.reload()}>再来一次</Button>
+          <Button onClick={() => window.location.reload()}>{t("\u518D\u6765\u4E00\u6B21")}</Button>
         </CardContent>
-      </Card>
-    );
+      </Card>);
+
   }
 
   return (
@@ -147,8 +148,8 @@ export function ChallengeMode({ errors, onGrade }: ChallengeModeProps) {
       <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
         <div
           className="h-full bg-blue-600 transition-all"
-          style={{ width: `${progress}%` }}
-        />
+          style={{ width: `${progress}%` }} />
+        
       </div>
 
       <Card>
@@ -160,91 +161,91 @@ export function ChallengeMode({ errors, onGrade }: ChallengeModeProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {current.type === "flashcard" && (
-            <>
+          {current.type === "flashcard" &&
+          <>
               <div
-                className="p-6 border rounded-md text-center cursor-pointer min-h-[160px] flex flex-col items-center justify-center"
-                onClick={() => setFlipped(!flipped)}
-              >
-                {!flipped ? (
-                  <>
+              className="p-6 border rounded-md text-center cursor-pointer min-h-[160px] flex flex-col items-center justify-center"
+              onClick={() => setFlipped(!flipped)}>
+              
+                {!flipped ?
+              <>
                     <p className="text-lg line-through text-red-600">{current.error.original}</p>
-                    <p className="text-xs text-gray-400 mt-2">点击查看修正</p>
-                  </>
-                ) : (
-                  <>
+                    <p className="text-xs text-gray-400 mt-2">{t("\u70B9\u51FB\u67E5\u770B\u4FEE\u6B63")}</p>
+                  </> :
+
+              <>
                     <p className="text-lg text-green-700">{current.error.correction}</p>
                     <p className="text-sm text-gray-600 mt-2">{current.error.explanation}</p>
                   </>
-                )}
+              }
               </div>
-              {!showResult ? (
-                <div className="flex justify-center gap-2">
-                  <Button variant="outline" onClick={() => submitFlashcard("hard")}>难</Button>
-                  <Button onClick={() => submitFlashcard("good")}>会</Button>
-                  <Button variant="outline" onClick={() => submitFlashcard("easy")}>易</Button>
-                </div>
-              ) : (
-                <Button onClick={() => next("good")}>下一题</Button>
-              )}
-            </>
-          )}
+              {!showResult ?
+            <div className="flex justify-center gap-2">
+                  <Button variant="outline" onClick={() => submitFlashcard("hard")}>{t("\u96BE")}</Button>
+                  <Button onClick={() => submitFlashcard("good")}>{t("\u4F1A")}</Button>
+                  <Button variant="outline" onClick={() => submitFlashcard("easy")}>{t("\u6613")}</Button>
+                </div> :
 
-          {current.type === "dictation" && (
-            <>
+            <Button onClick={() => next("good")}>{t("\u4E0B\u4E00\u9898")}</Button>
+            }
+            </>
+          }
+
+          {current.type === "dictation" &&
+          <>
               <Button
-                onClick={() => speak(current.error.correction, 0.9)}
-                variant="outline"
-              >
-                播放句子
-              </Button>
-              {!showResult ? (
-                <>
-                  <textarea
-                    value={dictationInput}
-                    onChange={(e) => setDictationInput(e.target.value)}
-                    placeholder="请输入听到的句子"
-                    className="w-full min-h-[120px] p-3 border rounded-md text-sm"
-                  />
-                  <Button onClick={submitDictation} disabled={!dictationInput.trim()}>
-                    提交
-                  </Button>
-                </>
-              ) : (
-                <Button onClick={() => next("good")}>下一题</Button>
-              )}
-            </>
-          )}
+              onClick={() => speak(current.error.correction, 0.9)}
+              variant="outline">{t("\u64AD\u653E\u53E5\u5B50")}
 
-          {current.type === "fillblank" && blank && (
+
+            </Button>
+              {!showResult ?
             <>
-              <p className="text-lg">{blank.sentence}</p>
-              {!showResult ? (
-                <>
-                  <input
-                    type="text"
-                    value={fillInput}
-                    onChange={(e) => setFillInput(e.target.value)}
-                    placeholder="请输入缺失部分"
-                    className="w-full h-10 px-3 rounded border text-sm"
-                  />
-                  <Button onClick={submitFillBlank} disabled={!fillInput.trim()}>
-                    提交
-                  </Button>
-                </>
-              ) : (
-                <Button onClick={() => next("good")}>下一题</Button>
-              )}
-            </>
-          )}
+                  <textarea
+                value={dictationInput}
+                onChange={(e) => setDictationInput(e.target.value)}
+                placeholder={t("\u8BF7\u8F93\u5165\u542C\u5230\u7684\u53E5\u5B50")}
+                className="w-full min-h-[120px] p-3 border rounded-md text-sm" />
+              
+                  <Button onClick={submitDictation} disabled={!dictationInput.trim()}>{t("\u63D0\u4EA4")}
 
-          {showResult && (
-            <p className="text-center text-sm text-gray-600">
-              正确答案：{current.error.correction}
+              </Button>
+                </> :
+
+            <Button onClick={() => next("good")}>{t("\u4E0B\u4E00\u9898")}</Button>
+            }
+            </>
+          }
+
+          {current.type === "fillblank" && blank &&
+          <>
+              <p className="text-lg">{blank.sentence}</p>
+              {!showResult ?
+            <>
+                  <input
+                type="text"
+                value={fillInput}
+                onChange={(e) => setFillInput(e.target.value)}
+                placeholder={t("\u8BF7\u8F93\u5165\u7F3A\u5931\u90E8\u5206")}
+                className="w-full h-10 px-3 rounded border text-sm" />
+              
+                  <Button onClick={submitFillBlank} disabled={!fillInput.trim()}>{t("\u63D0\u4EA4")}
+
+              </Button>
+                </> :
+
+            <Button onClick={() => next("good")}>{t("\u4E0B\u4E00\u9898")}</Button>
+            }
+            </>
+          }
+
+          {showResult &&
+          <p className="text-center text-sm text-gray-600">{t("\u6B63\u786E\u7B54\u6848\uFF1A")}
+            {current.error.correction}
             </p>
-          )}
+          }
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>);
+
 }

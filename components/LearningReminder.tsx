@@ -6,6 +6,7 @@
  */
 
 "use client";
+import { t } from "@/lib/i18n/translate";
 
 import { useEffect, useState } from "react";
 import { useAppStore } from "@/lib/store";
@@ -16,8 +17,8 @@ import {
   checkNotificationPermission,
   showNotification,
   scheduleDailyReminder,
-  cancelLearningReminders,
-} from "@/lib/notifications";
+  cancelLearningReminders } from
+"@/lib/notifications";
 
 const LAST_REMINDED_KEY = "ea-last-reminded-date";
 
@@ -85,43 +86,43 @@ export function LearningReminder() {
         <Button
           variant={settings.reminders.enabled ? "default" : "outline"}
           onClick={() =>
-            updateSettings({
-              reminders: { ...settings.reminders, enabled: !settings.reminders.enabled },
-            })
-          }
-        >
+          updateSettings({
+            reminders: { ...settings.reminders, enabled: !settings.reminders.enabled }
+          })
+          }>
+          
           {settings.reminders.enabled ? <Bell className="w-4 h-4 mr-2" /> : <BellOff className="w-4 h-4 mr-2" />}
           {settings.reminders.enabled ? "已开启" : "已关闭"}
         </Button>
-        {permission !== "granted" && permission !== "unsupported" && (
-          <Button variant="outline" onClick={handleRequestPermission}>
-            请求通知权限
-          </Button>
-        )}
+        {permission !== "granted" && permission !== "unsupported" &&
+        <Button variant="outline" onClick={handleRequestPermission}>{t("\u8BF7\u6C42\u901A\u77E5\u6743\u9650")}
+
+        </Button>
+        }
       </div>
 
-      {settings.reminders.enabled && (
-        <div className="flex items-center gap-2">
-          <label className="text-sm">每日提醒时间</label>
+      {settings.reminders.enabled &&
+      <div className="flex items-center gap-2">
+          <label className="text-sm">{t("\u6BCF\u65E5\u63D0\u9192\u65F6\u95F4")}</label>
           <input
-            type="time"
-            value={settings.reminders.time}
-            onChange={(e) =>
-              updateSettings({
-                reminders: { ...settings.reminders, time: e.target.value },
-              })
-            }
-            className="border rounded px-2 py-1 text-sm"
-          />
+          type="time"
+          value={settings.reminders.time}
+          onChange={(e) =>
+          updateSettings({
+            reminders: { ...settings.reminders, time: e.target.value }
+          })
+          }
+          className="border rounded px-2 py-1 text-sm" />
+        
         </div>
-      )}
+      }
 
-      {permission === "unsupported" && (
-        <p className="text-xs text-orange-600">当前浏览器不支持桌面通知。</p>
-      )}
-      {permission === "denied" && (
-        <p className="text-xs text-red-600">通知权限被拒绝，请在浏览器设置中开启。</p>
-      )}
-    </div>
-  );
+      {permission === "unsupported" &&
+      <p className="text-xs text-orange-600">{t("\u5F53\u524D\u6D4F\u89C8\u5668\u4E0D\u652F\u6301\u684C\u9762\u901A\u77E5\u3002")}</p>
+      }
+      {permission === "denied" &&
+      <p className="text-xs text-red-600">{t("\u901A\u77E5\u6743\u9650\u88AB\u62D2\u7EDD\uFF0C\u8BF7\u5728\u6D4F\u89C8\u5668\u8BBE\u7F6E\u4E2D\u5F00\u542F\u3002")}</p>
+      }
+    </div>);
+
 }

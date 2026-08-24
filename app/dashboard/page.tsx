@@ -6,6 +6,7 @@
  */
 
 "use client";
+import { t } from "@/lib/i18n/translate";
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -29,15 +30,15 @@ import {
   Sparkles,
   Flame,
   Award,
-  CheckCircle2,
-} from "lucide-react";
+  CheckCircle2 } from
+"lucide-react";
 
 /** 目标中文映射 */
 const targetMap: Record<string, string> = {
   SCHOOL: "升学考试",
   STUDY_ABROAD: "出国留学",
   CET: "四六级",
-  IELTS_TOEFL: "雅思托福",
+  IELTS_TOEFL: "雅思托福"
 };
 
 /**
@@ -65,13 +66,13 @@ export default function DashboardPage() {
   if (!profile) {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
-        <h1 className="text-2xl font-bold mb-4">还没有学习档案</h1>
-        <p className="text-gray-600 mb-6">请先完成目标选择和级别测评。</p>
+        <h1 className="text-2xl font-bold mb-4">{t("\u8FD8\u6CA1\u6709\u5B66\u4E60\u6863\u6848")}</h1>
+        <p className="text-gray-600 mb-6">{t("\u8BF7\u5148\u5B8C\u6210\u76EE\u6807\u9009\u62E9\u548C\u7EA7\u522B\u6D4B\u8BC4\u3002")}</p>
         <Link href="/onboarding">
-          <Button>开始学习</Button>
+          <Button>{t("\u5F00\u59CB\u5B66\u4E60")}</Button>
         </Link>
-      </div>
-    );
+      </div>);
+
   }
 
   const today = new Date().toISOString().split("T")[0];
@@ -82,15 +83,15 @@ export default function DashboardPage() {
   const isCheckedIn = checkIns.includes(today);
   const currentStreak = getCurrentStreak(checkIns);
   const longestStreak = getLongestStreak(checkIns);
-  const recentBadges = badges
-    .slice()
-    .sort((a, b) => new Date(b.unlockedAt).getTime() - new Date(a.unlockedAt).getTime())
-    .slice(0, 3);
+  const recentBadges = badges.
+  slice().
+  sort((a, b) => new Date(b.unlockedAt).getTime() - new Date(a.unlockedAt).getTime()).
+  slice(0, 3);
   const recommendedTopic = (() => {
     const all = [
-      ...customTopics.map((t) => ({ ...t, source: "custom" as const })),
-      ...topics.map((t) => ({ ...t, source: "ai" as const })),
-    ];
+    ...customTopics.map((t) => ({ ...t, source: "custom" as const })),
+    ...topics.map((t) => ({ ...t, source: "ai" as const }))];
+
     const favorite = all.find((t) => t.userId === profile.id && t.favorite);
     if (favorite) return favorite;
     const custom = all.find((t) => t.userId === profile.id && t.source === "custom");
@@ -98,9 +99,9 @@ export default function DashboardPage() {
     return all.find((t) => t.userId === profile.id) ?? null;
   })();
   const unreviewedErrors = errors.filter((e) => !e.reviewed).length;
-  const todayTasks = learningPlan
-    ? learningPlan.tasks.filter((t) => t.date === today)
-    : [];
+  const todayTasks = learningPlan ?
+  learningPlan.tasks.filter((t) => t.date === today) :
+  [];
 
   async function handleGetAdvice() {
     if (!profile) return;
@@ -128,9 +129,9 @@ export default function DashboardPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold dark:text-white">今日任务</h1>
-          <p className="text-gray-600 dark:text-gray-300">
-            目标：{targetMap[profile.target]} · 当前级别：{profile.level}
+          <h1 className="text-2xl font-bold dark:text-white">{t("\u4ECA\u65E5\u4EFB\u52A1")}</h1>
+          <p className="text-gray-600 dark:text-gray-300">{t("\u76EE\u6807\uFF1A")}
+            {targetMap[profile.target]}{t("\xB7 \u5F53\u524D\u7EA7\u522B\uFF1A")}{profile.level}
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -139,64 +140,64 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {todayTopic && (
-        <Card className="mb-6 bg-linear-to-r from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 border-blue-200">
+      {todayTopic &&
+      <Card className="mb-6 bg-linear-to-r from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 border-blue-200">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <Star className="w-4 h-4 text-blue-600" />
-              今日话题
-            </CardTitle>
+              <Star className="w-4 h-4 text-blue-600" />{t("\u4ECA\u65E5\u8BDD\u9898")}
+
+          </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="font-medium dark:text-blue-100">{todayTopic.topic}</p>
             <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{todayTopic.scenario}</p>
             <Link href="/speak">
-              <Button size="sm" className="mt-3">
-                去练习
-              </Button>
+              <Button size="sm" className="mt-3">{t("\u53BB\u7EC3\u4E60")}
+
+            </Button>
             </Link>
           </CardContent>
         </Card>
-      )}
+      }
 
-      {recommendedTopic && (
-        <Card className="mb-6 bg-linear-to-r from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 border-purple-200">
+      {recommendedTopic &&
+      <Card className="mb-6 bg-linear-to-r from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 border-purple-200">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-purple-600" />
-              推荐话题
-            </CardTitle>
+              <Sparkles className="w-4 h-4 text-purple-600" />{t("\u63A8\u8350\u8BDD\u9898")}
+
+          </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="font-medium dark:text-purple-100">{recommendedTopic.topic}</p>
             <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{recommendedTopic.scenario}</p>
             <Link href="/speak">
-              <Button size="sm" className="mt-3">
-                去练习
-              </Button>
+              <Button size="sm" className="mt-3">{t("\u53BB\u7EC3\u4E60")}
+
+            </Button>
             </Link>
           </CardContent>
         </Card>
-      )}
+      }
 
       <div className="grid md:grid-cols-3 gap-4 mb-6">
         <Card className="bg-linear-to-r from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/30 border-orange-200">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              {isCheckedIn ? (
-                <CheckCircle2 className="w-4 h-4 text-orange-600" />
-              ) : (
-                <Flame className="w-4 h-4 text-orange-600" />
-              )}
-              今日打卡
+              {isCheckedIn ?
+              <CheckCircle2 className="w-4 h-4 text-orange-600" /> :
+
+              <Flame className="w-4 h-4 text-orange-600" />
+              }{t("\u4ECA\u65E5\u6253\u5361")}
+
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="font-medium dark:text-orange-100">
               {isCheckedIn ? "今日已打卡" : "今日还未打卡"}
             </p>
-            <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-              连续 {currentStreak} 天
+            <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{t("\u8FDE\u7EED")}
+              {currentStreak}{t("\u5929")}
             </p>
           </CardContent>
         </Card>
@@ -204,14 +205,14 @@ export default function DashboardPage() {
         <Card className="bg-linear-to-r from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/30 border-red-200">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <Flame className="w-4 h-4 text-red-600" />
-              连续学习
+              <Flame className="w-4 h-4 text-red-600" />{t("\u8FDE\u7EED\u5B66\u4E60")}
+
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold dark:text-red-100">{currentStreak}</p>
-            <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-              最长 {longestStreak} 天
+            <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{t("\u6700\u957F")}
+              {longestStreak}{t("\u5929")}
             </p>
           </CardContent>
         </Card>
@@ -219,16 +220,16 @@ export default function DashboardPage() {
         <Card className="bg-linear-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/30 dark:to-yellow-800/30 border-yellow-200">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <Award className="w-4 h-4 text-yellow-600" />
-              成就徽章
+              <Award className="w-4 h-4 text-yellow-600" />{t("\u6210\u5C31\u5FBD\u7AE0")}
+
             </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold dark:text-yellow-100">{badges.length}</p>
             <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-              {recentBadges.length > 0
-                ? `最近：${recentBadges[0].title}`
-                : "快去练习解锁徽章吧"}
+              {recentBadges.length > 0 ?
+              `最近：${recentBadges[0].title}` :
+              "快去练习解锁徽章吧"}
             </p>
           </CardContent>
         </Card>
@@ -239,11 +240,11 @@ export default function DashboardPage() {
           <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full dark:bg-gray-800 dark:text-white">
             <CardHeader>
               <Mic className="w-8 h-8 mb-2 text-blue-600" />
-              <CardTitle>口语练习</CardTitle>
+              <CardTitle>{t("\u53E3\u8BED\u7EC3\u4E60")}</CardTitle>
             </CardHeader>
-            <CardContent>
-              今日已练习 {todaySessions.filter((s) => s.type === "SPEAK").length} 次
-              <p className="text-sm text-gray-500 mt-2">点击开始今日口语任务</p>
+            <CardContent>{t("\u4ECA\u65E5\u5DF2\u7EC3\u4E60")}
+              {todaySessions.filter((s) => s.type === "SPEAK").length}{t("\u6B21")}
+              <p className="text-sm text-gray-500 mt-2">{t("\u70B9\u51FB\u5F00\u59CB\u4ECA\u65E5\u53E3\u8BED\u4EFB\u52A1")}</p>
             </CardContent>
           </Card>
         </Link>
@@ -252,11 +253,11 @@ export default function DashboardPage() {
           <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full dark:bg-gray-800 dark:text-white">
             <CardHeader>
               <FileText className="w-8 h-8 mb-2 text-green-600" />
-              <CardTitle>写作练习</CardTitle>
+              <CardTitle>{t("\u5199\u4F5C\u7EC3\u4E60")}</CardTitle>
             </CardHeader>
-            <CardContent>
-              今日已练习 {todaySessions.filter((s) => s.type === "WRITE").length} 次
-              <p className="text-sm text-gray-500 mt-2">点击开始今日写作任务</p>
+            <CardContent>{t("\u4ECA\u65E5\u5DF2\u7EC3\u4E60")}
+              {todaySessions.filter((s) => s.type === "WRITE").length}{t("\u6B21")}
+              <p className="text-sm text-gray-500 mt-2">{t("\u70B9\u51FB\u5F00\u59CB\u4ECA\u65E5\u5199\u4F5C\u4EFB\u52A1")}</p>
             </CardContent>
           </Card>
         </Link>
@@ -265,11 +266,11 @@ export default function DashboardPage() {
           <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full dark:bg-gray-800 dark:text-white">
             <CardHeader>
               <MessageCircle className="w-8 h-8 mb-2 text-purple-600" />
-              <CardTitle>AI 对话</CardTitle>
+              <CardTitle>{t("AI \u5BF9\u8BDD")}</CardTitle>
             </CardHeader>
-            <CardContent>
-              与 AI 进行多轮对话练习
-              <p className="text-sm text-gray-500 mt-2">选择角色开始聊天</p>
+            <CardContent>{t("\u4E0E AI \u8FDB\u884C\u591A\u8F6E\u5BF9\u8BDD\u7EC3\u4E60")}
+
+              <p className="text-sm text-gray-500 mt-2">{t("\u9009\u62E9\u89D2\u8272\u5F00\u59CB\u804A\u5929")}</p>
             </CardContent>
           </Card>
         </Link>
@@ -278,15 +279,15 @@ export default function DashboardPage() {
           <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full dark:bg-gray-800 dark:text-white">
             <CardHeader>
               <BookOpen className="w-8 h-8 mb-2 text-orange-600" />
-              <CardTitle>错题复习</CardTitle>
+              <CardTitle>{t("\u9519\u9898\u590D\u4E60")}</CardTitle>
             </CardHeader>
             <CardContent>
-              {unreviewedErrors > 0 ? (
-                <p className="text-sm">你有 {unreviewedErrors} 条待复习错误</p>
-              ) : (
-                <p className="text-sm">暂无待复习错误</p>
-              )}
-              <p className="text-sm text-gray-500 mt-2">查看错题本与薄弱点训练</p>
+              {unreviewedErrors > 0 ?
+              <p className="text-sm">{t("\u4F60\u6709")}{unreviewedErrors}{t("\u6761\u5F85\u590D\u4E60\u9519\u8BEF")}</p> :
+
+              <p className="text-sm">{t("\u6682\u65E0\u5F85\u590D\u4E60\u9519\u8BEF")}</p>
+              }
+              <p className="text-sm text-gray-500 mt-2">{t("\u67E5\u770B\u9519\u9898\u672C\u4E0E\u8584\u5F31\u70B9\u8BAD\u7EC3")}</p>
             </CardContent>
           </Card>
         </Link>
@@ -296,36 +297,36 @@ export default function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Calendar className="w-5 h-5" />
-              学习计划
+              <Calendar className="w-5 h-5" />{t("\u5B66\u4E60\u8BA1\u5212")}
+
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {learningPlan ? (
-              <div className="space-y-2">
+            {learningPlan ?
+            <div className="space-y-2">
                 <p className="text-sm font-medium">
-                  {learningPlan.startDate} 至 {learningPlan.endDate}
+                  {learningPlan.startDate}{t("\u81F3")}{learningPlan.endDate}
                 </p>
                 <p className="text-sm text-muted-foreground line-clamp-2">
                   {learningPlan.description}
                 </p>
-                <p className="text-sm">
-                  今日任务：{todayTasks.length} 项 · 已完成 {todayTasks.filter((t) => t.completed).length} 项
-                </p>
+                <p className="text-sm">{t("\u4ECA\u65E5\u4EFB\u52A1\uFF1A")}
+                {todayTasks.length}{t("\u9879 \xB7 \u5DF2\u5B8C\u6210")}{todayTasks.filter((t) => t.completed).length}{t("\u9879")}
+              </p>
                 <Link href="/plan">
-                  <Button size="sm" className="mt-2">
-                    查看计划
-                  </Button>
+                  <Button size="sm" className="mt-2">{t("\u67E5\u770B\u8BA1\u5212")}
+
+                </Button>
+                </Link>
+              </div> :
+
+            <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">{t("\u8FD8\u6CA1\u6709\u5B66\u4E60\u8BA1\u5212\uFF0C\u751F\u6210\u4E00\u4EFD\u5427\u3002")}</p>
+                <Link href="/plan">
+                  <Button size="sm">{t("\u53BB\u751F\u6210")}</Button>
                 </Link>
               </div>
-            ) : (
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">还没有学习计划，生成一份吧。</p>
-                <Link href="/plan">
-                  <Button size="sm">去生成</Button>
-                </Link>
-              </div>
-            )}
+            }
           </CardContent>
         </Card>
       </div>
@@ -334,26 +335,26 @@ export default function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Lightbulb className="w-5 h-5 text-yellow-500" />
-              AI 学习建议
+              <Lightbulb className="w-5 h-5 text-yellow-500" />{t("AI \u5B66\u4E60\u5EFA\u8BAE")}
+
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <Textarea
               value={adviceQuestion}
               onChange={(e) => setAdviceQuestion(e.target.value)}
-              placeholder="描述你遇到的困难，或直接点击按钮获取建议..."
+              placeholder={t("\u63CF\u8FF0\u4F60\u9047\u5230\u7684\u56F0\u96BE\uFF0C\u6216\u76F4\u63A5\u70B9\u51FB\u6309\u94AE\u83B7\u53D6\u5EFA\u8BAE...")}
               rows={3}
-              className="resize-none"
-            />
+              className="resize-none" />
+            
             <Button onClick={handleGetAdvice} disabled={adviceLoading} className="w-full sm:w-auto">
               {adviceLoading ? "AI 思考中..." : "获取学习建议"}
             </Button>
-            {advice && (
-              <div className="p-4 bg-muted rounded-md text-sm whitespace-pre-wrap">
+            {advice &&
+            <div className="p-4 bg-muted rounded-md text-sm whitespace-pre-wrap">
                 {advice}
               </div>
-            )}
+            }
           </CardContent>
         </Card>
       </div>
@@ -361,14 +362,14 @@ export default function DashboardPage() {
       <div className="mt-8 max-w-4xl">
         <Card>
           <CardHeader>
-            <CardTitle>学习统计</CardTitle>
+            <CardTitle>{t("\u5B66\u4E60\u7EDF\u8BA1")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>总练习次数：{sessions.length}</p>
-            <p>今日练习次数：{todaySessions.length}</p>
+            <p>{t("\u603B\u7EC3\u4E60\u6B21\u6570\uFF1A")}{sessions.length}</p>
+            <p>{t("\u4ECA\u65E5\u7EC3\u4E60\u6B21\u6570\uFF1A")}{todaySessions.length}</p>
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+    </div>);
+
 }

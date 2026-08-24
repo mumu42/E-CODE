@@ -69,6 +69,7 @@ async function callOpenAI(config: {
   baseURL: string;
   model: string;
   prompt: string;
+  maxTokens?: number;
 }): Promise<AIResponse> {
   const baseURL = config.baseURL.replace(/\/$/, "");
   const url = `${baseURL}/v1/chat/completions`;

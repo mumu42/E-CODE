@@ -6,6 +6,7 @@
  */
 
 "use client";
+import { t } from "@/lib/i18n/translate";
 
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -105,28 +106,28 @@ export function FileExporter() {
         {saving ? "保存中..." : "保存到 static"}
       </Button>
       <Button variant="outline" onClick={handleDownload}>
-        <Download className="w-4 h-4 mr-2" />
-        下载 Excel
+        <Download className="w-4 h-4 mr-2" />{t("\u4E0B\u8F7D Excel")}
+
       </Button>
       <Button variant="outline" onClick={handleDownloadReport}>
-        <FileText className="w-4 h-4 mr-2" />
-        Word 报告
+        <FileText className="w-4 h-4 mr-2" />{t("Word \u62A5\u544A")}
+
       </Button>
       <Button variant="outline" onClick={handleDownloadPdf}>
-        <FileDown className="w-4 h-4 mr-2" />
-        PDF 报告
+        <FileDown className="w-4 h-4 mr-2" />{t("PDF \u62A5\u544A")}
+
       </Button>
       <Button variant="outline" onClick={handleDownloadJson}>
-        <Database className="w-4 h-4 mr-2" />
-        JSON 备份
+        <Database className="w-4 h-4 mr-2" />{t("JSON \u5907\u4EFD")}
+
       </Button>
       <Button variant="outline" onClick={handleDownloadZip}>
-        <Package className="w-4 h-4 mr-2" />
-        ZIP 归档
+        <Package className="w-4 h-4 mr-2" />{t("ZIP \u5F52\u6863")}
+
       </Button>
       <div className="fixed left-[-9999px] top-0">
         <ReportPreview ref={reportRef} data={appData} />
       </div>
-    </div>
-  );
+    </div>);
+
 }

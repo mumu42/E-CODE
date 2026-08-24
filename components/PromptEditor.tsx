@@ -6,6 +6,7 @@
  */
 
 "use client";
+import { t } from "@/lib/i18n/translate";
 
 import { useState } from "react";
 import { useAppStore } from "@/lib/store";
@@ -23,7 +24,7 @@ const PROMPT_LABELS: Record<PromptType, string> = {
   summary: "学习摘要",
   reading: "阅读理解生成",
   listening: "听力理解生成",
-  advisor: "AI 学习顾问",
+  advisor: "AI 学习顾问"
 };
 
 const PROMPT_VARIABLES: Record<PromptType, string[]> = {
@@ -36,7 +37,7 @@ const PROMPT_VARIABLES: Record<PromptType, string[]> = {
   summary: ["target", "level", "sessionCount", "errorCount", "recentTopics", "commonErrors"],
   reading: ["target", "level"],
   listening: ["target", "level"],
-  advisor: ["target", "level", "question", "context", "errorOriginal", "errorCorrection", "errorExplanation", "learningContext"],
+  advisor: ["target", "level", "question", "context", "errorOriginal", "errorCorrection", "errorExplanation", "learningContext"]
 };
 
 /** Prompt 编辑器组件 */
@@ -71,38 +72,38 @@ export function PromptEditor() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
-        {(Object.keys(PROMPT_LABELS) as PromptType[]).map((key) => (
-          <Button
-            key={key}
-            variant={active === key ? "default" : "outline"}
-            size="sm"
-            onClick={() => setActive(key)}
-          >
+        {(Object.keys(PROMPT_LABELS) as PromptType[]).map((key) =>
+        <Button
+          key={key}
+          variant={active === key ? "default" : "outline"}
+          size="sm"
+          onClick={() => setActive(key)}>
+          
             {PROMPT_LABELS[key]}
           </Button>
-        ))}
+        )}
       </div>
 
-      <div className="text-xs text-gray-500">
-        可用变量：{PROMPT_VARIABLES[active].map((v) => `{{${v}}}`).join(" ")}
+      <div className="text-xs text-gray-500">{t("\u53EF\u7528\u53D8\u91CF\uFF1A")}
+        {PROMPT_VARIABLES[active].map((v) => `{{${v}}}`).join(" ")}
       </div>
 
       <textarea
         value={drafts[active]}
         onChange={(e) => handleChange(e.target.value)}
         className="w-full h-64 p-3 border rounded-md text-sm font-mono"
-        spellCheck={false}
-      />
+        spellCheck={false} />
+      
 
       <div className="flex flex-wrap gap-2">
-        <Button onClick={handleSave}>保存当前 Prompt</Button>
-        <Button variant="outline" onClick={() => handleReset(active)}>
-          恢复默认
+        <Button onClick={handleSave}>{t("\u4FDD\u5B58\u5F53\u524D Prompt")}</Button>
+        <Button variant="outline" onClick={() => handleReset(active)}>{t("\u6062\u590D\u9ED8\u8BA4")}
+
         </Button>
-        <Button variant="outline" onClick={handleResetAll}>
-          恢复全部默认
+        <Button variant="outline" onClick={handleResetAll}>{t("\u6062\u590D\u5168\u90E8\u9ED8\u8BA4")}
+
         </Button>
       </div>
-    </div>
-  );
+    </div>);
+
 }

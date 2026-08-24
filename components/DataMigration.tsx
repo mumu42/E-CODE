@@ -6,6 +6,7 @@
  */
 
 "use client";
+import { t } from "@/lib/i18n/translate";
 
 import { useRef } from "react";
 import { useAppStore } from "@/lib/store";
@@ -52,18 +53,18 @@ export function DataMigration() {
         accept=".json"
         ref={fileRef}
         className="hidden"
-        onChange={handleImportLegacy}
-      />
+        onChange={handleImportLegacy} />
+      
       <div className="flex flex-wrap gap-2">
         <Button variant="outline" onClick={handleExportLegacy}>
-          <Database className="w-4 h-4 mr-2" />
-          导出旧格式
+          <Database className="w-4 h-4 mr-2" />{t("\u5BFC\u51FA\u65E7\u683C\u5F0F")}
+
         </Button>
         <Button variant="outline" onClick={() => fileRef.current?.click()}>
-          <Upload className="w-4 h-4 mr-2" />
-          导入旧格式
+          <Upload className="w-4 h-4 mr-2" />{t("\u5BFC\u5165\u65E7\u683C\u5F0F")}
+
         </Button>
       </div>
-    </div>
-  );
+    </div>);
+
 }

@@ -1,3 +1,4 @@
+import { formatDate } from "@/lib/i18n/format";
 /**
  * @file lib/storage/report.ts
  * @description 基于 docx 的英语学习 Word 报告生成工具
@@ -61,7 +62,7 @@ export function buildReportDocument(data: AppData): Document {
           }),
           ...sessions.flatMap((session) => [
             new Paragraph({
-              text: `${new Date(session.date).toLocaleDateString()} - ${session.type === "SPEAK" ? "口语" : session.type === "WRITE" ? "写作" : "对话"} · ${session.topic}`,
+              text: `${formatDate(session.date)} - ${session.type === "SPEAK" ? "口语" : session.type === "WRITE" ? "写作" : "对话"} · ${session.topic}`,
               heading: HeadingLevel.HEADING_2,
             }),
             new Paragraph({

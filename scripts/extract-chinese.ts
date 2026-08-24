@@ -9,7 +9,6 @@ import * as fs from "fs";
 import * as path from "path";
 import { parse } from "@babel/parser";
 import traverse from "@babel/traverse";
-import generate from "@babel/generator";
 import * as t from "@babel/types";
 
 const root = process.cwd();

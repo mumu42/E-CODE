@@ -6,6 +6,8 @@
  */
 
 "use client";
+import { formatDate, formatScore } from "@/lib/i18n/format";
+import { t } from "@/lib/i18n/translate";
 
 import { useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -16,8 +18,8 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+  CardDescription } from
+"@/components/ui/card";
 import { ExamTimer } from "@/components/ExamTimer";
 import { generateExamQuestions, EXAM_CONFIGS } from "@/lib/exam/questions";
 import type { ExamRecord } from "@/lib/types";
@@ -39,9 +41,9 @@ export function ExamSession() {
 
   const examType = useMemo(() => {
     const allowed = EXAM_CONFIGS.map((c) => c.type);
-    return allowed.includes(typeParam as (typeof EXAM_CONFIGS)[number]["type"])
-      ? (typeParam as (typeof EXAM_CONFIGS)[number]["type"])
-      : "GENERAL";
+    return allowed.includes(typeParam as (typeof EXAM_CONFIGS)[number]["type"]) ?
+    typeParam as (typeof EXAM_CONFIGS)[number]["type"] :
+    "GENERAL";
   }, [typeParam]);
 
   const config = useMemo(
@@ -50,7 +52,7 @@ export function ExamSession() {
   );
 
   const questions = useMemo(
-    () => (profile ? generateExamQuestions(examType, config.questionCount, customQuestions) : []),
+    () => profile ? generateExamQuestions(examType, config.questionCount, customQuestions) : [],
     [profile, examType, config.questionCount, customQuestions]
   );
 
@@ -82,7 +84,7 @@ export function ExamSession() {
       endedAt,
       questions: answeredQuestions,
       totalScore,
-      score,
+      score
     };
 
     addExamRecord(newRecord);
@@ -98,40 +100,40 @@ export function ExamSession() {
   if (questions.length === 0) {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
-        <p>正在加载试卷...</p>
-      </div>
-    );
+        <p>{t("\u6B63\u5728\u52A0\u8F7D\u8BD5\u5377...")}</p>
+      </div>);
+
   }
 
   if (finished && record) {
-    const percentage = record.totalScore > 0 ? Math.round((record.score / record.totalScore) * 100) : 0;
+    const percentage = record.totalScore > 0 ? Math.round(record.score / record.totalScore * 100) : 0;
     return (
       <div className="container mx-auto px-4 py-8">
         <Card className="max-w-2xl mx-auto">
           <CardHeader>
-            <CardTitle>考试成绩</CardTitle>
+            <CardTitle>{t("\u8003\u8BD5\u6210\u7EE9")}</CardTitle>
             <CardDescription>
-              {config.label} · {new Date(record.startedAt).toLocaleString()}
+              {config.label} · {formatDate(record.startedAt)}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="text-4xl font-bold text-primary">{percentage}分</div>
-            <p className="text-sm text-muted-foreground">
-              得分 {record.score.toFixed(1)} / 总分 {record.totalScore.toFixed(1)}
+            <div className="text-4xl font-bold text-primary">{percentage}{t("\u5206")}</div>
+            <p className="text-sm text-muted-foreground">{t("\u5F97\u5206")}
+              {formatScore(record.score)}{t("/ \u603B\u5206")}{formatScore(record.totalScore)}
             </p>
-            <p className="text-sm text-muted-foreground">
-              用时 {Math.ceil((new Date(record.endedAt).getTime() - new Date(record.startedAt).getTime()) / 1000 / 60)} 分钟
+            <p className="text-sm text-muted-foreground">{t("\u7528\u65F6")}
+              {Math.ceil((new Date(record.endedAt).getTime() - new Date(record.startedAt).getTime()) / 1000 / 60)}{t("\u5206\u949F")}
             </p>
             <div className="flex gap-2">
-              <Button onClick={() => router.push("/exam")}>再来一次</Button>
-              <Button variant="outline" onClick={() => router.push("/progress")}>
-                查看进度
+              <Button onClick={() => router.push("/exam")}>{t("\u518D\u6765\u4E00\u6B21")}</Button>
+              <Button variant="outline" onClick={() => router.push("/progress")}>{t("\u67E5\u770B\u8FDB\u5EA6")}
+
               </Button>
             </div>
           </CardContent>
         </Card>
-      </div>
-    );
+      </div>);
+
   }
 
   const current = questions[currentIndex];
@@ -146,50 +148,50 @@ export function ExamSession() {
           onFinish={() => {
             alert("考试时间到，自动提交");
             handleSubmit();
-          }}
-        />
+          }} />
+        
       </div>
 
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle className="text-base">
-            第 {currentIndex + 1} / {questions.length} 题 · {current.type}
+          <CardTitle className="text-base">{t("\u7B2C")}
+            {currentIndex + 1} / {questions.length}{t("\u9898 \xB7")}{current.type}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {current.passage && (
-            <div className="p-3 bg-muted rounded-md text-sm leading-relaxed">
+          {current.passage &&
+          <div className="p-3 bg-muted rounded-md text-sm leading-relaxed">
               {current.passage}
             </div>
-          )}
+          }
           <p className="font-medium dark:text-white">{current.question}</p>
-          {isObjective && current.options ? (
-            <div className="space-y-2">
-              {current.options.map((option) => (
-                <label
-                  key={option}
-                  className="flex items-center gap-2 p-3 rounded-md border cursor-pointer hover:bg-accent"
-                >
+          {isObjective && current.options ?
+          <div className="space-y-2">
+              {current.options.map((option) =>
+            <label
+              key={option}
+              className="flex items-center gap-2 p-3 rounded-md border cursor-pointer hover:bg-accent">
+              
                   <input
-                    type="radio"
-                    name={current.id}
-                    value={option}
-                    checked={answers[current.id] === option}
-                    onChange={() => handleSelect(current.id, option)}
-                    className="h-4 w-4"
-                  />
+                type="radio"
+                name={current.id}
+                value={option}
+                checked={answers[current.id] === option}
+                onChange={() => handleSelect(current.id, option)}
+                className="h-4 w-4" />
+              
                   <span className="text-sm">{option}</span>
                 </label>
-              ))}
-            </div>
-          ) : (
-            <textarea
-              className="w-full min-h-[150px] p-3 border rounded-md text-sm"
-              placeholder="请输入你的答案"
-              value={answers[current.id] ?? ""}
-              onChange={(e) => handleSelect(current.id, e.target.value)}
-            />
-          )}
+            )}
+            </div> :
+
+          <textarea
+            className="w-full min-h-[150px] p-3 border rounded-md text-sm"
+            placeholder={t("\u8BF7\u8F93\u5165\u4F60\u7684\u7B54\u6848")}
+            value={answers[current.id] ?? ""}
+            onChange={(e) => handleSelect(current.id, e.target.value)} />
+
+          }
         </CardContent>
       </Card>
 
@@ -197,19 +199,19 @@ export function ExamSession() {
         <Button
           variant="outline"
           disabled={currentIndex === 0}
-          onClick={() => setCurrentIndex((i) => i - 1)}
-        >
-          上一题
+          onClick={() => setCurrentIndex((i) => i - 1)}>{t("\u4E0A\u4E00\u9898")}
+
+
         </Button>
-        <div className="text-sm text-muted-foreground">
-          已答 {Object.keys(answers).length} / {questions.length}
+        <div className="text-sm text-muted-foreground">{t("\u5DF2\u7B54")}
+          {Object.keys(answers).length} / {questions.length}
         </div>
-        {currentIndex < questions.length - 1 ? (
-          <Button onClick={() => setCurrentIndex((i) => i + 1)}>下一题</Button>
-        ) : (
-          <Button onClick={handleSubmit}>提交试卷</Button>
-        )}
+        {currentIndex < questions.length - 1 ?
+        <Button onClick={() => setCurrentIndex((i) => i + 1)}>{t("\u4E0B\u4E00\u9898")}</Button> :
+
+        <Button onClick={handleSubmit}>{t("\u63D0\u4EA4\u8BD5\u5377")}</Button>
+        }
       </div>
-    </div>
-  );
+    </div>);
+
 }

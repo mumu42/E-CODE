@@ -6,6 +6,7 @@
  */
 
 "use client";
+import { t } from "@/lib/i18n/translate";
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -69,7 +70,7 @@ export default function ReadingPage() {
     passage.questions.forEach((q, idx) => {
       if (answers[idx] === q.answerIndex) correct += 1;
     });
-    const percentage = Math.round((correct / passage.questions.length) * 100);
+    const percentage = Math.round(correct / passage.questions.length * 100);
     setScore(percentage);
     setSubmitted(true);
 
@@ -82,7 +83,7 @@ export default function ReadingPage() {
       title: passage.title,
       passage: passage.passage,
       questions: passage.questions,
-      score: percentage,
+      score: percentage
     });
   }
 
@@ -94,21 +95,21 @@ export default function ReadingPage() {
     <div className="container mx-auto px-4 py-8 max-w-3xl">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-2xl">阅读理解</CardTitle>
+          <CardTitle className="text-2xl">{t("\u9605\u8BFB\u7406\u89E3")}</CardTitle>
           <Button variant="outline" size="sm" onClick={loadPassage} disabled={loading}>
             {loading ? "生成中..." : "换一篇"}
           </Button>
         </CardHeader>
         <CardContent className="space-y-6">
-          {!passage ? (
-            <div className="text-center space-y-4">
-              <p className="text-gray-500">点击开始，AI 会为你生成一篇阅读理解材料。</p>
+          {!passage ?
+          <div className="text-center space-y-4">
+              <p className="text-gray-500">{t("\u70B9\u51FB\u5F00\u59CB\uFF0CAI \u4F1A\u4E3A\u4F60\u751F\u6210\u4E00\u7BC7\u9605\u8BFB\u7406\u89E3\u6750\u6599\u3002")}</p>
               <Button onClick={loadPassage} disabled={loading}>
                 {loading ? "生成中..." : "开始阅读"}
               </Button>
-            </div>
-          ) : (
-            <>
+            </div> :
+
+          <>
               <div className="bg-blue-50 p-4 rounded-lg">
                 <h3 className="font-bold text-blue-900 mb-2">{passage.title}</h3>
                 <p className="text-sm leading-relaxed text-blue-950 whitespace-pre-wrap">
@@ -117,79 +118,79 @@ export default function ReadingPage() {
               </div>
 
               <div className="space-y-6">
-                {passage.questions.map((q, qIdx) => (
-                  <div key={qIdx} className="border rounded-lg p-4 space-y-3">
+                {passage.questions.map((q, qIdx) =>
+              <div key={qIdx} className="border rounded-lg p-4 space-y-3">
                     <p className="font-medium">
                       {qIdx + 1}. {q.question}
                     </p>
                     <div className="space-y-2">
                       {q.options.map((opt, oIdx) => {
-                        const selected = answers[qIdx] === oIdx;
-                        const showCorrect = submitted && oIdx === q.answerIndex;
-                        const showWrong = submitted && selected && oIdx !== q.answerIndex;
-                        return (
-                          <button
-                            key={oIdx}
-                            type="button"
-                            onClick={() => handleSelect(qIdx, oIdx)}
-                            disabled={submitted}
-                            className={`w-full text-left p-3 rounded-md border text-sm transition-colors ${
-                              showCorrect
-                                ? "bg-green-50 border-green-500 text-green-900"
-                                : showWrong
-                                ? "bg-red-50 border-red-500 text-red-900"
-                                : selected
-                                ? "bg-blue-50 border-blue-500"
-                                : "hover:bg-gray-50"
-                            }`}
-                          >
+                    const selected = answers[qIdx] === oIdx;
+                    const showCorrect = submitted && oIdx === q.answerIndex;
+                    const showWrong = submitted && selected && oIdx !== q.answerIndex;
+                    return (
+                      <button
+                        key={oIdx}
+                        type="button"
+                        onClick={() => handleSelect(qIdx, oIdx)}
+                        disabled={submitted}
+                        className={`w-full text-left p-3 rounded-md border text-sm transition-colors ${
+                        showCorrect ?
+                        "bg-green-50 border-green-500 text-green-900" :
+                        showWrong ?
+                        "bg-red-50 border-red-500 text-red-900" :
+                        selected ?
+                        "bg-blue-50 border-blue-500" :
+                        "hover:bg-gray-50"}`
+                        }>
+                        
                             {opt}
-                          </button>
-                        );
-                      })}
+                          </button>);
+
+                  })}
                     </div>
-                    {submitted && (
-                      <p className="text-sm text-gray-700 bg-gray-100 p-2 rounded">
-                        解析：{q.explanation}
+                    {submitted &&
+                <p className="text-sm text-gray-700 bg-gray-100 p-2 rounded">{t("\u89E3\u6790\uFF1A")}
+                  {q.explanation}
                       </p>
-                    )}
+                }
                   </div>
-                ))}
+              )}
               </div>
 
-              {submitted && score !== null && (
-                <div className="bg-gray-100 p-4 rounded-lg">
-                  <p className="font-medium">
-                    得分：
-                    <span
-                      className={`text-xl font-bold ${
-                        score >= 80 ? "text-green-600" : score >= 60 ? "text-yellow-600" : "text-red-600"
-                      }`}
-                    >
+              {submitted && score !== null &&
+            <div className="bg-gray-100 p-4 rounded-lg">
+                  <p className="font-medium">{t("\u5F97\u5206\uFF1A")}
+
+                <span
+                  className={`text-xl font-bold ${
+                  score >= 80 ? "text-green-600" : score >= 60 ? "text-yellow-600" : "text-red-600"}`
+                  }>
+                  
                       {score}
                     </span>
                     / 100
                   </p>
                 </div>
-              )}
+            }
 
-              {!submitted ? (
-                <Button
-                  onClick={handleSubmit}
-                  disabled={Object.keys(answers).length !== passage.questions.length}
-                  className="w-full"
-                >
-                  提交答案
-                </Button>
-              ) : (
-                <Button onClick={loadPassage} className="w-full">
-                  再来一篇
-                </Button>
-              )}
+              {!submitted ?
+            <Button
+              onClick={handleSubmit}
+              disabled={Object.keys(answers).length !== passage.questions.length}
+              className="w-full">{t("\u63D0\u4EA4\u7B54\u6848")}
+
+
+            </Button> :
+
+            <Button onClick={loadPassage} className="w-full">{t("\u518D\u6765\u4E00\u7BC7")}
+
+            </Button>
+            }
             </>
-          )}
+          }
         </CardContent>
       </Card>
-    </div>
-  );
+    </div>);
+
 }

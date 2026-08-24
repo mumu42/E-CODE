@@ -6,6 +6,7 @@
  */
 
 "use client";
+import { formatDate } from "@/lib/i18n/format";
 
 interface HeatmapCalendarProps {
   data: Record<string, number>;
@@ -40,7 +41,7 @@ export function HeatmapCalendar({ data }: HeatmapCalendarProps) {
       {days.map((day, idx) => (
         <div
           key={idx}
-          title={`${day.date.toLocaleDateString()}: ${day.count} 次练习`}
+          title={`${formatDate(day.date)}: ${day.count} 次练习`}
           className={`aspect-square rounded-sm ${getColor(day.count)}`}
         />
       ))}

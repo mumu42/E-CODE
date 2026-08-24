@@ -6,6 +6,7 @@
  */
 
 "use client";
+import { t } from "@/lib/i18n/translate";
 
 import { useState, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
@@ -55,19 +56,19 @@ export function VoiceRecorder({ value, onChange, onConfidenceChange, onFinalTran
         const result = event.results[i];
         if (!result.isFinal && i !== event.results.length - 1) continue;
         const alt = result[0];
-        if (alt && Array.isArray((alt as unknown as { confidence?: number }).confidence)) {
+        if (alt && Array.isArray((alt as unknown as {confidence?: number;}).confidence)) {
           // some browsers provide word-level confidence
           continue;
         }
         // Fallback: split transcript into words and assign result confidence to each word
         const transcript = alt.transcript.trim();
         const confidence = alt.confidence ?? 0;
-        transcript
-          .split(/\s+/)
-          .filter(Boolean)
-          .forEach((word) => {
-            words.push({ word, confidence });
-          });
+        transcript.
+        split(/\s+/).
+        filter(Boolean).
+        forEach((word) => {
+          words.push({ word, confidence });
+        });
       }
       onConfidenceChange(words);
     },
@@ -77,7 +78,7 @@ export function VoiceRecorder({ value, onChange, onConfidenceChange, onFinalTran
   /** 开始语音识别 */
   function startListening() {
     const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
+    window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) return;
 
     const recognition = new SpeechRecognition();
@@ -86,9 +87,9 @@ export function VoiceRecorder({ value, onChange, onConfidenceChange, onFinalTran
     recognition.continuous = true;
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
-      const transcript = Array.from(event.results)
-        .map((result) => result[0].transcript)
-        .join("");
+      const transcript = Array.from(event.results).
+      map((result) => result[0].transcript).
+      join("");
       onChange(transcript);
       extractConfidence(event);
 
@@ -127,32 +128,32 @@ export function VoiceRecorder({ value, onChange, onConfidenceChange, onFinalTran
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={
-          supported
-            ? "点击麦克风开始录音，或直接输入文字..."
-            : "当前浏览器不支持语音输入，请直接输入文字..."
+        supported ?
+        "点击麦克风开始录音，或直接输入文字..." :
+        "当前浏览器不支持语音输入，请直接输入文字..."
         }
         rows={6}
-        className="resize-none"
-      />
-      {supported && (
-        <Button
-          type="button"
-          variant={isListening ? "destructive" : "default"}
-          onClick={isListening ? stopListening : startListening}
-        >
-          {isListening ? (
-            <>
-              <Square className="w-4 h-4 mr-2" />
-              停止录音
-            </>
-          ) : (
-            <>
-              <Mic className="w-4 h-4 mr-2" />
-              开始录音
-            </>
-          )}
+        className="resize-none" />
+      
+      {supported &&
+      <Button
+        type="button"
+        variant={isListening ? "destructive" : "default"}
+        onClick={isListening ? stopListening : startListening}>
+        
+          {isListening ?
+        <>
+              <Square className="w-4 h-4 mr-2" />{t("\u505C\u6B62\u5F55\u97F3")}
+
+        </> :
+
+        <>
+              <Mic className="w-4 h-4 mr-2" />{t("\u5F00\u59CB\u5F55\u97F3")}
+
+        </>
+        }
         </Button>
-      )}
-    </div>
-  );
+      }
+    </div>);
+
 }

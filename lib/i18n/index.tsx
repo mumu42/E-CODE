@@ -11,6 +11,9 @@ import React, { createContext, useContext, useMemo } from "react";
 import { useAppStore } from "@/lib/store";
 import zhCN from "@/messages/zh-CN.json";
 import enUS from "@/messages/en-US.json";
+import translations from "@/messages/translations.json";
+
+import { setI18nLocale } from "@/lib/i18n/translate";
 
 /** 支持的语言 */
 type Locale = "zh-CN" | "en-US";
@@ -21,7 +24,7 @@ interface I18nContextType {
   locale: Locale;
   /** 切换语言 */
   setLocale: (locale: Locale) => void;
-  /** 翻译函数（支持点号路径） */
+  /** 翻译函数（支持点号路径和整句直译） */
   t: (key: string) => string;
 }
 
@@ -56,9 +59,22 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   const locale = useAppStore((state) => state.locale) as Locale;
   const setLocale = useAppStore((state) => state.setLocale);
 
+  // 同步全局 locale，使同步 t() 也能读到当前语言
+  setI18nLocale(locale);
+
   const messages = useMemo(() => loadMessages(locale), [locale]);
 
-  const t = (key: string) => getByPath(messages, key);
+  const t = (key: string) => {
+    // 英文优先使用 translations.json 中的整句直译
+    if (locale === "en-US") {
+      const translated = (translations as Record<string, string>)[key];
+      if (typeof translated === "string") {
+        return translated;
+      }
+    }
+    // 兜底：尝试结构化 messages（中文返回原字符串）
+    return getByPath(messages, key);
+  };
 
   return (
     <I18nContext.Provider value={{ locale, setLocale, t }}>
