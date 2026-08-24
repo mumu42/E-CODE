@@ -9,6 +9,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAppStore } from "@/lib/store";
@@ -37,6 +38,7 @@ export default function ListeningPage() {
   const [playing, setPlaying] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState<number | null>(null);
+  const [showTranscript, setShowTranscript] = useState(false);
 
   const loadItem = useCallback(async () => {
     if (!profile) return;
@@ -79,6 +81,24 @@ export default function ListeningPage() {
     setPlaying(false);
   }
 
+  async function handlePlaySentence(sentence: string) {
+    if (playing) return;
+    setPlaying(true);
+    try {
+      await speak(sentence, 1);
+    } catch (error) {
+      console.error(error);
+      alert("播放失败，当前浏览器可能不支持 TTS。");
+    } finally {
+      setPlaying(false);
+    }
+  }
+
+  function splitSentences(text: string): string[] {
+    const matches = text.match(/[^.!?]+[.!?]+/g);
+    return matches && matches.length > 0 ? matches.map((s) => s.trim()) : [text];
+  }
+
   function handleSelect(questionIndex: number, optionIndex: number) {
     if (submitted) return;
     setAnswers((prev) => ({ ...prev, [questionIndex]: optionIndex }));
@@ -115,9 +135,16 @@ export default function ListeningPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-2xl">听力理解</CardTitle>
-          <Button variant="outline" size="sm" onClick={loadItem} disabled={loading}>
-            {loading ? "生成中..." : "换一段"}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Link href="/listening/dictation">
+              <Button variant="outline" size="sm" type="button">
+                听写模式
+              </Button>
+            </Link>
+            <Button variant="outline" size="sm" onClick={loadItem} disabled={loading}>
+              {loading ? "生成中..." : "换一段"}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           {!item ? (
@@ -144,14 +171,34 @@ export default function ListeningPage() {
                       停止
                     </Button>
                   )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowTranscript(!showTranscript)}
+                    type="button"
+                  >
+                    {showTranscript ? "隐藏原文" : "显示原文"}
+                  </Button>
                 </div>
                 {!isTTSSupported() && (
                   <p className="text-xs text-orange-600">当前浏览器不支持 TTS。</p>
                 )}
-                {submitted && (
-                  <div className="bg-white border rounded-md p-3">
+                {(showTranscript || submitted) && (
+                  <div className="bg-white border rounded-md p-3 space-y-2">
                     <h4 className="font-medium mb-1">原文</h4>
-                    <p className="text-sm text-gray-700 whitespace-pre-wrap">{item.transcript}</p>
+                    <div className="space-y-2">
+                      {splitSentences(item.transcript).map((sentence, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => handlePlaySentence(sentence)}
+                          disabled={playing}
+                          className="block w-full text-left text-sm text-gray-700 hover:bg-gray-100 p-2 rounded transition-colors"
+                        >
+                          {sentence}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>

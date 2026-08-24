@@ -25,6 +25,7 @@ import type {
   ReadingRecord,
   ListeningItem,
   VocabularyItem,
+  DictationRecord,
 } from "@/lib/types";
 import { createIndexedDBStorage } from "@/lib/storage/indexeddb";
 import { autoSaveToDirectory } from "@/lib/storage/directory";
@@ -46,6 +47,7 @@ const emptyProfileData = (): ProfileData => ({
   examRecords: [],
   readingRecords: [],
   listeningRecords: [],
+  dictationRecords: [],
   learningPlan: null,
   learningProfile: null,
   customQuestions: [],
@@ -106,6 +108,8 @@ export interface AppState extends AppData {
   addReadingRecord: (record: ReadingRecord) => void;
   /** 添加一条听力理解练习记录 */
   addListeningRecord: (record: ListeningItem) => void;
+  /** 添加一条听写练习记录 */
+  addDictationRecord: (record: DictationRecord) => void;
   /** 添加词汇本条目 */
   addVocabulary: (item: VocabularyItem) => void;
   /** 删除词汇本条目 */
@@ -154,6 +158,7 @@ const initialState: AppData = {
   examRecords: [],
   readingRecords: [],
   listeningRecords: [],
+  dictationRecords: [],
   learningPlan: null,
   learningProfile: null,
   customQuestions: [],
@@ -193,6 +198,7 @@ function migrateFromLocalStorage(): AppData | undefined {
       examRecords: parsed.examRecords ?? [],
       readingRecords: parsed.readingRecords ?? [],
       listeningRecords: parsed.listeningRecords ?? [],
+      dictationRecords: parsed.dictationRecords ?? [],
       learningPlan: null,
       learningProfile: null,
       customQuestions: parsed.customQuestions ?? [],
@@ -275,6 +281,7 @@ export const useAppStore = create<AppState>()(
         examRecords: [],
         readingRecords: [],
         listeningRecords: [],
+        dictationRecords: [],
         learningPlan: null,
         learningProfile: null,
         customQuestions: [],
@@ -300,6 +307,7 @@ export const useAppStore = create<AppState>()(
                 examRecords: state.examRecords,
                 readingRecords: state.readingRecords,
                 listeningRecords: state.listeningRecords,
+                dictationRecords: state.dictationRecords,
                 learningPlan: state.learningPlan,
                 learningProfile: state.learningProfile,
                 customQuestions: state.customQuestions,
@@ -526,6 +534,11 @@ export const useAppStore = create<AppState>()(
           ...state,
           listeningRecords: [...state.listeningRecords, record],
         })),
+      addDictationRecord: (record) =>
+        set((state) => ({
+          ...state,
+          dictationRecords: [...state.dictationRecords, record],
+        })),
       addVocabulary: (item) =>
         set((state) => ({
           ...state,
@@ -606,6 +619,7 @@ export const useAppStore = create<AppState>()(
                 examRecords: migrated.examRecords ?? [],
                 readingRecords: migrated.readingRecords ?? [],
                 listeningRecords: migrated.listeningRecords ?? [],
+                dictationRecords: migrated.dictationRecords ?? [],
                 learningPlan: null,
                 learningProfile: null,
                 customQuestions: migrated.customQuestions ?? [],
@@ -687,6 +701,7 @@ export const useAppStore = create<AppState>()(
             examRecords: merged.examRecords ?? state.examRecords,
             readingRecords: merged.readingRecords ?? state.readingRecords,
             listeningRecords: merged.listeningRecords ?? state.listeningRecords,
+            dictationRecords: merged.dictationRecords ?? state.dictationRecords,
             learningPlan: merged.learningPlan ?? state.learningPlan,
             learningProfile: merged.learningProfile ?? state.learningProfile,
             customQuestions: merged.customQuestions ?? state.customQuestions,
@@ -771,6 +786,7 @@ useAppStore.subscribe((state) => {
           examRecords: state.examRecords,
           readingRecords: state.readingRecords,
           listeningRecords: state.listeningRecords,
+          dictationRecords: state.dictationRecords,
           learningPlan: state.learningPlan,
           learningProfile: state.learningProfile,
           customQuestions: state.customQuestions,

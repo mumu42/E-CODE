@@ -20,6 +20,7 @@ import type {
   ReadingRecord,
   ListeningItem,
   VocabularyItem,
+  DictationRecord,
 } from "@/lib/types";
 
 /** 带唯一标识的数据项 */
@@ -56,6 +57,7 @@ export function mergeProfileData(target: ProfileData, source: Partial<ProfileDat
     examRecords: mergeById(target.examRecords, source.examRecords ?? []),
     readingRecords: mergeById(target.readingRecords, source.readingRecords ?? []),
     listeningRecords: mergeById(target.listeningRecords, source.listeningRecords ?? []),
+    dictationRecords: mergeById(target.dictationRecords, source.dictationRecords ?? []),
     vocabulary: mergeById(target.vocabulary, source.vocabulary ?? []),
     learningPlan: source.learningPlan ?? target.learningPlan,
     learningProfile: source.learningProfile ?? target.learningProfile,
@@ -106,6 +108,7 @@ export function mergeAppData(snapshots: Partial<AppData>[]): Partial<AppData> {
   const examRecords: ExamRecord[] = [];
   const readingRecords: ReadingRecord[] = [];
   const listeningRecords: ListeningItem[] = [];
+  const dictationRecords: DictationRecord[] = [];
   const vocabulary: VocabularyItem[] = [];
   const customQuestions: ExamQuestion[] = [];
   const customTopics: TopicRecord[] = [];
@@ -121,6 +124,7 @@ export function mergeAppData(snapshots: Partial<AppData>[]): Partial<AppData> {
     examRecords.push(...(snapshot.examRecords ?? []));
     readingRecords.push(...(snapshot.readingRecords ?? []));
     listeningRecords.push(...(snapshot.listeningRecords ?? []));
+    dictationRecords.push(...(snapshot.dictationRecords ?? []));
     vocabulary.push(...(snapshot.vocabulary ?? []));
     customQuestions.push(...(snapshot.customQuestions ?? []));
     customTopics.push(...(snapshot.customTopics ?? []));
@@ -136,6 +140,7 @@ export function mergeAppData(snapshots: Partial<AppData>[]): Partial<AppData> {
   result.examRecords = mergeById(examRecords, []);
   result.readingRecords = mergeById(readingRecords, []);
   result.listeningRecords = mergeById(listeningRecords, []);
+  result.dictationRecords = mergeById(dictationRecords, []);
   result.vocabulary = mergeById(vocabulary, []);
   result.customQuestions = mergeById(customQuestions, []);
   result.customTopics = mergeById(customTopics, []);

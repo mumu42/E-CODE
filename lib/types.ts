@@ -184,6 +184,7 @@ export interface AppData {
   examRecords: ExamRecord[];
   readingRecords: ReadingRecord[];
   listeningRecords: ListeningItem[];
+  dictationRecords: DictationRecord[];
   /** AI 生成的学习计划 */
   learningPlan: LearningPlan | null;
   /** AI 学习画像 */
@@ -224,6 +225,8 @@ export interface ProfileData {
   readingRecords: ReadingRecord[];
   /** 听力理解练习记录列表 */
   listeningRecords: ListeningItem[];
+  /** 听写练习记录列表 */
+  dictationRecords: DictationRecord[];
   /** 学习计划 */
   learningPlan: LearningPlan | null;
   /** AI 学习画像 */
