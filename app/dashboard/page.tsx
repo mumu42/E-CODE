@@ -11,6 +11,11 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAppStore } from "@/lib/store";
+import { askAdvisor } from "@/lib/ai/client";
+import { useCustomPrompt } from "@/hooks/usePrompts";
+import { Lightbulb } from "lucide-react";
+import { useState } from "react";
+import { Textarea } from "@/components/ui/textarea";
 import { FileImporter } from "@/components/FileImporter";
 import { FileExporter } from "@/components/FileExporter";
 import { getCurrentStreak, getLongestStreak } from "@/lib/stats/checkin";
@@ -52,6 +57,11 @@ export default function DashboardPage() {
   const checkIns = useAppStore((state) => state.checkIns);
   const badges = useAppStore((state) => state.badges);
 
+  const [adviceQuestion, setAdviceQuestion] = useState("");
+  const [advice, setAdvice] = useState<string | null>(null);
+  const [adviceLoading, setAdviceLoading] = useState(false);
+  const advisorPrompt = useCustomPrompt("advisor");
+
   if (!profile) {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
@@ -91,6 +101,28 @@ export default function DashboardPage() {
   const todayTasks = learningPlan
     ? learningPlan.tasks.filter((t) => t.date === today)
     : [];
+
+  async function handleGetAdvice() {
+    if (!profile) return;
+    setAdviceLoading(true);
+    try {
+      const result = await askAdvisor(
+        profile.target,
+        profile.level,
+        adviceQuestion || "请根据我的学习情况，给我一些学习建议。",
+        undefined,
+        undefined,
+        undefined,
+        advisorPrompt
+      );
+      setAdvice(result.reply);
+    } catch (error) {
+      console.error(error);
+      setAdvice("获取学习建议失败，请稍后重试。");
+    } finally {
+      setAdviceLoading(false);
+    }
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -292,6 +324,34 @@ export default function DashboardPage() {
                 <Link href="/plan">
                   <Button size="sm">去生成</Button>
                 </Link>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="mt-8 max-w-4xl">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Lightbulb className="w-5 h-5 text-yellow-500" />
+              AI 学习建议
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Textarea
+              value={adviceQuestion}
+              onChange={(e) => setAdviceQuestion(e.target.value)}
+              placeholder="描述你遇到的困难，或直接点击按钮获取建议..."
+              rows={3}
+              className="resize-none"
+            />
+            <Button onClick={handleGetAdvice} disabled={adviceLoading} className="w-full sm:w-auto">
+              {adviceLoading ? "AI 思考中..." : "获取学习建议"}
+            </Button>
+            {advice && (
+              <div className="p-4 bg-muted rounded-md text-sm whitespace-pre-wrap">
+                {advice}
               </div>
             )}
           </CardContent>

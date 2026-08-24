@@ -5,7 +5,7 @@
  * @date 2026-08-21
  */
 
-import type { Level, Target, ChatRole, LearningPlan, ReadingPassage, ListeningItem } from "@/lib/types";
+import type { Level, Target, ChatRole, LearningPlan, ReadingPassage, ListeningItem, ErrorItem } from "@/lib/types";
 import { renderPromptTemplate } from "@/lib/settings/promptTemplate";
 
 /** 弱项概览 */
@@ -479,3 +479,64 @@ export function parseListeningResponse(raw: string): Omit<ListeningItem, "id" | 
   }
   return parsed as Omit<ListeningItem, "id" | "userId" | "date" | "score">;
 }
+
+/**
+ * 构建 AI 学习顾问提示词
+ * @param target - 用户学习目标
+ * @param level - 用户英语水平
+ * @param question - 用户提问
+ * @param context - 额外上下文（可选）
+ * @param errorItem - 相关错题（可选）
+ * @param learningContext - 学习画像上下文（可选）
+ * @param customPrompt - 自定义提示词模板（可选）
+ * @returns AI 学习顾问提示词字符串
+ */
+export function buildAdvisorPrompt(
+  target: Target,
+  level: Level,
+  question: string,
+  context?: string,
+  errorItem?: ErrorItem,
+  learningContext?: string,
+  customPrompt?: string
+): string {
+  if (customPrompt) {
+    return renderPromptTemplate(customPrompt, {
+      target,
+      level,
+      question,
+      context: context || "",
+      errorOriginal: errorItem?.original || "",
+      errorCorrection: errorItem?.correction || "",
+      errorExplanation: errorItem?.explanation || "",
+      learningContext: learningContext || "",
+    });
+  }
+
+  const errorSection = errorItem
+    ? `Related error:\n- Original: ${errorItem.original}\n- Correction: ${errorItem.correction}\n- Explanation: ${errorItem.explanation}\n`
+    : "";
+
+  return `You are a knowledgeable and patient English learning advisor. The user is preparing for ${target} and is currently at CEFR level ${level}.
+
+User's question: ${question}
+${context ? `Additional context:\n${context}\n` : ""}
+${errorSection}
+${learningContext ? `Learning context:\n${learningContext}\n` : ""}
+
+Provide a clear, helpful answer in JSON with this exact shape:
+{
+  "reply": "your answer in Chinese, with English examples when helpful",
+  "examples": ["example 1", "example 2"],
+  "followUpQuestions": ["follow-up question 1", "follow-up question 2"]
+}
+
+Rules:
+- Keep the tone encouraging and supportive.
+- If the question is about a specific error, explain why it is wrong and how to avoid it.
+- Include 1-2 concrete examples when explaining grammar, vocabulary, or expressions.
+- Suggest 2 follow-up questions the user can ask to deepen understanding.
+
+Return only valid JSON, no markdown.`;
+}
+

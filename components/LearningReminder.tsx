@@ -7,7 +7,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Bell, BellOff } from "lucide-react";
@@ -18,26 +18,40 @@ function getToday(): string {
   return new Date().toISOString().split("T")[0];
 }
 
+function getNotificationPermission(): NotificationPermission | "unsupported" {
+  if (typeof window === "undefined" || !("Notification" in window)) return "unsupported";
+  return Notification.permission;
+}
+
+function useNotificationPermission() {
+  return useSyncExternalStore(
+    () => () => {},
+    getNotificationPermission,
+    () => "default" as NotificationPermission
+  );
+}
+
 /** 学习提醒组件 */
 export function LearningReminder() {
   const settings = useAppStore((state) => state.settings);
   const checkIns = useAppStore((state) => state.checkIns);
   const updateSettings = useAppStore((state) => state.updateSettings);
 
-  const [permission, setPermission] = useState<NotificationPermission | "unsupported">(
-    typeof window !== "undefined" && "Notification" in window ? Notification.permission : "unsupported"
-  );
+  const permission = useNotificationPermission();
+  const [requestedPermission, setRequestedPermission] = useState<NotificationPermission | null>(null);
+
+  const effectivePermission = requestedPermission ?? permission;
 
   async function requestPermission() {
     if (typeof window === "undefined" || !("Notification" in window)) return;
     const result = await Notification.requestPermission();
-    setPermission(result);
+    setRequestedPermission(result);
   }
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!settings.reminders.enabled) return;
-    if (permission !== "granted") return;
+    if (effectivePermission !== "granted") return;
 
     const interval = setInterval(() => {
       const now = new Date();
@@ -64,7 +78,7 @@ export function LearningReminder() {
     }, 60_000);
 
     return () => clearInterval(interval);
-  }, [settings.reminders.enabled, settings.reminders.time, permission, checkIns]);
+  }, [settings.reminders.enabled, settings.reminders.time, effectivePermission, checkIns]);
 
   return (
     <div className="space-y-4">
@@ -80,7 +94,7 @@ export function LearningReminder() {
           {settings.reminders.enabled ? <Bell className="w-4 h-4 mr-2" /> : <BellOff className="w-4 h-4 mr-2" />}
           {settings.reminders.enabled ? "已开启" : "已关闭"}
         </Button>
-        {permission !== "granted" && permission !== "unsupported" && (
+        {effectivePermission !== "granted" && effectivePermission !== "unsupported" && (
           <Button variant="outline" onClick={requestPermission}>
             请求通知权限
           </Button>
@@ -103,10 +117,10 @@ export function LearningReminder() {
         </div>
       )}
 
-      {permission === "unsupported" && (
+      {effectivePermission === "unsupported" && (
         <p className="text-xs text-orange-600">当前浏览器不支持桌面通知。</p>
       )}
-      {permission === "denied" && (
+      {effectivePermission === "denied" && (
         <p className="text-xs text-red-600">通知权限被拒绝，请在浏览器设置中开启。</p>
       )}
     </div>

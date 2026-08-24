@@ -15,6 +15,7 @@ import {
   buildWeakPointDrillPrompt,
   buildReadingPrompt,
   buildListeningPrompt,
+  buildAdvisorPrompt,
   parseReadingResponse,
   parseListeningResponse,
 } from "./prompts";
@@ -373,3 +374,44 @@ export async function generateListeningItem(
   const { result } = (await res.json()) as { result: string };
   return parseListeningResponse(result);
 }
+
+/**
+ * 向 AI 学习顾问提问
+ * @param target - 学习目标
+ * @param level - 当前等级
+ * @param question - 用户问题
+ * @param context - 额外上下文（可选）
+ * @param errorItem - 相关错题（可选）
+ * @param learningContext - 学习画像上下文（可选）
+ * @param customPrompt - 自定义提示词模板（可选）
+ * @returns 顾问回复
+ */
+export async function askAdvisor(
+  target: Target,
+  level: Level,
+  question: string,
+  context?: string,
+  errorItem?: ErrorItem,
+  learningContext?: string,
+  customPrompt?: string
+): Promise<{ reply: string; examples: string[]; followUpQuestions: string[] }> {
+  const res = await fetch("/api/ai/advisor", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      prompt: buildAdvisorPrompt(target, level, question, context, errorItem, learningContext, customPrompt),
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Advisor failed");
+  }
+
+  const { result } = (await res.json()) as { result: string };
+  const parsed = safeParseJson<{ reply: string; examples: string[]; followUpQuestions: string[] }>(result);
+  if (!parsed) {
+    throw new Error("Failed to parse advisor response");
+  }
+  return parsed;
+}
+

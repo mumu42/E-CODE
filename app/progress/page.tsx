@@ -14,11 +14,15 @@ import { FileImporter } from "@/components/FileImporter";
 import { FileExporter } from "@/components/FileExporter";
 import { getCurrentStreak, getLongestStreak } from "@/lib/stats/checkin";
 import { SkillRadarChart } from "@/components/charts/RadarChart";
+import { predictExamScore } from "@/lib/exam/prediction";
 import { ScoreTrendChart } from "@/components/charts/TrendChart";
 import { HeatmapCalendar } from "@/components/charts/HeatmapCalendar";
 import { generateLearningSummary } from "@/lib/ai/client";
 import { useCustomPrompt } from "@/hooks/usePrompts";
+import { useRouter } from "next/navigation";
 import { Loader2, Trophy, Award } from "lucide-react";
+import { estimateTimeToTarget, calculateGoalGap } from "@/lib/stats/predictions";
+import Link from "next/link";
 
 function formatDate(date: Date) {
   return `${date.getMonth() + 1}/${date.getDate()}`;
@@ -32,11 +36,14 @@ function formatDate(date: Date) {
  * ```
  */
 export default function ProgressPage() {
+  const router = useRouter();
   const profile = useAppStore((state) => state.profile);
   const sessions = useAppStore((state) => state.sessions);
   const assessments = useAppStore((state) => state.assessments);
   const errors = useAppStore((state) => state.errors);
   const examRecords = useAppStore((state) => state.examRecords);
+  const readingRecords = useAppStore((state) => state.readingRecords);
+  const listeningRecords = useAppStore((state) => state.listeningRecords);
   const checkIns = useAppStore((state) => state.checkIns);
   const badges = useAppStore((state) => state.badges);
   const summaryPrompt = useCustomPrompt("summary");
@@ -136,6 +143,33 @@ export default function ProgressPage() {
       .slice(0, 5);
   }, [errors]);
 
+  const predicted = useMemo(() => {
+    return predictExamScore(examRecords, readingRecords, listeningRecords, sessions);
+  }, [examRecords, readingRecords, listeningRecords, sessions]);
+
+  const { estimate, gap } = useMemo(() => {
+    const estimate = profile
+      ? estimateTimeToTarget(profile, sessions, errors)
+      : null;
+    const gap = profile
+      ? calculateGoalGap(profile, latestAssessment)
+      : null;
+    return { estimate, gap };
+  }, [profile, sessions, errors, latestAssessment]);
+
+  const examTrendData = useMemo(() => {
+    return examRecords
+      .slice()
+      .sort((a, b) => new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime())
+      .map((record) => ({
+        date: formatDate(new Date(record.startedAt)),
+        score:
+          record.totalScore > 0
+            ? Math.round((record.score / record.totalScore) * 100)
+            : record.score,
+      }));
+  }, [examRecords]);
+
   if (!profile) {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
@@ -186,6 +220,122 @@ export default function ProgressPage() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">{stats.avgScore}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-6 mb-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>预测考试分数</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-baseline gap-2">
+              <span className="text-5xl font-bold text-primary">{predicted.score}</span>
+              <span className="text-muted-foreground">/ 100</span>
+            </div>
+            <p className="text-sm text-muted-foreground">{predicted.basis}</p>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div className="flex justify-between bg-muted p-2 rounded">
+                <span>阅读</span>
+                <span className="font-medium">{predicted.sectionScores.reading}</span>
+              </div>
+              <div className="flex justify-between bg-muted p-2 rounded">
+                <span>听力</span>
+                <span className="font-medium">{predicted.sectionScores.listening}</span>
+              </div>
+              <div className="flex justify-between bg-muted p-2 rounded">
+                <span>写作</span>
+                <span className="font-medium">{predicted.sectionScores.writing}</span>
+              </div>
+              <div className="flex justify-between bg-muted p-2 rounded">
+                <span>口语</span>
+                <span className="font-medium">{predicted.sectionScores.speaking}</span>
+              </div>
+            </div>
+            <Button onClick={() => router.push("/exam/full")} className="w-full">
+              开始全真模考
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>模考成绩趋势</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {examTrendData.length > 0 ? (
+              <ScoreTrendChart data={examTrendData} />
+            ) : (
+              <p className="text-gray-500">完成模考后即可查看</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-6 mb-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>目标达成预测</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {estimate && gap ? (
+              <>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-bold text-primary">{estimate.weeks}</span>
+                  <span className="text-muted-foreground">周</span>
+                  <span className="text-sm text-muted-foreground ml-2">（约 {estimate.days} 天）</span>
+                </div>
+                <p className="text-sm text-muted-foreground">{estimate.basis}</p>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>总体进度</span>
+                    <span className="font-medium">{gap.overallProgress}%</span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div
+                      className="bg-primary h-2 rounded-full"
+                      style={{ width: `${gap.overallProgress}%` }}
+                    />
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  建议每周练习 <strong>{estimate.recommendedWeeklySessions}</strong> 次，保持当前节奏。
+                </p>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  {Object.entries(gap.currentScores).map(([skill, score]) => (
+                    <div key={skill} className="flex justify-between bg-muted p-2 rounded">
+                      <span className="capitalize">
+                        {skill === "listening" && "听力"}
+                        {skill === "speaking" && "口语"}
+                        {skill === "reading" && "阅读"}
+                        {skill === "writing" && "写作"}
+                        {skill === "grammar" && "语法"}
+                      </span>
+                      <span className="font-medium">
+                        {score} / {gap.targetScores[skill as keyof typeof gap.targetScores]}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <p className="text-gray-500">完善档案和练习记录后即可查看预测</p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>学习报告</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              生成周报/月报，查看更详细的练习统计，并导出 Word 或 PDF。
+            </p>
+            <Link href="/report">
+              <Button className="w-full sm:w-auto">查看学习报告</Button>
+            </Link>
           </CardContent>
         </Card>
       </div>

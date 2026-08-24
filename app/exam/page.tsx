@@ -20,7 +20,8 @@ import {
 } from "@/components/ui/card";
 import { EXAM_CONFIGS, type ExamType } from "@/lib/exam/questions";
 import { parseQuestionBank } from "@/lib/exam/import";
-import { Clock, BookOpen, Upload } from "lucide-react";
+import { Clock, BookOpen, Upload, Target } from "lucide-react";
+import Link from "next/link";
 
 /** 模拟考试入口页面 */
 export default function ExamPage() {
@@ -113,6 +114,23 @@ export default function ExamPage() {
           </Card>
         ))}
       </div>
+
+      <Card className="mb-8 bg-primary/5 border-primary/20">
+        <CardContent className="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <p className="font-medium dark:text-white flex items-center gap-2">
+              <Target className="w-4 h-4" />
+              全真限时模考
+            </p>
+            <p className="text-sm text-muted-foreground">
+              45 分钟 · 阅读/听力/写作/口语 · AI 自动评分
+            </p>
+          </div>
+          <Link href="/exam/full">
+            <Button size="lg">进入全真模考</Button>
+          </Link>
+        </CardContent>
+      </Card>
 
       <Card className="mb-8">
         <CardHeader>

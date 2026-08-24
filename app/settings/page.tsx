@@ -13,8 +13,9 @@ import { FileExporter } from "@/components/FileExporter";
 import { PromptEditor } from "@/components/PromptEditor";
 import { LearningReminder } from "@/components/LearningReminder";
 import { DataMigration } from "@/components/DataMigration";
+import { OfflinePackage } from "@/components/OfflinePackage";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Folder, Upload, Download, MessageSquare, Bell, Keyboard, Database } from "lucide-react";
+import { Folder, Upload, Download, MessageSquare, Bell, Keyboard, Database, Wifi } from "lucide-react";
 
 export default function SettingsPage() {
   return (
@@ -61,7 +62,7 @@ export default function SettingsPage() {
         <CardContent>
           <p className="text-sm text-gray-700 mb-2">Alt + 1~9 快速跳转页面</p>
           <p className="text-xs text-gray-500">
-            1 今日任务 · 2 口语 · 3 写作 · 4 对话 · 5 复习 · 6 计划 · 7 模考 · 8 进度 · 9 设置 · R 阅读 · L 听力 · V 词汇
+            1 今日任务 · 2 口语 · 3 写作 · 4 对话 · 5 复习 · 6 计划 · 7 模考 · 8 进度 · 9 设置 · R 阅读 · L 听力 · V 词汇 · A 顾问
           </p>
         </CardContent>
       </Card>
@@ -107,6 +108,21 @@ export default function SettingsPage() {
           <DataMigration />
           <p className="text-xs text-gray-500 mt-4">
             导出旧格式 JSON 或导入旧格式数据，系统会自动迁移到新结构。
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Wifi className="w-5 h-5 text-cyan-500" />
+            离线练习包
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <OfflinePackage />
+          <p className="text-xs text-gray-500 mt-4">
+            缓存后，即使无网络也能访问核心学习页面。PWA 安装后体验更佳。
           </p>
         </CardContent>
       </Card>

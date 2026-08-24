@@ -18,7 +18,7 @@ export type SessionType = "SPEAK" | "WRITE" | "CHAT";
 export type ThemeMode = "light" | "dark" | "system";
 
 /** 可自定义 Prompt 类型 */
-export type PromptType = "speak" | "write" | "chat" | "plan" | "assessment" | "drill" | "summary" | "reading" | "listening";
+export type PromptType = "speak" | "write" | "chat" | "plan" | "assessment" | "drill" | "summary" | "reading" | "listening" | "advisor";
 
 /** 自定义 Prompt 模板 */
 export interface PromptSettings {
@@ -40,6 +40,8 @@ export interface PromptSettings {
   reading: string;
   /** 听力理解生成 Prompt */
   listening: string;
+  /** AI 学习顾问 Prompt */
+  advisor: string;
 }
 
 /** 学习提醒设置 */

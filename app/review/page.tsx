@@ -13,7 +13,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAppStore } from "@/lib/store";
 import { generateWeakPointDrill } from "@/lib/ai/client";
 import { getDueErrors } from "@/lib/review/utils";
+import { askAdvisor } from "@/lib/ai/client";
 import { useCustomPrompt } from "@/hooks/usePrompts";
+import { Loader2 } from "lucide-react";
 import { FlashcardMode } from "@/components/review/FlashcardMode";
 import { DictationMode } from "@/components/review/DictationMode";
 import { FillBlankMode } from "@/components/review/FillBlankMode";
@@ -44,7 +46,10 @@ export default function ReviewPage() {
   const [loading, setLoading] = useState(false);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [showResult, setShowResult] = useState(false);
+  const [explainingId, setExplainingId] = useState<string | null>(null);
+  const [explanations, setExplanations] = useState<Record<string, string>>({});
   const drillPrompt = useCustomPrompt("drill");
+  const advisorPrompt = useCustomPrompt("advisor");
 
   const weakPoints = useMemo(() => {
     const counts = new Map<string, number>();
@@ -86,6 +91,28 @@ export default function ReviewPage() {
       alert("生成专项练习失败");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleExplain(err: ErrorItem) {
+    if (!profile) return;
+    setExplainingId(err.id);
+    try {
+      const result = await askAdvisor(
+        profile.target,
+        profile.level,
+        "请详细讲解这道错题，说明为什么错、正确用法是什么，并给出类似例句。",
+        undefined,
+        err,
+        undefined,
+        advisorPrompt
+      );
+      setExplanations((prev) => ({ ...prev, [err.id]: result.reply }));
+    } catch (error) {
+      console.error(error);
+      setExplanations((prev) => ({ ...prev, [err.id]: "讲解失败，请稍后重试。" }));
+    } finally {
+      setExplainingId(null);
     }
   }
 
@@ -137,7 +164,7 @@ export default function ReviewPage() {
                 <li key={err.id} className="border-b py-2">
                   <p className="text-sm line-through text-red-600">{err.original}</p>
                   <p className="text-sm text-green-600">{err.correction}</p>
-                  <div className="flex gap-2 mt-2">
+                  <div className="flex flex-wrap gap-2 mt-2">
                     <Button size="sm" variant="outline" onClick={() => scheduleReview(err.id, "hard")}>
                       难
                     </Button>
@@ -150,7 +177,22 @@ export default function ReviewPage() {
                     <Button size="sm" variant="outline" onClick={() => handleAddToVocabulary(err)}>
                       加入词汇本
                     </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleExplain(err)}
+                      disabled={explainingId === err.id}
+                    >
+                      {explainingId === err.id && <Loader2 className="w-3 h-3 mr-1 animate-spin" />}
+                      AI 讲解
+                    </Button>
                   </div>
+                  {explanations[err.id] && (
+                    <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 text-sm rounded-md">
+                      <p className="font-medium mb-1">AI 讲解</p>
+                      <p className="whitespace-pre-wrap">{explanations[err.id]}</p>
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>
@@ -290,15 +332,34 @@ export default function ReviewPage() {
                         {err.errorType} · {new Date(err.date).toLocaleDateString()}
                       </p>
                     </div>
-                    {!err.reviewed && (
-                      <Button size="sm" variant="ghost" onClick={() => markErrorReviewed(err.id)}>
-                        <CheckCircle className="w-4 h-4 mr-1" />
-                        标记已复习
-                      </Button>
-                    )}
-                    <Button size="sm" variant="ghost" onClick={() => handleAddToVocabulary(err)}>
-                      加入词汇本
-                    </Button>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex flex-wrap gap-2">
+                        {!err.reviewed && (
+                          <Button size="sm" variant="ghost" onClick={() => markErrorReviewed(err.id)}>
+                            <CheckCircle className="w-4 h-4 mr-1" />
+                            标记已复习
+                          </Button>
+                        )}
+                        <Button size="sm" variant="ghost" onClick={() => handleAddToVocabulary(err)}>
+                          加入词汇本
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleExplain(err)}
+                          disabled={explainingId === err.id}
+                        >
+                          {explainingId === err.id && <Loader2 className="w-3 h-3 mr-1 animate-spin" />}
+                          AI 讲解
+                        </Button>
+                      </div>
+                      {explanations[err.id] && (
+                        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-sm rounded-md">
+                          <p className="font-medium mb-1">AI 讲解</p>
+                          <p className="whitespace-pre-wrap">{explanations[err.id]}</p>
+                        </div>
+                      )}
+                    </div>
                   </li>
                 ))}
             </ul>

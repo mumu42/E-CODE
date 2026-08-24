@@ -27,6 +27,7 @@ const LETTER_SHORTCUTS: Record<string, string> = {
   r: "/reading",
   l: "/listening",
   v: "/vocabulary",
+  a: "/advisor",
 };
 
 /** 全局键盘快捷键组件 */

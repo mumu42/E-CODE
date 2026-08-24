@@ -28,10 +28,25 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+/** 页面视口配置 */
+export const viewport = {
+  themeColor: "#2563eb",
+};
+
 /** 页面元数据 */
 export const metadata: Metadata = {
   title: "English Agent - AI 英语学习助手",
   description: "本地优先、完全私人的 AI 英语学习 Web Agent",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    title: "English Agent",
+    statusBarStyle: "default",
+  },
+  icons: {
+    icon: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 /**
