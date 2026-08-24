@@ -302,6 +302,8 @@ Return only valid JSON, no markdown.`;
  * @param history - 对话历史
  * @param userMessage - 用户当前消息
  * @param learningContext - 学习画像上下文（可选）
+ * @param scenario - 场景描述（可选）
+ * @param voiceMode - 是否为语音对话模式（可选）
  * @param customPrompt - 自定义提示词模板（可选）
  * @returns AI 对话提示词字符串
  */
@@ -312,6 +314,8 @@ export function buildChatPrompt(
   history: { role: "user" | "assistant"; content: string }[],
   userMessage: string,
   learningContext = "",
+  scenario?: string,
+  voiceMode = false,
   customPrompt?: string
 ): string {
   const roleDescriptions: Record<ChatRole, string> = {
@@ -335,11 +339,18 @@ export function buildChatPrompt(
       history: historyText,
       userMessage,
       learningContext,
+      scenario: scenario || "",
+      voiceMode: String(voiceMode),
     });
   }
 
+  const scenarioText = scenario ? `Scenario: ${scenario}\n` : "";
+  const voiceText = voiceMode
+    ? "This is a voice conversation. The user is speaking, so keep your reply natural, short, and easy to pronounce. After your reply, provide up to 2 pronunciation tips if you noticed any issues.\n"
+    : "";
+
   return `You are ${roleDescriptions[role]}. The user is preparing for ${target} and is at level ${level}.
-${learningContext ? `Learning context:\n${learningContext}\n` : ""}
+${scenarioText}${voiceText}${learningContext ? `Learning context:\n${learningContext}\n` : ""}
 Keep the conversation natural. After your reply, optionally include a short correction or suggestion if the user made a clear mistake, but keep it brief and encouraging.
 
 Conversation history:
@@ -351,6 +362,7 @@ Reply in JSON with this exact shape:
 {
   "reply": "your natural reply in English",
   "corrections": ["optional correction 1", "optional correction 2"]
+${voiceMode ? '  ,"pronunciationTips": ["tip 1", "tip 2"]' : ""}
 }
 
 Return only valid JSON, no markdown.`;

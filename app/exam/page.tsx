@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/card";
 import { EXAM_CONFIGS, type ExamType } from "@/lib/exam/questions";
 import { parseQuestionBank } from "@/lib/exam/import";
-import { Clock, BookOpen, Upload, Target } from "lucide-react";
+import { Clock, BookOpen, Upload, Target, FileText } from "lucide-react";
 import Link from "next/link";
 
 /** 模拟考试入口页面 */
@@ -128,6 +128,42 @@ export default function ExamPage() {
           </div>
           <Link href="/exam/full">
             <Button size="lg">进入全真模考</Button>
+          </Link>
+        </CardContent>
+      </Card>
+
+      <Card className="mb-8 bg-primary/5 border-primary/20">
+        <CardContent className="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <p className="font-medium dark:text-white flex items-center gap-2">
+              <BookOpen className="w-4 h-4" />
+              真题模考
+            </p>
+            <p className="text-sm text-muted-foreground">
+              CET / IELTS / TOEFL 真题 · 真实考试时间 · 自动交卷
+            </p>
+          </div>
+          <Link href="/exam/real">
+            <Button size="lg">进入真题模考</Button>
+          </Link>
+        </CardContent>
+      </Card>
+
+      <Card className="mb-8">
+        <CardContent className="p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <p className="font-medium dark:text-white flex items-center gap-2">
+              <FileText className="w-4 h-4" />
+              专项真题训练
+            </p>
+            <p className="text-sm text-muted-foreground">
+              按考试类型/年份/题型/难度筛选真题练习
+            </p>
+          </div>
+          <Link href="/exam/real/training">
+            <Button variant="outline" size="lg">
+              开始专项训练
+            </Button>
           </Link>
         </CardContent>
       </Card>

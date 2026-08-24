@@ -363,6 +363,10 @@ export interface ChatSession {
   userId: string;
   /** 角色类型 */
   role: ChatRole;
+  /** 场景描述（可选） */
+  scenario?: string;
+  /** 是否为语音对话模式（可选） */
+  voiceMode?: boolean;
   /** 消息列表 */
   messages: ChatMessage[];
   /** 创建时间 */
@@ -521,6 +525,16 @@ export interface ExamQuestion {
   target?: Target;
   /** 标签（可选，用于分类） */
   tags?: string[];
+  /** 真题来源（可选） */
+  source?: "official" | "custom";
+  /** 真题考试类型（如 CET4 / CET6 / IELTS / TOEFL） */
+  examType?: string;
+  /** 真题年份 */
+  year?: string;
+  /** 真题所属部分（听力/阅读/写作/口语） */
+  section?: ExamQuestionType;
+  /** 难度（可选） */
+  difficulty?: "easy" | "medium" | "hard";
 }
 
 /** 模拟考试记录 */

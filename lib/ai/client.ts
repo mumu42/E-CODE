@@ -238,13 +238,15 @@ export async function sendChatMessage(
   history: { role: "user" | "assistant"; content: string }[],
   userMessage: string,
   learningContext = "",
+  scenario?: string,
+  voiceMode = false,
   customPrompt?: string
-): Promise<{ reply: string; corrections: string[] }> {
+): Promise<{ reply: string; corrections: string[]; pronunciationTips?: string[] }> {
   const res = await fetch("/api/ai/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      prompt: buildChatPrompt(target, level, role, history, userMessage, learningContext, customPrompt),
+      prompt: buildChatPrompt(target, level, role, history, userMessage, learningContext, scenario, voiceMode, customPrompt),
     }),
   });
 
@@ -253,7 +255,7 @@ export async function sendChatMessage(
   }
 
   const { result } = (await res.json()) as { result: string };
-  const parsed = safeParseJson<{ reply: string; corrections: string[] }>(result);
+  const parsed = safeParseJson<{ reply: string; corrections: string[]; pronunciationTips?: string[] }>(result);
   if (!parsed) {
     throw new Error("Failed to parse chat result");
   }

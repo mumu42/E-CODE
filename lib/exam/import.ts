@@ -52,6 +52,11 @@ function normalizeQuestion(item: ExamQuestion): ExamQuestion {
     passage: item.passage !== undefined ? String(item.passage) : undefined,
     target: item.target,
     tags: Array.isArray(item.tags) ? item.tags.map(String) : undefined,
+    source: item.source,
+    examType: item.examType !== undefined ? String(item.examType) : undefined,
+    year: item.year !== undefined ? String(item.year) : undefined,
+    section: item.section,
+    difficulty: item.difficulty,
   };
 }
 

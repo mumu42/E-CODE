@@ -38,6 +38,7 @@ async function callAnthropic(config: {
   baseURL?: string;
   model: string;
   prompt: string;
+  maxTokens?: number;
 }): Promise<AIResponse> {
   const client = new Anthropic({
     apiKey: config.apiKey,
@@ -46,7 +47,7 @@ async function callAnthropic(config: {
 
   const response = await client.messages.create({
     model: config.model,
-    max_tokens: 1024,
+    max_tokens: config.maxTokens ?? 1024,
     messages: [{ role: "user", content: config.prompt }],
   });
 
@@ -81,7 +82,7 @@ async function callOpenAI(config: {
     body: JSON.stringify({
       model: config.model,
       messages: [{ role: "user", content: config.prompt }],
-      max_tokens: 1024,
+      max_tokens: config.maxTokens ?? 1024,
     }),
   });
 
@@ -110,6 +111,7 @@ async function callGemini(config: {
   apiKey: string;
   model: string;
   prompt: string;
+  maxTokens?: number;
 }): Promise<AIResponse> {
   const client = new GoogleGenerativeAI(config.apiKey);
   const model = client.getGenerativeModel({ model: config.model });
@@ -133,7 +135,14 @@ async function callGemini(config: {
  * const { result } = await callAI("请翻译这句话");
  * ```
  */
-export async function callAI(prompt: string): Promise<AIResponse> {
+export async function callAI(
+  promptOrOptions: string | { prompt: string; maxTokens?: number }
+): Promise<AIResponse> {
+  const { prompt, maxTokens } =
+    typeof promptOrOptions === "string"
+      ? { prompt: promptOrOptions, maxTokens: undefined }
+      : promptOrOptions;
+
   const provider = process.env.AI_PROVIDER?.toLowerCase() || "bailian";
 
   switch (provider) {
@@ -143,6 +152,7 @@ export async function callAI(prompt: string): Promise<AIResponse> {
         baseURL: process.env.BAILIAN_BASE_URL || "https://cloud-ai-model.rd.ubtrobot.com/",
         model: process.env.BAILIAN_MODEL || "kimi-k2.7-code",
         prompt,
+        maxTokens,
       });
     }
 
@@ -152,6 +162,7 @@ export async function callAI(prompt: string): Promise<AIResponse> {
         baseURL: "https://api.anthropic.com",
         model: process.env.CLAUDE_MODEL || "claude-3-5-sonnet-20241022",
         prompt,
+        maxTokens,
       });
     }
 
@@ -161,6 +172,7 @@ export async function callAI(prompt: string): Promise<AIResponse> {
         baseURL: process.env.DEEPSEEK_BASE_URL || "https://api.deepseek.com",
         model: process.env.DEEPSEEK_MODEL || "deepseek-chat",
         prompt,
+        maxTokens,
       });
     }
 
@@ -170,6 +182,7 @@ export async function callAI(prompt: string): Promise<AIResponse> {
         baseURL: process.env.KIMI_BASE_URL || "https://api.moonshot.cn",
         model: process.env.KIMI_MODEL || "moonshot-v1-8k",
         prompt,
+        maxTokens,
       });
     }
 
@@ -179,6 +192,7 @@ export async function callAI(prompt: string): Promise<AIResponse> {
         baseURL: process.env.GLM_BASE_URL || "https://open.bigmodel.cn/api/paas/v4",
         model: process.env.GLM_MODEL || "glm-4",
         prompt,
+        maxTokens,
       });
     }
 
@@ -187,6 +201,7 @@ export async function callAI(prompt: string): Promise<AIResponse> {
         apiKey: getRequiredEnv("GEMINI_API_KEY"),
         model: process.env.GEMINI_MODEL || "gemini-1.5-flash",
         prompt,
+        maxTokens,
       });
     }
 
@@ -196,6 +211,7 @@ export async function callAI(prompt: string): Promise<AIResponse> {
         baseURL: process.env.OPENAI_BASE_URL || "https://api.openai.com/v1",
         model: process.env.OPENAI_MODEL || "gpt-4o-mini",
         prompt,
+        maxTokens,
       });
     }
 

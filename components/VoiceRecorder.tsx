@@ -26,6 +26,8 @@ interface VoiceRecorderProps {
   onChange: (value: string) => void;
   /** 置信度变化回调（可选） */
   onConfidenceChange?: (words: WordConfidence[]) => void;
+  /** 当语音识别产生最终结果时的回调（可选） */
+  onFinalTranscript?: (transcript: string) => void;
 }
 
 /**
@@ -36,7 +38,7 @@ interface VoiceRecorderProps {
  * <VoiceRecorder value={input} onChange={setInput} />
  * ```
  */
-export function VoiceRecorder({ value, onChange, onConfidenceChange }: VoiceRecorderProps) {
+export function VoiceRecorder({ value, onChange, onConfidenceChange, onFinalTranscript }: VoiceRecorderProps) {
   const [isListening, setIsListening] = useState(false);
   const [supported] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -89,6 +91,14 @@ export function VoiceRecorder({ value, onChange, onConfidenceChange }: VoiceReco
         .join("");
       onChange(transcript);
       extractConfidence(event);
+
+      for (let i = 0; i < event.results.length; i++) {
+        const result = event.results[i];
+        if (result.isFinal && onFinalTranscript) {
+          onFinalTranscript(transcript);
+          break;
+        }
+      }
     };
 
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {

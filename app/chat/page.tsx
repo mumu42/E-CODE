@@ -1,8 +1,8 @@
 /**
  * @file app/chat/page.tsx
- * @description AI 对话陪练页面
+ * @description AI 语音/文本对话陪练页面
  * @author English Agent Team
- * @date 2026-08-07
+ * @date 2026-08-24
  */
 "use client";
 
@@ -18,7 +18,8 @@ import { buildMemoryContext } from "@/lib/ai/memory";
 import { useCustomPrompt } from "@/hooks/usePrompts";
 import { saveToStatic } from "@/lib/storage/excel";
 import { ChatRole } from "@/lib/types";
-import { Mic, Send } from "lucide-react";
+import { Mic, Send, Volume2, Square } from "lucide-react";
+import { speak, stopSpeaking, isTTSSupported } from "@/lib/tts";
 
 const roles: { value: ChatRole; label: string; description: string }[] = [
   { value: "friend", label: "朋友", description: "轻松日常对话" },
@@ -28,13 +29,40 @@ const roles: { value: ChatRole; label: string; description: string }[] = [
   { value: "colleague", label: "同事", description: "职场话题交流" },
 ];
 
-/**
- * AI 对话陪练页面
- * @example
- * ```tsx
- * <ChatPage />
- * ```
- */
+interface Scenario {
+  value: string;
+  label: string;
+  prompt: string;
+}
+
+const roleScenarios: Record<ChatRole, Scenario[]> = {
+  friend: [
+    { value: "coffee", label: "咖啡店闲聊", prompt: "Chat casually over coffee." },
+    { value: "weekend", label: "周末计划", prompt: "Discuss weekend plans." },
+    { value: "travel", label: "旅行分享", prompt: "Share travel experiences." },
+  ],
+  interviewer: [
+    { value: "intro", label: "自我介绍", prompt: "Ask the user to introduce themselves." },
+    { value: "project", label: "项目经验", prompt: "Discuss past project experience." },
+    { value: "career", label: "职业规划", prompt: "Talk about career plans." },
+  ],
+  examiner: [
+    { value: "hometown", label: "家乡", prompt: "Ask about the user's hometown." },
+    { value: "hobby", label: "兴趣爱好", prompt: "Ask about hobbies and interests." },
+    { value: "education", label: "教育背景", prompt: "Ask about education background." },
+  ],
+  teacher: [
+    { value: "grammar", label: "语法纠错", prompt: "Help the user practice grammar." },
+    { value: "vocabulary", label: "词汇扩展", prompt: "Help expand vocabulary." },
+    { value: "pronunciation", label: "发音练习", prompt: "Help practice pronunciation." },
+  ],
+  colleague: [
+    { value: "project", label: "项目讨论", prompt: "Discuss a work project." },
+    { value: "meeting", label: "会议安排", prompt: "Arrange a meeting." },
+    { value: "email", label: "邮件沟通", prompt: "Discuss email communication." },
+  ],
+};
+
 export default function ChatPage() {
   const router = useRouter();
   const profile = useAppStore((state) => state.profile);
@@ -44,10 +72,13 @@ export default function ChatPage() {
   const chatPrompt = useCustomPrompt("chat");
 
   const [selectedRole, setSelectedRole] = useState<ChatRole>("friend");
+  const [selectedScenario, setSelectedScenario] = useState<string>("");
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [useVoice, setUseVoice] = useState(false);
+  const [playing, setPlaying] = useState(false);
+  const [pronunciationTips, setPronunciationTips] = useState<string[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const activeSession = chatSessions.find((s) => s.id === activeSessionId);
@@ -62,17 +93,37 @@ export default function ChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [activeSessionId, chatSessions]);
 
-  async function handleStart(role: ChatRole) {
+  function getGreeting(role: ChatRole, scenario?: string): string {
+    const scenarioText = scenario ? ` about ${scenario}` : "";
+    switch (role) {
+      case "friend":
+        return `Hey! How's it going? Let's chat${scenarioText}.`;
+      case "interviewer":
+        return `Good morning. Please take a seat. Let's start${scenarioText}.`;
+      case "examiner":
+        return `Hello. My name is the examiner. In this part, I'd like to ask you some questions${scenarioText}.`;
+      case "teacher":
+        return `Hello! What would you like to practice today${scenarioText}?`;
+      case "colleague":
+        return `Hi, do you have a minute to discuss the project${scenarioText}?`;
+    }
+  }
+
+  function handleStart(role: ChatRole) {
     if (!profile) return;
+    const scenario = roleScenarios[role].find((s) => s.value === selectedScenario);
+    const greeting = getGreeting(role, scenario?.label);
     const session = {
       id: crypto.randomUUID(),
       userId: profile.id,
       role,
+      scenario: scenario?.prompt,
+      voiceMode: useVoice,
       messages: [
         {
           id: crypto.randomUUID(),
           role: "assistant" as const,
-          content: getGreeting(role),
+          content: greeting,
           timestamp: new Date().toISOString(),
         },
       ],
@@ -81,30 +132,35 @@ export default function ChatPage() {
     };
     addChatSession(session);
     setActiveSessionId(session.id);
-  }
-
-  function getGreeting(role: ChatRole): string {
-    switch (role) {
-      case "friend":
-        return "Hey! How's it going? Let's chat.";
-      case "interviewer":
-        return "Good morning. Please take a seat. Tell me a little about yourself.";
-      case "examiner":
-        return "Hello. My name is the examiner. In this part, I'd like to ask you some questions about yourself.";
-      case "teacher":
-        return "Hello! What would you like to practice today?";
-      case "colleague":
-        return "Hi, do you have a minute to discuss the project?";
+    if (useVoice) {
+      speak(greeting, 1).catch((err) => console.error(err));
     }
   }
 
-  async function handleSend() {
-    if (!profile || !activeSession || !input.trim()) return;
+  async function handlePlay(text: string) {
+    if (playing || !isTTSSupported()) return;
+    setPlaying(true);
+    try {
+      await speak(text, 1);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setPlaying(false);
+    }
+  }
+
+  function handleStop() {
+    stopSpeaking();
+    setPlaying(false);
+  }
+
+  async function submitMessage(content: string) {
+    if (!profile || !activeSession || !content.trim()) return;
 
     const userMessage = {
       id: crypto.randomUUID(),
       role: "user" as const,
-      content: input.trim(),
+      content: content.trim(),
       timestamp: new Date().toISOString(),
     };
 
@@ -128,6 +184,8 @@ export default function ChatPage() {
         history,
         userMessage.content,
         learningContext,
+        activeSession.scenario,
+        activeSession.voiceMode ?? useVoice,
         chatPrompt
       );
 
@@ -141,6 +199,11 @@ export default function ChatPage() {
 
       const finalMessages = [...updatedMessages, assistantMessage];
       updateChatSession(activeSession.id, finalMessages);
+      setPronunciationTips(result.pronunciationTips ?? []);
+
+      if ((activeSession.voiceMode ?? useVoice) && result.reply) {
+        handlePlay(result.reply);
+      }
 
       const current = useAppStore.getState();
       await saveToStatic(current, `english-agent-data-${new Date().toISOString().split("T")[0]}.xlsx`);
@@ -150,6 +213,15 @@ export default function ChatPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleSend() {
+    await submitMessage(input);
+  }
+
+  function handleFinalTranscript(transcript: string) {
+    setInput(transcript);
+    submitMessage(transcript);
   }
 
   if (!profile) {
@@ -164,14 +236,17 @@ export default function ChatPage() {
         </CardHeader>
         <CardContent className="flex-1 flex flex-col space-y-4 overflow-hidden">
           {!activeSession && (
-            <div className="space-y-4">
-              <p className="text-gray-600">选择一个角色开始练习：</p>
+            <div className="space-y-4 overflow-y-auto">
+              <p className="text-gray-600">选择一个角色和场景开始练习：</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {roles.map((role) => (
                   <Button
                     key={role.value}
                     variant={selectedRole === role.value ? "default" : "outline"}
-                    onClick={() => setSelectedRole(role.value)}
+                    onClick={() => {
+                      setSelectedRole(role.value);
+                      setSelectedScenario("");
+                    }}
                     className="h-auto py-4 justify-start text-left"
                   >
                     <div>
@@ -181,7 +256,39 @@ export default function ChatPage() {
                   </Button>
                 ))}
               </div>
-              <Button onClick={() => handleStart(selectedRole)} className="w-full">
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {roleScenarios[selectedRole].map((scenario) => (
+                  <Button
+                    key={scenario.value}
+                    variant={
+                      selectedScenario === scenario.value ? "default" : "outline"
+                    }
+                    onClick={() => setSelectedScenario(scenario.value)}
+                    className="h-auto py-3 justify-start text-left"
+                  >
+                    {scenario.label}
+                  </Button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={useVoice}
+                    onChange={(e) => setUseVoice(e.target.checked)}
+                    className="h-4 w-4"
+                  />
+                  开启语音对话模式（AI 将用语音回复）
+                </label>
+              </div>
+
+              <Button
+                onClick={() => handleStart(selectedRole)}
+                disabled={!selectedScenario}
+                className="w-full"
+              >
                 开始对话
               </Button>
             </div>
@@ -218,9 +325,24 @@ export default function ChatPage() {
                 <div ref={bottomRef} />
               </div>
 
+              {pronunciationTips.length > 0 && (
+                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm">
+                  <p className="font-medium text-yellow-900">发音提示</p>
+                  <ul className="list-disc list-inside text-yellow-800">
+                    {pronunciationTips.map((tip, idx) => (
+                      <li key={idx}>{tip}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               <div className="space-y-2">
-                {useVoice ? (
-                  <VoiceRecorder value={input} onChange={setInput} />
+                {useVoice || activeSession.voiceMode ? (
+                  <VoiceRecorder
+                    value={input}
+                    onChange={setInput}
+                    onFinalTranscript={handleFinalTranscript}
+                  />
                 ) : (
                   <Textarea
                     value={input}
@@ -240,16 +362,42 @@ export default function ChatPage() {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => setUseVoice(!useVoice)}
+                    onClick={() => {
+                      setUseVoice((v) => !v);
+                    }}
                   >
                     <Mic className="w-4 h-4 mr-2" />
-                    {useVoice ? "键盘输入" : "语音输入"}
+                    {useVoice || activeSession.voiceMode ? "键盘输入" : "语音输入"}
                   </Button>
-                  <Button onClick={handleSend} disabled={loading || !input.trim()} className="flex-1">
-                    <Send className="w-4 h-4 mr-2" />
-                    {loading ? "AI 思考中..." : "发送"}
-                  </Button>
+                  {!useVoice && !activeSession.voiceMode && (
+                    <Button
+                      onClick={handleSend}
+                      disabled={loading || !input.trim()}
+                      className="flex-1"
+                    >
+                      <Send className="w-4 h-4 mr-2" />
+                      {loading ? "AI 思考中..." : "发送"}
+                    </Button>
+                  )}
+                  {(useVoice || activeSession.voiceMode) && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={playing ? handleStop : () => handlePlay(activeSession.messages.at(-1)?.content ?? "")}
+                      disabled={!isTTSSupported()}
+                    >
+                      {playing ? (
+                        <Square className="w-4 h-4 mr-2" />
+                      ) : (
+                        <Volume2 className="w-4 h-4 mr-2" />
+                      )}
+                      {playing ? "停止" : "播放最近回复"}
+                    </Button>
+                  )}
                 </div>
+                {!isTTSSupported() && (
+                  <p className="text-xs text-orange-600">当前浏览器不支持 TTS。</p>
+                )}
               </div>
             </>
           )}

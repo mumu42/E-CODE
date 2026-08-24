@@ -34,6 +34,11 @@ function loadMessages(locale: Locale): Record<string, unknown> {
 
 /** 按点号路径取值 */
 function getByPath(obj: Record<string, unknown>, path: string): string {
+  // 直接匹配完整键（用于中文整句翻译）
+  if (path in obj && typeof obj[path] === "string") {
+    return obj[path] as string;
+  }
+
   const parts = path.split(".");
   let current: unknown = obj;
   for (const part of parts) {
