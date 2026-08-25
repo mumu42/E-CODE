@@ -2,7 +2,7 @@
  * @file components/MobileNav.tsx
  * @description 移动端底部导航栏
  * @author English Agent Team
- * @date 2026-08-24
+ * @date 2026-08-25
  */
 
 "use client";
@@ -26,7 +26,7 @@ export function MobileNav() {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-white dark:bg-gray-900 dark:border-gray-800"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-white dark:bg-gray-900 dark:border-gray-800 safe-area-bottom"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <div className="grid grid-cols-5 h-16">
@@ -37,7 +37,8 @@ export function MobileNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex flex-col items-center justify-center gap-1 text-xs",
+                "flex flex-col items-center justify-center gap-1 text-xs select-none tap-highlight-none",
+                "active:scale-95 active:opacity-80 transition-transform duration-150",
                 active
                   ? "text-primary font-medium"
                   : "text-gray-500 dark:text-gray-400"

@@ -569,5 +569,9 @@
   "开启推送": "Enable Push",
   "当前环境不支持推送通知（需安装 PWA 或原生 App）": "Push notifications are not supported in this environment (PWA or native app required).",
   "推送令牌 / Endpoint": "Push Token / Endpoint",
-  "推送权限被拒绝，请在系统设置中允许通知。": "Push permission denied. Please allow notifications in system settings."
+  "推送权限被拒绝，请在系统设置中允许通知。": "Push permission denied. Please allow notifications in system settings.",
+  "发音评估": "Pronunciation Assessment",
+  "暂停语音": "Pause Voice",
+  "正在听… 停顿后自动结束": "Listening... will stop automatically after a pause",
+  "继续语音": "Resume Voice"
 }

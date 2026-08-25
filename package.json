@@ -32,7 +32,12 @@
     "cap:ios": "npx cap add ios",
     "cap:sync": "npx cap sync",
     "cap:open:android": "npx cap open android",
-    "cap:open:ios": "npx cap open ios"
+    "cap:open:ios": "npx cap open ios",
+    "cap:dev:android": "CAPACITOR_SERVER_URL=http://10.10.17.118:3000 npx cap open android",
+    "cap:dev:ios": "CAPACITOR_SERVER_URL=http://10.10.17.118:3000 npx cap open ios",
+    "cap:run:android": "npx cap sync android && npx cap run android",
+    "cap:run:ios": "npx cap sync ios && npx cap run ios --live",
+    "ip": "node scripts/get-ip.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",

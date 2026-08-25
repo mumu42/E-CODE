@@ -47,30 +47,30 @@
 
 ## 4. 任务清单（已完成）
 
-### 任务 1：项目初始化 ✅
+### 任务 1：项目初始化 已完成
 **目标**：搭建 Next.js + TypeScript + Tailwind + shadcn 项目骨架。
 
 | 子任务 | 说明 | 状态 |
 |--------|------|------|
-| 1.1 创建 Next.js 项目 | 使用 `create-next-app` 初始化 | ✅ |
-| 1.2 安装 shadcn/ui | 使用 `shadcn@latest init` 初始化 | ✅ |
-| 1.3 安装核心依赖 | `zustand`、`xlsx`、`docx`、`mammoth`、`lucide-react`、`@anthropic-ai/sdk`、`openai`、`@google/generative-ai` | ✅ |
-| 1.4 配置环境变量 | 支持多平台切换：`.env.bailian` / `.env.deepseek` / `.env.kimi` / `.env.glm` / `.env.claude` / `.env.gemini` / `.env.gpt` | ✅ |
-| 1.5 验证基础运行 | `npm run dev` 能正常启动，`npx next build` 构建通过 | ✅ |
+| 1.1 创建 Next.js 项目 | 使用 `create-next-app` 初始化 | 已完成 |
+| 1.2 安装 shadcn/ui | 使用 `shadcn@latest init` 初始化 | 已完成 |
+| 1.3 安装核心依赖 | `zustand`、`xlsx`、`docx`、`mammoth`、`lucide-react`、`@anthropic-ai/sdk`、`openai`、`@google/generative-ai` | 已完成 |
+| 1.4 配置环境变量 | 支持多平台切换：`.env.bailian` / `.env.deepseek` / `.env.kimi` / `.env.glm` / `.env.claude` / `.env.gemini` / `.env.gpt` | 已完成 |
+| 1.5 验证基础运行 | `npm run dev` 能正常启动，`npx next build` 构建通过 | 已完成 |
 
 **验收标准**：项目可运行，首页能打开。
 
 ---
 
-### 任务 2：类型定义与状态管理 ✅
+### 任务 2：类型定义与状态管理 已完成
 **目标**：定义核心数据类型，搭建 Zustand + localStorage 状态管理。
 
 | 子任务 | 说明 | 状态 |
 |--------|------|------|
-| 2.1 定义 TypeScript 类型 | `UserProfile`、`AssessmentRecord`、`PracticeRecord` | ✅ |
-| 2.2 创建 Zustand Store | 管理 profile、assessments、sessions | ✅ |
-| 2.3 接入 localStorage 持久化 | 刷新页面数据不丢失 | ✅ |
-| 2.4 提供数据操作方法 | 增删改查封装 | ✅ |
+| 2.1 定义 TypeScript 类型 | `UserProfile`、`AssessmentRecord`、`PracticeRecord` | 已完成 |
+| 2.2 创建 Zustand Store | 管理 profile、assessments、sessions | 已完成 |
+| 2.3 接入 localStorage 持久化 | 刷新页面数据不丢失 | 已完成 |
+| 2.4 提供数据操作方法 | 增删改查封装 | 已完成 |
 
 **验收标准**：
 - 刷新页面后，已设置的目标和测评数据仍存在。
@@ -78,18 +78,18 @@
 
 ---
 
-### 任务 3：本地文件存储与导入/导出模块 ✅
+### 任务 3：本地文件存储与导入/导出模块 已完成
 **目标**：实现学习记录保存到 `static/` 文件夹，并支持导入恢复。
 
 | 子任务 | 说明 | 状态 |
 |--------|------|------|
-| 3.1 创建 `static/` 文件夹 | 项目根目录下存放学习文档 | ✅ |
-| 3.2 Excel 导出到本地 | 浏览器下载 `.xlsx` | ✅ |
-| 3.3 Excel 保存到 static | 通过 `/api/files/save` 保存 | ✅ |
-| 3.4 列出 static 文件 | 通过 `/api/files/list` 获取文件列表 | ✅ |
-| 3.5 读取 static 文件 | 通过 `/api/files/read` 读取并解析 | ✅ |
-| 3.6 Excel 导入恢复 | 解析 `.xlsx` 文件并恢复到 store | ✅ |
-| 3.7 文件选择组件 | 支持 static 文件选择 + 本地文件选择 | ✅ |
+| 3.1 创建 `static/` 文件夹 | 项目根目录下存放学习文档 | 已完成 |
+| 3.2 Excel 导出到本地 | 浏览器下载 `.xlsx` | 已完成 |
+| 3.3 Excel 保存到 static | 通过 `/api/files/save` 保存 | 已完成 |
+| 3.4 列出 static 文件 | 通过 `/api/files/list` 获取文件列表 | 已完成 |
+| 3.5 读取 static 文件 | 通过 `/api/files/read` 读取并解析 | 已完成 |
+| 3.6 Excel 导入恢复 | 解析 `.xlsx` 文件并恢复到 store | 已完成 |
+| 3.7 文件选择组件 | 支持 static 文件选择 + 本地文件选择 | 已完成 |
 
 **验收标准**：
 - 导出文件能在 `static/` 文件夹中查看。
@@ -97,16 +97,16 @@
 
 ---
 
-### 任务 4：Onboarding 流程 ✅
+### 任务 4：Onboarding 流程 已完成
 **目标**：让用户选择目标并完成级别测定。
 
 | 子任务 | 说明 | 状态 |
 |--------|------|------|
-| 4.1 目标选择页面 | 四选一：升学考试 / 出国留学 / 四六级 / 雅思托福 | ✅ |
-| 4.2 测评题目页面 | 3 道快速测评选择题 | ✅ |
-| 4.3 口语/写作样本提交 | 用户输入一段英文，AI 辅助评估 | ✅ |
-| 4.4 AI 级别评定 | 调用 `/api/ai/assess` 返回 CEFR 等级 | ✅ |
-| 4.5 保存测评结果 | 写入 store，自动保存到 `static/` | ✅ |
+| 4.1 目标选择页面 | 四选一：升学考试 / 出国留学 / 四六级 / 雅思托福 | 已完成 |
+| 4.2 测评题目页面 | 3 道快速测评选择题 | 已完成 |
+| 4.3 口语/写作样本提交 | 用户输入一段英文，AI 辅助评估 | 已完成 |
+| 4.4 AI 级别评定 | 调用 `/api/ai/assess` 返回 CEFR 等级 | 已完成 |
+| 4.5 保存测评结果 | 写入 store，自动保存到 `static/` | 已完成 |
 
 **验收标准**：
 - 用户能完成整套测评流程。
@@ -115,15 +115,15 @@
 
 ---
 
-### 任务 5：Dashboard 今日任务面板 ✅
+### 任务 5：Dashboard 今日任务面板 已完成
 **目标**：根据用户目标与级别展示今日任务。
 
 | 子任务 | 说明 | 状态 |
 |--------|------|------|
-| 5.1 用户信息展示 | 显示目标、级别、连续学习天数 | ✅ |
-| 5.2 今日口语任务卡片 | 点击进入 `/speak` | ✅ |
-| 5.3 学习记录导入/导出入口 | 支持保存到 static / 下载 / 导入 | ✅ |
-| 5.4 空状态处理 | 新用户引导完成 Onboarding | ✅ |
+| 5.1 用户信息展示 | 显示目标、级别、连续学习天数 | 已完成 |
+| 5.2 今日口语任务卡片 | 点击进入 `/speak` | 已完成 |
+| 5.3 学习记录导入/导出入口 | 支持保存到 static / 下载 / 导入 | 已完成 |
+| 5.4 空状态处理 | 新用户引导完成 Onboarding | 已完成 |
 
 **验收标准**：
 - Dashboard 正确显示用户级别和目标。
@@ -131,18 +131,18 @@
 
 ---
 
-### 任务 6：口语练习页面 ✅
+### 任务 6：口语练习页面 已完成
 **目标**：实现核心口语练习功能。
 
 | 子任务 | 说明 | 状态 |
 |--------|------|------|
-| 6.1 每日话题生成 | 根据 target + level 生成场景话题 | ✅ |
-| 6.2 题目展示组件 | 显示场景、话题、提示问题 | ✅ |
-| 6.3 Web Speech API 录音 | 点击录音，识别语音为文本 | ✅ |
-| 6.4 语音输入 Fallback | 不支持时允许手动输入 | ✅ |
-| 6.5 AI 反馈 | 调用 `/api/ai/speak` 返回纠错、建议、评分 | ✅ |
-| 6.6 结果展示 | 显示 AI 反馈、评分、改进建议 | ✅ |
-| 6.7 保存练习记录 | 写入 store，自动保存到 `static/` | ✅ |
+| 6.1 每日话题生成 | 根据 target + level 生成场景话题 | 已完成 |
+| 6.2 题目展示组件 | 显示场景、话题、提示问题 | 已完成 |
+| 6.3 Web Speech API 录音 | 点击录音，识别语音为文本 | 已完成 |
+| 6.4 语音输入 Fallback | 不支持时允许手动输入 | 已完成 |
+| 6.5 AI 反馈 | 调用 `/api/ai/speak` 返回纠错、建议、评分 | 已完成 |
+| 6.6 结果展示 | 显示 AI 反馈、评分、改进建议 | 已完成 |
+| 6.7 保存练习记录 | 写入 store，自动保存到 `static/` | 已完成 |
 
 **验收标准**：
 - 能录音并识别为文本。
@@ -151,15 +151,15 @@
 
 ---
 
-### 任务 7：Progress 学习进度页面 ✅
+### 任务 7：Progress 学习进度页面 已完成
 **目标**：展示学习记录和历史数据。
 
 | 子任务 | 说明 | 状态 |
 |--------|------|------|
-| 7.1 练习历史列表 | 按日期展示练习记录 | ✅ |
-| 7.2 简单统计 | 练习次数、平均分 | ✅ |
-| 7.3 导入历史记录入口 | 支持从 static / 本地文件导入 | ✅ |
-| 7.4 导出当前记录入口 | 保存到 static / 下载 | ✅ |
+| 7.1 练习历史列表 | 按日期展示练习记录 | 已完成 |
+| 7.2 简单统计 | 练习次数、平均分 | 已完成 |
+| 7.3 导入历史记录入口 | 支持从 static / 本地文件导入 | 已完成 |
+| 7.4 导出当前记录入口 | 保存到 static / 下载 | 已完成 |
 
 **验收标准**：
 - 能查看历史练习记录。
@@ -167,19 +167,19 @@
 
 ---
 
-### 任务 8：AI API Route 封装 ✅
+### 任务 8：AI API Route 封装 已完成
 **目标**：实现与 AI 的交互接口。
 
 | 子任务 | 说明 | 状态 |
 |--------|------|------|
-| 8.1 创建 `/api/ai/assess` | 级别测定 | ✅ |
-| 8.2 创建 `/api/ai/speak` | 口语反馈 | ✅ |
-| 8.3 接入 BaiLian | 使用 Anthropic 兼容接口调用阿里云百炼 | ✅ |
-| 8.4 多平台 AI 支持 | 统一调用层 `lib/ai/provider.ts`，支持 DeepSeek / Kimi / GLM / Claude / Gemini / GPT / BaiLian 切换 | ✅ |
-| 8.5 配置多平台环境 | 创建 `.env.bailian` / `.env.deepseek` / `.env.kimi` / `.env.glm` / `.env.claude` / `.env.gemini` / `.env.gpt` | ✅ |
-| 8.6 启动命令配置 | `package.json` 中添加 `dev:bailian` / `dev:deepseek` 等切换命令，使用 `scripts/copy-env.js` 实现跨平台环境切换 | ✅ |
-| 8.7 Prompt 模板设计 | 分别编写 assess 和 speak 的 Prompt | ✅ |
-| 8.8 错误处理 | 超时、格式异常、API 失败处理 | ✅ |
+| 8.1 创建 `/api/ai/assess` | 级别测定 | 已完成 |
+| 8.2 创建 `/api/ai/speak` | 口语反馈 | 已完成 |
+| 8.3 接入 BaiLian | 使用 Anthropic 兼容接口调用阿里云百炼 | 已完成 |
+| 8.4 多平台 AI 支持 | 统一调用层 `lib/ai/provider.ts`，支持 DeepSeek / Kimi / GLM / Claude / Gemini / GPT / BaiLian 切换 | 已完成 |
+| 8.5 配置多平台环境 | 创建 `.env.bailian` / `.env.deepseek` / `.env.kimi` / `.env.glm` / `.env.claude` / `.env.gemini` / `.env.gpt` | 已完成 |
+| 8.6 启动命令配置 | `package.json` 中添加 `dev:bailian` / `dev:deepseek` 等切换命令，使用 `scripts/copy-env.js` 实现跨平台环境切换 | 已完成 |
+| 8.7 Prompt 模板设计 | 分别编写 assess 和 speak 的 Prompt | 已完成 |
+| 8.8 错误处理 | 超时、格式异常、API 失败处理 | 已完成 |
 
 **验收标准**：
 - 各 API Route 能正常返回结构化 JSON。
@@ -187,14 +187,14 @@
 
 ---
 
-### 任务 9：文件服务 API ✅
+### 任务 9：文件服务 API 已完成
 **目标**：提供服务端文件读写能力，支持 `static/` 文件夹。
 
 | 子任务 | 说明 | 状态 |
 |--------|------|------|
-| 9.1 `/api/files/save` | 保存 Excel 到 `static/` | ✅ |
-| 9.2 `/api/files/list` | 列出 `static/` 下文件 | ✅ |
-| 9.3 `/api/files/read` | 读取指定文件内容 | ✅ |
+| 9.1 `/api/files/save` | 保存 Excel 到 `static/` | 已完成 |
+| 9.2 `/api/files/list` | 列出 `static/` 下文件 | 已完成 |
+| 9.3 `/api/files/read` | 读取指定文件内容 | 已完成 |
 
 **验收标准**：
 - 能通过 API 保存文件到 `static/`。

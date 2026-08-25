@@ -32,6 +32,7 @@ const geistMono = Geist_Mono({
 /** 页面视口配置 */
 export const viewport = {
   themeColor: "#2563eb",
+  viewportFit: "cover",
 };
 
 /** 页面元数据 */

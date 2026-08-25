@@ -6,9 +6,28 @@
   "scope": "/",
   "id": "english-agent-pwa",
   "display": "standalone",
+  "display_override": ["standalone", "fullscreen"],
+  "orientation": "portrait",
   "background_color": "#ffffff",
   "theme_color": "#2563eb",
   "lang": "zh-CN",
+  "categories": ["education", "productivity"],
+  "shortcuts": [
+    {
+      "name": "口语练习",
+      "short_name": "口语",
+      "description": "开始每日口语练习",
+      "url": "/speak",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "AI 对话",
+      "short_name": "对话",
+      "description": "进入 AI 语音对话陪练",
+      "url": "/chat",
+      "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ],
   "icons": [
     {
       "src": "/icons/icon-192x192.png",

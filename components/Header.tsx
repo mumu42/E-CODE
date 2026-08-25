@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { ProfileManager } from "@/components/ProfileManager";
 import { BackupManager } from "@/components/BackupManager";
 import { LanguageSwitch } from "@/components/LanguageSwitch";
+import { isCapacitor } from "@/lib/capacitor";
 
 /** 导航项配置 */
 const navItems = [
@@ -43,6 +44,11 @@ const navItems = [
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [capacitor] = useState(() => isCapacitor());
+
+  if (capacitor) {
+    return null;
+  }
 
   return (
     <header className="border-b bg-white dark:bg-gray-900 dark:border-gray-800 sticky top-0 z-50 transition-colors">

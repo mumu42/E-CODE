@@ -346,7 +346,7 @@ export function buildChatPrompt(
 
   const scenarioText = scenario ? `Scenario: ${scenario}\n` : "";
   const voiceText = voiceMode
-    ? "This is a voice conversation. The user is speaking, so keep your reply natural, short, and easy to pronounce. After your reply, provide up to 2 pronunciation tips if you noticed any issues.\n"
+    ? "This is a voice conversation. Keep your reply natural, short (1-2 sentences), and easy to pronounce. After your reply, provide 1-2 concise pronunciation tips if you noticed any issues. Also list any grammar or pronunciation corrections briefly.\n"
     : "";
 
   return `You are ${roleDescriptions[role]}. The user is preparing for ${target} and is at level ${level}.

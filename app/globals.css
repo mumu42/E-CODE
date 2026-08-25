@@ -126,5 +126,19 @@
   }
   html {
     @apply font-sans;
+    /* 防止 iOS 表单输入时自动缩放 */
+    font-size: 16px;
+    /* 禁用双击缩放，提升移动端按钮响应速度 */
+    touch-action: manipulation;
+  }
+  /* 移除移动端点击时的蓝色高亮 */
+  button,
+  a,
+  [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* 适配底部安全区 */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }
