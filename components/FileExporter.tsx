@@ -103,7 +103,7 @@ export function FileExporter() {
     <div className="flex flex-wrap gap-2">
       <Button variant="outline" onClick={handleSaveToStatic} disabled={saving}>
         <Save className="w-4 h-4 mr-2" />
-        {saving ? "保存中..." : "保存到 static"}
+        {saving ? t("\u4FDD\u5B58\u4E2D...") : t("\u4FDD\u5B58\u5230 static")}
       </Button>
       <Button variant="outline" onClick={handleDownload}>
         <Download className="w-4 h-4 mr-2" />{t("\u4E0B\u8F7D Excel")}

@@ -155,9 +155,9 @@ export function ChallengeMode({ errors, onGrade }: ChallengeModeProps) {
       <Card>
         <CardHeader>
           <CardTitle className="capitalize">
-            {current.type === "flashcard" && "闪卡"}
-            {current.type === "dictation" && "听写"}
-            {current.type === "fillblank" && "填空"}
+            {current.type === "flashcard" && t("\u95EA\u5361")}
+            {current.type === "dictation" && t("\u542C\u5199")}
+            {current.type === "fillblank" && t("\u586B\u7A7A")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">

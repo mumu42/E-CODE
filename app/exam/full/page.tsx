@@ -428,7 +428,7 @@ export default function FullExamPage() {
               <div className="flex items-center gap-2">
                 <Button onClick={() => handlePlay(listening.transcript)} disabled={playing} type="button">
                   {playing ? <Square className="w-4 h-4 mr-2" /> : <Volume2 className="w-4 h-4 mr-2" />}
-                  {playing ? "播放中..." : "播放音频"}
+                  {playing ? t("\u64AD\u653E\u4E2D...") : t("\u64AD\u653E\u97F3\u9891")}
                 </Button>
                 {playing &&
               <Button variant="outline" onClick={handleStop} type="button">{t("\u505C\u6B62")}
@@ -494,7 +494,7 @@ export default function FullExamPage() {
             className="w-full min-h-[200px] p-3 border rounded-md text-sm" />
           
             <Button onClick={handleWritingSubmit} disabled={writingInput.trim().length < 10 || loading} className="w-full">
-              {loading ? "AI 评分中..." : "提交写作并继续"}
+              {loading ? t("AI \u8BC4\u5206\u4E2D...") : t("\u63D0\u4EA4\u5199\u4F5C\u5E76\u7EE7\u7EED")}
             </Button>
           </CardContent>
         </Card>
@@ -516,7 +516,7 @@ export default function FullExamPage() {
             disabled={speakingInput.trim().length < 5 || loading}
             className="w-full">
             
-              {loading ? "AI 评分中..." : "完成考试"}
+              {loading ? t("AI \u8BC4\u5206\u4E2D...") : t("\u5B8C\u6210\u8003\u8BD5")}
             </Button>
           </CardContent>
         </Card>

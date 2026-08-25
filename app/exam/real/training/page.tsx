@@ -98,7 +98,7 @@ export default function RealExamTrainingPage() {
       }
       setImportResult({ success: questions.length, errors });
     } catch {
-      setImportResult({ success: 0, errors: ["导入失败"] });
+      setImportResult({ success: 0, errors: [t("导入失败")] });
     } finally {
       setImporting(false);
       if (inputRef.current) {
@@ -167,7 +167,7 @@ export default function RealExamTrainingPage() {
                 <option value="">{t("\u5168\u90E8")}</option>
                 {sections.map((s) =>
                 <option key={s.value} value={s.value}>
-                    {s.label}
+                    {t(s.label)}
                   </option>
                 )}
               </select>
@@ -187,7 +187,7 @@ export default function RealExamTrainingPage() {
                 <option value="">{t("\u5168\u90E8")}</option>
                 {difficulties.map((d) =>
                 <option key={d} value={d}>
-                    {d === "easy" ? "简单" : d === "medium" ? "中等" : "困难"}
+                    {d === "easy" ? t("简单") : d === "medium" ? t("中等") : t("困难")}
                   </option>
                 )}
               </select>
@@ -215,7 +215,7 @@ export default function RealExamTrainingPage() {
             disabled={importing}>
             
             <Upload className="w-4 h-4 mr-2" />
-            {importing ? "导入中..." : "导入真题"}
+            {importing ? t("\u5BFC\u5165\u4E2D...") : t("\u5BFC\u5165\u771F\u9898")}
           </Button>
           {importResult &&
           <div className="text-sm space-y-1">
@@ -275,11 +275,11 @@ function TrainingQuestionCard({
           {question.year && ` · ${question.year}`}
           {question.difficulty &&
           <span className="ml-2 text-xs px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
-              {question.difficulty === "easy" ?
-            "简单" :
-            question.difficulty === "medium" ?
-            "中等" :
-            "困难"}
+              {question.difficulty === "easy" ? t("\u7B80\u5355") :
+
+            question.difficulty === "medium" ? t("\u4E2D\u7B49") : t("\u56F0\u96BE")
+
+            }
             </span>
           }
         </CardTitle>
@@ -308,9 +308,9 @@ function TrainingQuestionCard({
           </div> :
 
         <p className="text-sm text-muted-foreground">
-            {question.type === "writing" ?
-          "写作题：请根据题目要求作答。" :
-          "口语题：请根据题目要求作答。"}
+            {question.type === "writing" ? t("\u5199\u4F5C\u9898\uFF1A\u8BF7\u6839\u636E\u9898\u76EE\u8981\u6C42\u4F5C\u7B54\u3002") : t("\u53E3\u8BED\u9898\uFF1A\u8BF7\u6839\u636E\u9898\u76EE\u8981\u6C42\u4F5C\u7B54\u3002")
+
+          }
           </p>
         }
         <Button
@@ -318,7 +318,7 @@ function TrainingQuestionCard({
           size="sm"
           onClick={() => setShowAnswer((s) => !s)}>
           
-          {showAnswer ? "隐藏答案" : "查看答案"}
+          {showAnswer ? t("\u9690\u85CF\u7B54\u6848") : t("\u67E5\u770B\u7B54\u6848")}
         </Button>
         {showAnswer &&
         <div className="text-sm space-y-1">

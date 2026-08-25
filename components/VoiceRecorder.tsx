@@ -128,9 +128,9 @@ export function VoiceRecorder({ value, onChange, onConfidenceChange, onFinalTran
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={
-        supported ?
-        "点击麦克风开始录音，或直接输入文字..." :
-        "当前浏览器不支持语音输入，请直接输入文字..."
+        supported ? t("\u70B9\u51FB\u9EA6\u514B\u98CE\u5F00\u59CB\u5F55\u97F3\uFF0C\u6216\u76F4\u63A5\u8F93\u5165\u6587\u5B57...") : t("\u5F53\u524D\u6D4F\u89C8\u5668\u4E0D\u652F\u6301\u8BED\u97F3\u8F93\u5165\uFF0C\u8BF7\u76F4\u63A5\u8F93\u5165\u6587\u5B57...")
+
+
         }
         rows={6}
         className="resize-none" />

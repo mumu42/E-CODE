@@ -161,7 +161,7 @@ export default function WritePage() {
             disabled={loading || userInput.trim().length < 10}
             className="w-full">
             
-            {loading ? "AI 批改中..." : "提交并获取批改"}
+            {loading ? t("AI \u6279\u6539\u4E2D...") : t("\u63D0\u4EA4\u5E76\u83B7\u53D6\u6279\u6539")}
           </Button>
 
           {feedback &&

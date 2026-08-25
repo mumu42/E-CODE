@@ -103,11 +103,11 @@ export function FileImporter({ batch }: FileImporterProps) {
       const merged = mergeAppData(snapshots as Partial<AppData>[]);
       mergeData(merged);
       setSelectedFiles([]);
-      alert(`成功合并导入 ${snapshots.length} 个文件`);
+      alert(t("成功合并导入 ${snapshots.length} 个文件").replace("${snapshots.length}", String(snapshots.length)));
       router.push("/dashboard");
     } catch (error) {
       console.error(error);
-      alert("批量导入失败，请检查文件格式是否正确。");
+      alert(t("批量导入失败，请检查文件格式是否正确。"));
     } finally {
       setIsImporting(false);
     }
@@ -139,7 +139,7 @@ export function FileImporter({ batch }: FileImporterProps) {
           </div>
         }
         <Button onClick={handleBatchImport} disabled={selectedFiles.length === 0 || isImporting}>
-          {isImporting ? "导入中..." : "合并导入"}
+          {isImporting ? t("\u5BFC\u5165\u4E2D...") : t("\u5408\u5E76\u5BFC\u5165")}
         </Button>
       </div>);
 
@@ -173,7 +173,7 @@ export function FileImporter({ batch }: FileImporterProps) {
           )}
           </select>
           <Button onClick={handleStaticImport} disabled={!selectedFile || isImporting}>
-            {isImporting ? "导入中..." : "导入"}
+            {isImporting ? t("\u5BFC\u5165\u4E2D...") : t("\u5BFC\u5165")}
           </Button>
         </div>
       }
@@ -189,7 +189,7 @@ export function FileImporter({ batch }: FileImporterProps) {
         
           <Button variant="outline" onClick={() => inputRef.current?.click()} disabled={isImporting}>
             <Upload className="w-4 h-4 mr-2" />
-            {isImporting ? "导入中..." : "选择本地 Excel/JSON 文件"}
+            {isImporting ? t("\u5BFC\u5165\u4E2D...") : t("\u9009\u62E9\u672C\u5730 Excel/JSON \u6587\u4EF6")}
           </Button>
         </>
       }

@@ -142,7 +142,7 @@ export default function AdvisorPage() {
                 
                   <div className="flex items-center gap-2 mb-1 opacity-80">
                     {msg.role === "user" ? <User className="w-3 h-3" /> : <Bot className="w-3 h-3" />}
-                    <span className="text-xs">{msg.role === "user" ? "你" : "顾问"}</span>
+                    <span className="text-xs">{msg.role === "user" ? t("\u4F60") : t("\u987E\u95EE")}</span>
                   </div>
                   <p className="whitespace-pre-wrap">{msg.content}</p>
                   {msg.examples && msg.examples.length > 0 &&

@@ -107,7 +107,7 @@ export default function DictationPage() {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-2xl">{t("\u542C\u5199\u5168\u6587")}</CardTitle>
           <Button variant="outline" size="sm" onClick={loadItem} disabled={loading}>
-            {loading ? "生成中..." : "换一段"}
+            {loading ? t("\u751F\u6210\u4E2D...") : t("\u6362\u4E00\u6BB5")}
           </Button>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -115,7 +115,7 @@ export default function DictationPage() {
           <div className="text-center space-y-4">
               <p className="text-gray-500">{t("\u70B9\u51FB\u5F00\u59CB\uFF0CAI \u4F1A\u4E3A\u4F60\u751F\u6210\u4E00\u6BB5\u542C\u529B\u6750\u6599\u3002")}</p>
               <Button onClick={loadItem} disabled={loading}>
-                {loading ? "生成中..." : "开始听写"}
+                {loading ? t("\u751F\u6210\u4E2D...") : t("\u5F00\u59CB\u542C\u5199")}
               </Button>
             </div> :
 
@@ -128,7 +128,7 @@ export default function DictationPage() {
 
                   <Volume2 className="w-4 h-4 mr-2" />
                   }
-                    {playing ? "播放中..." : "播放音频"}
+                    {playing ? t("\u64AD\u653E\u4E2D...") : t("\u64AD\u653E\u97F3\u9891")}
                   </Button>
                   {playing &&
                 <Button variant="outline" onClick={handleStop} type="button">{t("\u505C\u6B62")}

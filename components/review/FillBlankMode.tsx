@@ -98,7 +98,7 @@ export function FillBlankMode({ errors, onGrade }: FillBlankModeProps) {
               }
                 <div>
                   <p className="font-medium">
-                    {isCorrect ? "回答正确" : "回答错误"}
+                    {isCorrect ? t("\u56DE\u7B54\u6B63\u786E") : t("\u56DE\u7B54\u9519\u8BEF")}
                   </p>
                   <p className="text-sm">{t("\u6B63\u786E\u7B54\u6848\uFF1A")}{blank.answer}</p>
                   <p className="text-sm mt-1">{current.explanation}</p>

@@ -6,6 +6,7 @@
  */
 
 import type { ExamQuestion, ExamQuestionType } from "@/lib/types";
+import { seedRealExamQuestions } from "./seed";
 
 /** 支持的真题考试类型 */
 export type RealExamType = "CET4" | "CET6" | "IELTS" | "TOEFL";
@@ -297,6 +298,13 @@ const REAL_QUESTION_BANK: Record<RealExamType, ExamQuestion[]> = {
     },
   ],
 };
+
+// 合并自动生成的种子题库
+for (const type of REAL_EXAM_CONFIGS.map((c) => c.type)) {
+  const seed = seedRealExamQuestions(type);
+  const existingIds = new Set(REAL_QUESTION_BANK[type].map((q) => q.id));
+  REAL_QUESTION_BANK[type].push(...seed.filter((q) => !existingIds.has(q.id)));
+}
 
 /** 获取指定真题类型的题目 */
 export function getRealExamQuestions(type: RealExamType): ExamQuestion[] {

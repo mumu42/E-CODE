@@ -81,7 +81,7 @@ export function DirectoryAutoSave() {
       <div className="flex flex-wrap gap-2">
         <Button onClick={handleAuthorize} disabled={loading} variant="outline">
           <FolderOpen className="w-4 h-4 mr-2" />
-          {folderName ? "重新授权文件夹" : "授权本地文件夹"}
+          {folderName ? t("\u91CD\u65B0\u6388\u6743\u6587\u4EF6\u5939") : t("\u6388\u6743\u672C\u5730\u6587\u4EF6\u5939")}
         </Button>
         {folderName &&
         <Button variant="ghost" size="icon" onClick={handleClear}>

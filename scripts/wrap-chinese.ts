@@ -8,7 +8,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { parse } from "@babel/parser";
-import traverse from "@babel/traverse";
+import traverse, { NodePath } from "@babel/traverse";
 import generate from "@babel/generator";
 import * as t from "@babel/types";
 
@@ -39,6 +39,10 @@ const EXCLUDED_ATTRIBUTES = new Set([
   "onKeyUp",
   "onMouseEnter",
   "onMouseLeave",
+]);
+
+const EXCLUDED_FILES = new Set([
+  path.join(root, "components", "LanguageSwitch.tsx"),
 ]);
 
 function hasChinese(str: string) {
@@ -84,7 +88,53 @@ function addImport(ast: t.File) {
   ast.program.body.unshift(decl);
 }
 
+function processStringLiteralNode(
+  node: t.Node,
+  pathNode: NodePath<t.Node>
+): boolean {
+  if (!t.isStringLiteral(node)) return false;
+  const trimmed = node.value.trim();
+  if (!trimmed || !hasChinese(trimmed)) return false;
+
+  const parent = pathNode.parent;
+  if (
+    t.isCallExpression(parent) &&
+    t.isIdentifier(parent.callee, { name: "t" })
+  ) {
+    return false;
+  }
+
+  pathNode.replaceWith(createTCall(trimmed));
+  return true;
+}
+
+function wrapChineseInExpression(
+  expression: t.Expression | t.JSXEmptyExpression | null | undefined,
+  pathNode: NodePath<t.Expression | t.JSXEmptyExpression | null | undefined>
+): boolean {
+  if (!expression || !pathNode) return false;
+  if (t.isJSXEmptyExpression(expression)) return false;
+
+  if (t.isStringLiteral(expression)) {
+    return processStringLiteralNode(expression, pathNode as NodePath<t.Node>);
+  }
+
+  if (t.isConditionalExpression(expression)) {
+    const c1 = wrapChineseInExpression(expression.consequent, pathNode.get("consequent"));
+    const c2 = wrapChineseInExpression(expression.alternate, pathNode.get("alternate"));
+    return c1 || c2;
+  }
+
+  if (t.isLogicalExpression(expression, { operator: "&&" })) {
+    return wrapChineseInExpression(expression.right, pathNode.get("right"));
+  }
+
+  return false;
+}
+
 function transformFile(filePath: string) {
+  if (EXCLUDED_FILES.has(filePath)) return false;
+
   const code = fs.readFileSync(filePath, "utf-8");
 
   const ast = parse(code, {
@@ -130,6 +180,15 @@ function transformFile(filePath: string) {
 
       pathNode.node.value = t.jsxExpressionContainer(call);
       changed = true;
+    },
+    JSXExpressionContainer(pathNode) {
+      const changedHere = wrapChineseInExpression(
+        pathNode.node.expression,
+        pathNode.get("expression")
+      );
+      if (changedHere) {
+        changed = true;
+      }
     },
   });
 

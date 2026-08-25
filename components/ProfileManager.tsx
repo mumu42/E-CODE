@@ -185,9 +185,9 @@ export function ProfileManager() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {targets.map((t) =>
-                  <SelectItem key={t.value} value={t.value}>
-                      {t.label}
+                  {targets.map((target) =>
+                  <SelectItem key={target.value} value={target.value}>
+                      {t(target.label)}
                     </SelectItem>
                   )}
                 </SelectContent>

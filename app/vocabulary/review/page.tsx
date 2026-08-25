@@ -109,7 +109,7 @@ export default function FlashcardReviewPage() {
 
               <div className="flex justify-center gap-3">
                 <Button variant="outline" onClick={() => setFlipped(!flipped)}>
-                  {flipped ? "隐藏释义" : "显示释义"}
+                  {flipped ? t("\u9690\u85CF\u91CA\u4E49") : t("\u663E\u793A\u91CA\u4E49")}
                 </Button>
               </div>
 

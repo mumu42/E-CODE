@@ -194,7 +194,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <p className="font-medium dark:text-orange-100">
-              {isCheckedIn ? "今日已打卡" : "今日还未打卡"}
+              {isCheckedIn ? t("\u4ECA\u65E5\u5DF2\u6253\u5361") : t("\u4ECA\u65E5\u8FD8\u672A\u6253\u5361")}
             </p>
             <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{t("\u8FDE\u7EED")}
               {currentStreak}{t("\u5929")}
@@ -228,8 +228,8 @@ export default function DashboardPage() {
             <p className="text-3xl font-bold dark:text-yellow-100">{badges.length}</p>
             <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
               {recentBadges.length > 0 ?
-              `最近：${recentBadges[0].title}` :
-              "快去练习解锁徽章吧"}
+              `最近：${recentBadges[0].title}` : t("\u5FEB\u53BB\u7EC3\u4E60\u89E3\u9501\u5FBD\u7AE0\u5427")
+              }
             </p>
           </CardContent>
         </Card>
@@ -348,7 +348,7 @@ export default function DashboardPage() {
               className="resize-none" />
             
             <Button onClick={handleGetAdvice} disabled={adviceLoading} className="w-full sm:w-auto">
-              {adviceLoading ? "AI 思考中..." : "获取学习建议"}
+              {adviceLoading ? t("AI \u601D\u8003\u4E2D...") : t("\u83B7\u53D6\u5B66\u4E60\u5EFA\u8BAE")}
             </Button>
             {advice &&
             <div className="p-4 bg-muted rounded-md text-sm whitespace-pre-wrap">

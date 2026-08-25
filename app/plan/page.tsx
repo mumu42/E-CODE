@@ -66,7 +66,7 @@ export default function PlanPage() {
       if (data.plan) setLearningPlan(data.plan);
     } catch (error) {
       console.error(error);
-      alert(error instanceof Error ? error.message : "生成计划失败");
+      alert(error instanceof Error ? error.message : t("生成计划失败"));
     } finally {
       setLoading(false);
     }

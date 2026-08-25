@@ -59,7 +59,7 @@ export function Header() {
             href={item.href}
             className="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
             
-              {item.label}
+              {t(item.label)}
             </Link>
           )}
           <ThemeToggle />
@@ -120,7 +120,7 @@ export function Header() {
           onClick={() => setMobileOpen(false)}
           className="block text-sm py-2 dark:text-gray-200">
           
-              {item.label}
+              {t(item.label)}
             </Link>
         )}
         </div>

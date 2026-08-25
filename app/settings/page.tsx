@@ -13,10 +13,11 @@ import { FileImporter } from "@/components/FileImporter";
 import { FileExporter } from "@/components/FileExporter";
 import { PromptEditor } from "@/components/PromptEditor";
 import { LearningReminder } from "@/components/LearningReminder";
+import { PushNotificationManager } from "@/components/PushNotificationManager";
 import { DataMigration } from "@/components/DataMigration";
 import { OfflinePackage } from "@/components/OfflinePackage";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Folder, Upload, Download, MessageSquare, Bell, Keyboard, Database, Wifi } from "lucide-react";
+import { Folder, Upload, Download, MessageSquare, Bell, Keyboard, Database, Wifi, Cloud } from "lucide-react";
 
 export default function SettingsPage() {
   return (
@@ -33,7 +34,7 @@ export default function SettingsPage() {
         <CardContent>
           <PromptEditor />
           <p className="text-xs text-gray-500 mt-4">{t("\u53EF\u7528\u53D8\u91CF\u4EE5 `")}
-            {'{{变量}}'}{t("` \u5F62\u5F0F\u63D2\u5165\u3002\u7F16\u8F91\u540E\u4FDD\u5B58\u5373\u751F\u6548\u3002")}
+            {t("{{\u53D8\u91CF}}")}{t("` \u5F62\u5F0F\u63D2\u5165\u3002\u7F16\u8F91\u540E\u4FDD\u5B58\u5373\u751F\u6548\u3002")}
           </p>
         </CardContent>
       </Card>
@@ -48,6 +49,21 @@ export default function SettingsPage() {
         <CardContent>
           <LearningReminder />
           <p className="text-xs text-gray-500 mt-4">{t("\u5F00\u542F\u540E\u4F1A\u5728\u8BBE\u5B9A\u65F6\u95F4\u63A8\u9001\u6D4F\u89C8\u5668\u901A\u77E5\u3002\u82E5\u4ECA\u5929\u5DF2\u6253\u5361\uFF0C\u5219\u4E0D\u518D\u63D0\u9192\u3002")}
+
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Cloud className="w-5 h-5 text-sky-500" />{t("\u4E91\u7AEF\u63A8\u9001")}
+
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <PushNotificationManager />
+          <p className="text-xs text-gray-500 mt-4">{t("\u5F00\u542F\u540E\u53EF\u4EE5\u63A5\u6536\u6765\u81EA FCM / APNs / Web Push \u7684\u5B66\u4E60\u63D0\u9192\u548C\u7CFB\u7EDF\u6D88\u606F\u3002")}
 
           </p>
         </CardContent>

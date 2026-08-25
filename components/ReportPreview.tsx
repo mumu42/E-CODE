@@ -1,10 +1,10 @@
 import { formatDate } from "@/lib/i18n/format";
 import { t } from "@/lib/i18n/translate"; /**
- * @file components/ReportPreview.tsx
- * @description 学习报告 PDF 预览组件
- * @author English Agent Team
- * @date 2026-08-17
- */
+* @file components/ReportPreview.tsx
+* @description 学习报告 PDF 预览组件
+* @author English Agent Team
+* @date 2026-08-17
+*/
 
 import { forwardRef } from "react";
 import type { AppData } from "@/lib/types";
@@ -73,11 +73,11 @@ export const ReportPreview = forwardRef<HTMLDivElement, ReportPreviewProps>(
           <div key={session.id} className="border-b pb-4">
               <p className="font-semibold text-sm">
                 {formatDate(session.date)} -{" "}
-                {session.type === "SPEAK" ?
-              "口语" :
-              session.type === "WRITE" ?
-              "写作" :
-              "对话"}{" "}
+                {session.type === "SPEAK" ? t("\u53E3\u8BED") :
+
+              session.type === "WRITE" ? t("\u5199\u4F5C") : t("\u5BF9\u8BDD")
+
+              }{" "}
                 · {session.topic}
               </p>
               <p className="text-sm text-gray-700 mt-1">

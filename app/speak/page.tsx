@@ -215,7 +215,7 @@ export default function SpeakPage() {
                 disabled={playing}>
                 
                   {playing ? <Square className="w-4 h-4 mr-2" /> : <Volume2 className="w-4 h-4 mr-2" />}
-                  {playing ? "播放中..." : "播放标准发音"}
+                  {playing ? t("\u64AD\u653E\u4E2D...") : t("\u64AD\u653E\u6807\u51C6\u53D1\u97F3")}
                 </Button>
                 {playing &&
               <Button type="button" variant="ghost" size="sm" onClick={handleStop}>{t("\u505C\u6B62")}
@@ -229,7 +229,7 @@ export default function SpeakPage() {
                 onClick={() => setShadowMode(!shadowMode)}>
                 
                   <Mic className="w-4 h-4 mr-2" />
-                  {shadowMode ? "关闭跟读" : "跟读模式"}
+                  {shadowMode ? t("\u5173\u95ED\u8DDF\u8BFB") : t("\u8DDF\u8BFB\u6A21\u5F0F")}
                 </Button>
                 <select
                 value={playbackRate}
@@ -308,7 +308,7 @@ export default function SpeakPage() {
             disabled={loading || userInput.trim().length < 5}
             className="w-full">
             
-            {loading ? "AI 分析中..." : "提交并获取反馈"}
+            {loading ? t("AI \u5206\u6790\u4E2D...") : t("\u63D0\u4EA4\u5E76\u83B7\u53D6\u53CD\u9988")}
           </Button>
 
           {feedback &&

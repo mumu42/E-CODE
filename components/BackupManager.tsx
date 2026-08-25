@@ -42,7 +42,7 @@ export function BackupManager() {
 
   /** 恢复到指定备份 */
   async function handleRestore(filename: string) {
-    if (!confirm(`确定要恢复到 ${filename} 吗？当前数据将被覆盖。`)) return;
+    if (!confirm(t("确定要恢复到") + " " + filename + " " + t("吗？当前数据将被覆盖。"))) return;
     setLoading(true);
     try {
       const response = await fetch("/api/files/restore", {

@@ -73,11 +73,11 @@ export default function ProgressPage() {
     if (!latestAssessment) return [];
     const scores = latestAssessment.scores;
     return [
-    { subject: "听力", value: scores.listening ?? 0, fullMark: 100 },
-    { subject: "口语", value: scores.speaking ?? 0, fullMark: 100 },
-    { subject: "阅读", value: scores.reading ?? 0, fullMark: 100 },
-    { subject: "写作", value: scores.writing ?? 0, fullMark: 100 },
-    { subject: "语法", value: scores.grammar ?? 0, fullMark: 100 }];
+    { subject: t("听力"), value: scores.listening ?? 0, fullMark: 100 },
+    { subject: t("口语"), value: scores.speaking ?? 0, fullMark: 100 },
+    { subject: t("阅读"), value: scores.reading ?? 0, fullMark: 100 },
+    { subject: t("写作"), value: scores.writing ?? 0, fullMark: 100 },
+    { subject: t("语法"), value: scores.grammar ?? 0, fullMark: 100 }];
 
   }, [latestAssessment]);
 
@@ -102,7 +102,7 @@ export default function ProgressPage() {
       setSummary(result);
     } catch (error) {
       console.error(error);
-      alert("生成学习摘要失败，请稍后重试。");
+      alert(t("生成学习摘要失败，请稍后重试。"));
     } finally {
       setSummaryLoading(false);
     }
@@ -308,11 +308,11 @@ export default function ProgressPage() {
                   {Object.entries(gap.currentScores).map(([skill, score]) =>
                 <div key={skill} className="flex justify-between bg-muted p-2 rounded">
                       <span className="capitalize">
-                        {skill === "listening" && "听力"}
-                        {skill === "speaking" && "口语"}
-                        {skill === "reading" && "阅读"}
-                        {skill === "writing" && "写作"}
-                        {skill === "grammar" && "语法"}
+                        {skill === "listening" && t("\u542C\u529B")}
+                        {skill === "speaking" && t("\u53E3\u8BED")}
+                        {skill === "reading" && t("\u9605\u8BFB")}
+                        {skill === "writing" && t("\u5199\u4F5C")}
+                        {skill === "grammar" && t("\u8BED\u6CD5")}
                       </span>
                       <span className="font-medium">
                         {score} / {gap.targetScores[skill as keyof typeof gap.targetScores]}
@@ -562,7 +562,7 @@ export default function ProgressPage() {
             <li key={s.id} className="border-b py-2">
                     <div className="flex justify-between items-center">
                       <span className="font-medium">
-                        {s.type === "SPEAK" ? "口语" : s.type === "WRITE" ? "写作" : "对话"} · {s.topic}
+                        {s.type === "SPEAK" ? t("\u53E3\u8BED") : s.type === "WRITE" ? t("\u5199\u4F5C") : t("\u5BF9\u8BDD")} · {s.topic}
                       </span>
                       <span className="text-sm text-gray-500">
                         {formatLocaleDate(s.date)}

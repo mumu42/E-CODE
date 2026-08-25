@@ -68,7 +68,7 @@ export function OfflinePackage() {
 
   async function handleCache() {
     if (typeof window === "undefined" || !("caches" in window)) {
-      setStatus("当前浏览器不支持离线缓存");
+      setStatus(t("当前浏览器不支持离线缓存"));
       return;
     }
 
@@ -82,10 +82,10 @@ export function OfflinePackage() {
         )
       );
       setCached(true);
-      setStatus("已缓存核心页面");
+      setStatus(t("已缓存核心页面"));
     } catch (error) {
       console.error(error);
-      setStatus("缓存失败，请重试");
+      setStatus(t("缓存失败，请重试"));
     }
   }
 
@@ -106,7 +106,7 @@ export function OfflinePackage() {
       </div>
       <Button onClick={handleCache} disabled={cached}>
         <Download className="w-4 h-4 mr-2" />
-        {cached ? "已缓存" : "下载离线练习包"}
+        {cached ? t("\u5DF2\u7F13\u5B58") : t("\u4E0B\u8F7D\u79BB\u7EBF\u7EC3\u4E60\u5305")}
       </Button>
       {status && <p className="text-sm text-muted-foreground">{status}</p>}
     </div>);

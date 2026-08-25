@@ -64,7 +64,7 @@ export function PromptEditor() {
   }
 
   function handleResetAll() {
-    if (!confirm("确定要恢复所有默认 Prompt 吗？当前自定义内容将被覆盖。")) return;
+    if (!confirm(t("确定要恢复所有默认 Prompt 吗？当前自定义内容将被覆盖。"))) return;
     setDrafts({ ...DEFAULT_PROMPTS });
     updateSettings({ prompts: { ...DEFAULT_PROMPTS } });
   }

@@ -27,6 +27,7 @@
     "i18n:wrap": "npx tsx scripts/wrap-chinese.ts",
     "i18n:translate": "npx tsx scripts/translate-with-ai.ts",
     "i18n:format": "npx tsx scripts/apply-format-locales.ts",
+    "icons:generate": "npx tsx scripts/generate-icons.ts",
     "cap:android": "npx cap add android",
     "cap:ios": "npx cap add ios",
     "cap:sync": "npx cap sync",
@@ -40,6 +41,7 @@
     "@capacitor/cli": "^7.6.8",
     "@capacitor/core": "^8.5.0",
     "@capacitor/local-notifications": "^8.3.1",
+    "@capacitor/push-notifications": "^8.1.2",
     "@google/generative-ai": "^0.24.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -75,6 +77,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.0",
+    "sharp": "^0.35.3",
     "tailwindcss": "^4",
     "tsx": "^4.23.12",
     "typescript": "^5"

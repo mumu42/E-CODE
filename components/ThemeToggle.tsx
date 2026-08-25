@@ -7,6 +7,7 @@
 
 "use client";
 
+import { t } from "@/lib/i18n/translate";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "./ThemeProvider";
 import { Sun, Moon, Monitor } from "lucide-react";
@@ -36,7 +37,7 @@ export function ThemeToggle() {
           variant={theme === value ? "default" : "ghost"}
           size="icon"
           onClick={() => setTheme(value)}
-          title={label}
+          title={t(label)}
           className="h-7 w-7"
         >
           <Icon className="w-4 h-4" />

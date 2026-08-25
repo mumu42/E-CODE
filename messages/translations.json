@@ -556,5 +556,18 @@
   "题型": "Question Type",
   "（约": "(about",
   "，主观题": ", subjective",
-  "红色为低置信度词汇，可点击 🔊 听取标准发音。": "红色为低置信度词汇，可点击 🔊 听取标准发音。"
+  "红色为低置信度词汇，可点击 🔊 听取标准发音。": "Red words have low confidence; tap 🔊 to hear the standard pronunciation.",
+  "确定要恢复到": "Restore to",
+  "吗？当前数据将被覆盖。": "? Your current data will be overwritten.",
+  "成功合并导入 ${snapshots.length} 个文件": "Successfully merged and imported ${snapshots.length} files",
+  "云端推送": "Cloud Push",
+  "原生 App 使用 FCM (Android) 或 APNs (iOS)；浏览器 PWA 使用 Web Push。": "Native app uses FCM (Android) or APNs (iOS); browser PWA uses Web Push.",
+  "复制": "Copy",
+  "已复制": "Copied",
+  "已开启推送": "Push enabled",
+  "开启后可以接收来自 FCM / APNs / Web Push 的学习提醒和系统消息。": "Once enabled, you can receive study reminders and system messages via FCM / APNs / Web Push.",
+  "开启推送": "Enable Push",
+  "当前环境不支持推送通知（需安装 PWA 或原生 App）": "Push notifications are not supported in this environment (PWA or native app required).",
+  "推送令牌 / Endpoint": "Push Token / Endpoint",
+  "推送权限被拒绝，请在系统设置中允许通知。": "Push permission denied. Please allow notifications in system settings."
 }

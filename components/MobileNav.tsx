@@ -7,6 +7,7 @@
 
 "use client";
 
+import { t } from "@/lib/i18n/translate";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Mic, Pen, MessageCircle, MoreHorizontal } from "lucide-react";
@@ -43,7 +44,7 @@ export function MobileNav() {
               )}
             >
               <item.icon className="w-5 h-5" />
-              <span>{item.label}</span>
+              <span>{t(item.label)}</span>
             </Link>
           );
         })}

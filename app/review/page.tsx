@@ -144,8 +144,8 @@ export default function ReviewPage() {
           onClick={() => setMode(m.key as ReviewMode)}
           className="flex items-center gap-2">
           
-            <m.icon className="w-4 h-4" />
-            {m.label}
+            {m.label ? <m.icon className="w-4 h-4" /> : null}
+            {t(m.label)}
           </Button>
         )}
       </div>
@@ -209,10 +209,10 @@ export default function ReviewPage() {
             {mode === "dictation" && <Headphones className="w-5 h-5 text-green-500" />}
             {mode === "fillblank" && <PenTool className="w-5 h-5 text-purple-500" />}
             {mode === "challenge" && <Zap className="w-5 h-5 text-orange-500" />}
-            {mode === "flashcard" && "闪卡复习"}
-            {mode === "dictation" && "听写复习"}
-            {mode === "fillblank" && "填空复习"}
-            {mode === "challenge" && "每日挑战"}
+            {mode === "flashcard" && t("闪卡复习")}
+            {mode === "dictation" && t("听写复习")}
+            {mode === "fillblank" && t("填空复习")}
+            {mode === "challenge" && t("每日挑战")}
           </CardTitle>
         </CardHeader>
         <CardContent>

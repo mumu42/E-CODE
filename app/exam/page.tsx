@@ -66,7 +66,7 @@ export default function ExamPage() {
       }
       setImportResult({ success: questions.length, errors });
     } catch {
-      setImportResult({ success: 0, errors: ["导入失败"] });
+      setImportResult({ success: 0, errors: [t("导入失败")] });
     } finally {
       setImporting(false);
       if (inputRef.current) {
@@ -190,7 +190,7 @@ export default function ExamPage() {
             disabled={importing}>
             
             <Upload className="w-4 h-4 mr-2" />
-            {importing ? "导入中..." : "导入 JSON / Excel 题库"}
+            {importing ? t("\u5BFC\u5165\u4E2D...") : t("\u5BFC\u5165 JSON / Excel \u9898\u5E93")}
           </Button>
           {importResult &&
           <div className="text-sm space-y-1">

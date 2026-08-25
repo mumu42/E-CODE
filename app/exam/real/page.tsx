@@ -244,7 +244,7 @@ export default function RealExamPage() {
               disabled={playing}>
               
                 {playing ? <Square className="w-4 h-4 mr-2" /> : <Volume2 className="w-4 h-4 mr-2" />}
-                {playing ? "播放中..." : "播放音频"}
+                {playing ? t("\u64AD\u653E\u4E2D...") : t("\u64AD\u653E\u97F3\u9891")}
               </Button>
               {playing &&
             <Button type="button" variant="outline" onClick={handleStop}>{t("\u505C\u6B62")}

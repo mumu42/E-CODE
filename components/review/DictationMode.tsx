@@ -89,7 +89,7 @@ export function DictationMode({ errors, onGrade }: DictationModeProps) {
         <CardContent className="space-y-4">
           <Button onClick={handlePlay} disabled={playing} variant="outline">
             <Play className="w-4 h-4 mr-2" />
-            {playing ? "播放中..." : "播放句子"}
+            {playing ? t("\u64AD\u653E\u4E2D...") : t("\u64AD\u653E\u53E5\u5B50")}
           </Button>
 
           <textarea
@@ -119,7 +119,7 @@ export function DictationMode({ errors, onGrade }: DictationModeProps) {
               }
                 <div>
                   <p className="font-medium">{t("\u76F8\u4F3C\u5EA6")}
-                  {similarity}% · {grade === "easy" ? "优秀" : grade === "good" ? "良好" : "再练练"}
+                  {similarity}% · {grade === "easy" ? t("\u4F18\u79C0") : grade === "good" ? t("\u826F\u597D") : t("\u518D\u7EC3\u7EC3")}
                   </p>
                   <p className="text-sm">{t("\u6B63\u786E\u7B54\u6848\uFF1A")}{current.correction}</p>
                   <p className="text-sm mt-1">{current.explanation}</p>

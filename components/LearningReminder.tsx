@@ -92,7 +92,7 @@ export function LearningReminder() {
           }>
           
           {settings.reminders.enabled ? <Bell className="w-4 h-4 mr-2" /> : <BellOff className="w-4 h-4 mr-2" />}
-          {settings.reminders.enabled ? "已开启" : "已关闭"}
+          {settings.reminders.enabled ? t("\u5DF2\u5F00\u542F") : t("\u5DF2\u5173\u95ED")}
         </Button>
         {permission !== "granted" && permission !== "unsupported" &&
         <Button variant="outline" onClick={handleRequestPermission}>{t("\u8BF7\u6C42\u901A\u77E5\u6743\u9650")}

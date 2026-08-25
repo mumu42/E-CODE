@@ -94,7 +94,7 @@ export default function ReportPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calendar className="w-5 h-5 text-blue-500" />
-            {period === "week" ? "本周报告" : "本月报告"}
+            {period === "week" ? t("\u672C\u5468\u62A5\u544A") : t("\u672C\u6708\u62A5\u544A")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -140,7 +140,7 @@ export default function ReportPage() {
                 key={type}
                 className="px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-xs">
                 
-                    {type === "SPEAK" ? "口语" : type === "WRITE" ? "写作" : type === "CHAT" ? "对话" : type} {count}{t("\u6B21")}
+                    {type === "SPEAK" ? t("\u53E3\u8BED") : type === "WRITE" ? t("\u5199\u4F5C") : type === "CHAT" ? t("\u5BF9\u8BDD") : type} {count}{t("\u6B21")}
               </span>
               )}
               </div>

@@ -251,8 +251,8 @@ export default function ChatPage() {
                 className="h-auto py-4 justify-start text-left">
                 
                     <div>
-                      <p className="font-medium">{role.label}</p>
-                      <p className="text-xs opacity-80">{role.description}</p>
+                      <p className="font-medium">{t(role.label)}</p>
+                      <p className="text-xs opacity-80">{t(role.description)}</p>
                     </div>
                   </Button>
               )}
@@ -268,7 +268,7 @@ export default function ChatPage() {
                 onClick={() => setSelectedScenario(scenario.value)}
                 className="h-auto py-3 justify-start text-left">
                 
-                    {scenario.label}
+                    {t(scenario.label)}
                   </Button>
               )}
               </div>
@@ -368,7 +368,7 @@ export default function ChatPage() {
                   }}>
                   
                     <Mic className="w-4 h-4 mr-2" />
-                    {useVoice || activeSession.voiceMode ? "键盘输入" : "语音输入"}
+                    {useVoice || activeSession.voiceMode ? t("\u952E\u76D8\u8F93\u5165") : t("\u8BED\u97F3\u8F93\u5165")}
                   </Button>
                   {!useVoice && !activeSession.voiceMode &&
                 <Button
@@ -377,7 +377,7 @@ export default function ChatPage() {
                   className="flex-1">
                   
                       <Send className="w-4 h-4 mr-2" />
-                      {loading ? "AI 思考中..." : "发送"}
+                      {loading ? t("AI \u601D\u8003\u4E2D...") : t("\u53D1\u9001")}
                     </Button>
                 }
                   {(useVoice || activeSession.voiceMode) &&
@@ -392,7 +392,7 @@ export default function ChatPage() {
 
                   <Volume2 className="w-4 h-4 mr-2" />
                   }
-                      {playing ? "停止" : "播放最近回复"}
+                      {playing ? t("\u505C\u6B62") : t("\u64AD\u653E\u6700\u8FD1\u56DE\u590D")}
                     </Button>
                 }
                 </div>

@@ -188,14 +188,14 @@ export default function OnboardingPage() {
           <div className="space-y-4">
               <Label>{t("\u4F60\u7684\u5B66\u4E60\u76EE\u6807\u662F\u4EC0\u4E48\uFF1F")}</Label>
               <div className="grid grid-cols-2 gap-4">
-                {targets.map((t) =>
+                {targets.map((target) =>
               <button
-                key={t.value}
+                key={target.value}
                 type="button"
                 className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-muted hover:text-foreground transition-colors"
-                onClick={() => handleTargetSelect(t.value as Target)}>
-                
-                    {t.label}
+                onClick={() => handleTargetSelect(target.value as Target)}>
+
+                    {t(target.label)}
                   </button>
               )}
               </div>
@@ -277,7 +277,7 @@ export default function OnboardingPage() {
               disabled={loading || sample.length < 10}
               className="w-full">
               
-                {loading ? "测评中..." : "完成测评"}
+                {loading ? t("\u6D4B\u8BC4\u4E2D...") : t("\u5B8C\u6210\u6D4B\u8BC4")}
               </Button>
             </div>
           }
@@ -289,7 +289,7 @@ export default function OnboardingPage() {
               </p>
               <p className="text-gray-600">{feedback}</p>
               <p className="text-gray-600">{t("\u7CFB\u7EDF\u5DF2\u6839\u636E\u4F60\u7684\u76EE\u6807\u201C")}
-              {targets.find((t) => t.value === target)?.label}{t("\u201D\u548C\u5F53\u524D\u7EA7\u522B\u751F\u6210\u7EC3\u4E60\u8BA1\u5212\u3002")}
+              {targets.find((t) => t.value === target)?.label && t(targets.find((t) => t.value === target)!.label)}{t("\u201D\u548C\u5F53\u524D\u7EA7\u522B\u751F\u6210\u7EC3\u4E60\u8BA1\u5212\u3002")}
             </p>
               <Button onClick={() => router.push("/dashboard")} className="w-full">{t("\u8FDB\u5165 Dashboard")}
 

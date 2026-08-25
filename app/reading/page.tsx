@@ -97,7 +97,7 @@ export default function ReadingPage() {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-2xl">{t("\u9605\u8BFB\u7406\u89E3")}</CardTitle>
           <Button variant="outline" size="sm" onClick={loadPassage} disabled={loading}>
-            {loading ? "生成中..." : "换一篇"}
+            {loading ? t("\u751F\u6210\u4E2D...") : t("\u6362\u4E00\u7BC7")}
           </Button>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -105,7 +105,7 @@ export default function ReadingPage() {
           <div className="text-center space-y-4">
               <p className="text-gray-500">{t("\u70B9\u51FB\u5F00\u59CB\uFF0CAI \u4F1A\u4E3A\u4F60\u751F\u6210\u4E00\u7BC7\u9605\u8BFB\u7406\u89E3\u6750\u6599\u3002")}</p>
               <Button onClick={loadPassage} disabled={loading}>
-                {loading ? "生成中..." : "开始阅读"}
+                {loading ? t("\u751F\u6210\u4E2D...") : t("\u5F00\u59CB\u9605\u8BFB")}
               </Button>
             </div> :
 
