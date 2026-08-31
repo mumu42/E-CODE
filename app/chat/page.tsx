@@ -284,9 +284,9 @@ export default function ChatPage() {
                           : "bg-white border shadow-sm"
                       }`}
                     >
-                      <p>{msg.content}</p>
+                      <p className="text-gray-900">{msg.content}</p>
                       {msg.corrections && msg.corrections.length > 0 && (
-                        <ul className="mt-2 text-xs opacity-90 list-disc list-inside">
+                        <ul className="mt-2 text-xs text-gray-900 opacity-90 list-disc list-inside">
                           {msg.corrections.map((c, idx) => (
                             <li key={idx}>{c}</li>
                           ))}
