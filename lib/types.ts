@@ -351,6 +351,8 @@ export interface ChatMessage {
   content: string;
   /** AI 纠正点（可选） */
   corrections?: string[];
+  /** AI 发音提示（可选） */
+  pronunciationTips?: string[];
   /** 消息时间戳 */
   timestamp: string;
 }
@@ -367,6 +369,8 @@ export interface ChatSession {
   scenario?: string;
   /** 是否为语音对话模式（可选） */
   voiceMode?: boolean;
+  /** 是否已生成过错题复习（可选） */
+  reviewGenerated?: boolean;
   /** 消息列表 */
   messages: ChatMessage[];
   /** 创建时间 */

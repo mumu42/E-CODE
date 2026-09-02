@@ -21,7 +21,8 @@ import { useCustomPrompt } from "@/hooks/usePrompts";
 import { saveToStatic } from "@/lib/storage/excel";
 import { assessPronunciation, type WordPronunciation } from "@/lib/voice";
 import { CHAT_ROLES, CHAT_SCENARIOS } from "@/lib/chat/roles";
-import { Mic, Send, Volume2, Square, Pause, Play } from "lucide-react";
+import { buildChatReviewErrors, dedupeChatReviewErrors } from "@/lib/chat/review";
+import { Mic, Send, Volume2, Square, Pause, Play, BookOpen } from "lucide-react";
 import { speak, stopSpeaking, isTTSSupported } from "@/lib/tts";
 
 export default function ChatPage() {
@@ -30,6 +31,7 @@ export default function ChatPage() {
   const chatSessions = useAppStore((state) => state.chatSessions);
   const addChatSession = useAppStore((state) => state.addChatSession);
   const updateChatSession = useAppStore((state) => state.updateChatSession);
+  const addErrors = useAppStore((state) => state.addErrors);
   const chatPrompt = useCustomPrompt("chat");
 
   const [selectedRole, setSelectedRole] = useState(CHAT_ROLES[0].value);
@@ -161,6 +163,7 @@ export default function ChatPage() {
         role: "assistant" as const,
         content: result.reply,
         corrections: result.corrections,
+        pronunciationTips: result.pronunciationTips,
         timestamp: new Date().toISOString(),
       };
 
@@ -200,6 +203,27 @@ export default function ChatPage() {
 
   function handleWordClick(word: string) {
     speak(word, 1).catch((err) => console.error(err));
+  }
+
+  function handleGenerateReview() {
+    if (!profile || !activeSession) return;
+    if (activeSession.reviewGenerated) return;
+
+    const errors = dedupeChatReviewErrors(buildChatReviewErrors(profile, activeSession));
+    if (errors.length === 0) {
+      alert(t("当前对话暂无纠错记录，多聊几句再来复盘吧。"));
+      return;
+    }
+
+    addErrors(errors);
+    // 标记已生成复习
+    useAppStore.setState((state) => ({
+      chatSessions: state.chatSessions.map((s) =>
+        s.id === activeSession.id ? { ...s, reviewGenerated: true } : s
+      ),
+    }));
+    alert(t(`已生成 ${errors.length} 条错题，可以在错题本中复习。`));
+    router.push("/review");
   }
 
   if (!profile) {
@@ -271,6 +295,22 @@ export default function ChatPage() {
 
           {activeSession && (
             <>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm text-gray-500">
+                  {t("当前角色：")}{t(CHAT_ROLES.find((r) => r.value === activeSession.role)?.label ?? activeSession.role)}
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGenerateReview}
+                  disabled={activeSession.reviewGenerated}
+                  className="flex items-center gap-1"
+                >
+                  <BookOpen className="w-4 h-4" />
+                  {activeSession.reviewGenerated ? t("已生成错题复习") : t("结束并生成错题复习")}
+                </Button>
+              </div>
               <div className="flex-1 overflow-y-auto space-y-3 p-2 border rounded-lg bg-gray-50">
                 {activeSession.messages.map((msg) => (
                   <div
