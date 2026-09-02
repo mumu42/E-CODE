@@ -22,8 +22,15 @@ import { saveToStatic } from "@/lib/storage/excel";
 import { assessPronunciation, type WordPronunciation } from "@/lib/voice";
 import { CHAT_ROLES, CHAT_SCENARIOS } from "@/lib/chat/roles";
 import { buildChatReviewErrors, dedupeChatReviewErrors } from "@/lib/chat/review";
-import { Mic, Send, Volume2, Square, Pause, Play, BookOpen } from "lucide-react";
+import { Mic, Send, Volume2, Square, Pause, Play, BookOpen, Sparkles } from "lucide-react";
 import { speak, stopSpeaking, isTTSSupported } from "@/lib/tts";
+import { generateChatScenario } from "@/lib/ai/client";
+
+export interface Scenario {
+  label: string;
+  prompt: string;
+  sampleOpening: string;
+}
 
 export default function ChatPage() {
   const router = useRouter();
@@ -49,6 +56,9 @@ export default function ChatPage() {
     tips: string[];
   } | null>(null);
   const [wordConfidences, setWordConfidences] = useState<WordConfidence[]>([]);
+  const [customScenario, setCustomScenario] = useState<Scenario | null>(null);
+  const [customTopicInput, setCustomTopicInput] = useState("");
+  const [generatingScenario, setGeneratingScenario] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const voiceRecorderRef = useRef<VoiceRecorderHandle>(null);
 
@@ -65,22 +75,61 @@ export default function ChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [activeSessionId, chatSessions]);
 
-  function getGreeting(role: (typeof CHAT_ROLES)[number]["value"], scenario?: string): string {
-    const scenarioData = scenario
-      ? CHAT_SCENARIOS[role].find((s) => s.value === scenario)
+  function getGreeting(role: (typeof CHAT_ROLES)[number]["value"]): string {
+    if (customScenario) return customScenario.sampleOpening;
+    const scenarioData = selectedScenario
+      ? CHAT_SCENARIOS[role].find((s) => s.value === selectedScenario)
       : undefined;
     return scenarioData?.sampleOpening ?? "Hello! Let's start our conversation.";
   }
 
+  function getScenarioPrompt(role: (typeof CHAT_ROLES)[number]["value"]): string | undefined {
+    if (customScenario) return customScenario.prompt;
+    const scenarioData = selectedScenario
+      ? CHAT_SCENARIOS[role].find((s) => s.value === selectedScenario)
+      : undefined;
+    return scenarioData?.prompt;
+  }
+
+  async function handleGenerateTopic() {
+    if (!profile) return;
+    setGeneratingScenario(true);
+    try {
+      const scenario = await generateChatScenario(selectedRole, profile.target, profile.level);
+      setCustomScenario(scenario);
+      setSelectedScenario("");
+    } catch (error) {
+      console.error(error);
+      alert(t("热门话题生成失败，请稍后重试。"));
+    } finally {
+      setGeneratingScenario(false);
+    }
+  }
+
+  function handleCustomTopic() {
+    const topic = customTopicInput.trim();
+    if (!topic) return;
+    setCustomScenario({
+      label: topic,
+      prompt: `Discuss the topic: ${topic}`,
+      sampleOpening: `Let's talk about ${topic}.`,
+    });
+    setSelectedScenario("");
+  }
+
+  function handleSelectFixedScenario(value: string) {
+    setSelectedScenario(value);
+    setCustomScenario(null);
+  }
+
   function handleStart(role: (typeof CHAT_ROLES)[number]["value"]) {
     if (!profile) return;
-    const scenario = CHAT_SCENARIOS[role].find((s) => s.value === selectedScenario);
-    const greeting = getGreeting(role, scenario?.value);
+    const greeting = getGreeting(role);
     const session = {
       id: crypto.randomUUID(),
       userId: profile.id,
       role,
-      scenario: scenario?.prompt,
+      scenario: getScenarioPrompt(role),
       voiceMode: useVoice,
       messages: [
         {
@@ -264,12 +313,52 @@ export default function ChatPage() {
                   <Button
                     key={scenario.value}
                     variant={selectedScenario === scenario.value ? "default" : "outline"}
-                    onClick={() => setSelectedScenario(scenario.value)}
+                    onClick={() => handleSelectFixedScenario(scenario.value)}
                     className="h-auto py-3 justify-start text-left"
                   >
                     {t(scenario.label)}
                   </Button>
                 ))}
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-sm font-medium">{t("自定义话题")}</p>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={customTopicInput}
+                    onChange={(e) => setCustomTopicInput(e.target.value)}
+                    placeholder={t("输入你想聊的话题，例如：最近的电影、旅行计划...")}
+                    className="flex-1 min-w-0 px-3 py-2 border rounded-md text-sm"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleCustomTopic();
+                      }
+                    }}
+                  />
+                  <Button type="button" variant="outline" onClick={handleCustomTopic} disabled={!customTopicInput.trim()}>
+                    {t("使用")}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleGenerateTopic}
+                  disabled={generatingScenario}
+                  className="flex items-center gap-2"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  {generatingScenario ? t("正在生成热门话题...") : t("随机热门话题")}
+                </Button>
+                {customScenario && (
+                  <span className="text-sm text-green-700 bg-green-50 px-3 py-1 rounded-full">
+                    {t("当前话题：")}{customScenario.label}
+                  </span>
+                )}
               </div>
 
               <div className="flex items-center gap-2">
@@ -287,7 +376,7 @@ export default function ChatPage() {
                 </label>
               </div>
 
-              <Button onClick={() => handleStart(selectedRole)} disabled={!selectedScenario} className="w-full">
+              <Button onClick={() => handleStart(selectedRole)} disabled={!selectedScenario && !customScenario} className="w-full">
                 {t("开始对话")}
               </Button>
             </div>

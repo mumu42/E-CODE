@@ -369,6 +369,53 @@ Return only valid JSON, no markdown.`;
 }
 
 /**
+ * 构建 AI 对话场景生成提示词
+ * @param role - 对话角色
+ * @param target - 用户学习目标
+ * @param level - 用户英语水平
+ * @param customPrompt - 自定义提示词模板（可选）
+ * @returns AI 场景生成提示词字符串
+ */
+export function buildChatScenarioPrompt(
+  role: ChatRole,
+  target: Target,
+  level: Level,
+  customPrompt?: string
+): string {
+  const roleDescriptions: Record<ChatRole, string> = {
+    friend: "a friendly native speaker chatting casually",
+    interviewer: "a job interviewer asking behavioral and situational questions",
+    examiner: "an IELTS/TOEFL speaking examiner conducting Part 1-3 style questions",
+    teacher: "a patient English teacher helping the user improve",
+    colleague: "a professional colleague discussing work topics",
+  };
+
+  if (customPrompt) {
+    return renderPromptTemplate(customPrompt, { role, target, level, roleDescription: roleDescriptions[role] });
+  }
+
+  return `You are a creative English conversation topic designer for Chinese learners.
+The user is preparing for ${target} at CEFR level ${level}.
+The conversation role is: ${roleDescriptions[role]}.
+Today's date is ${new Date().toISOString().split("T")[0]}.
+
+Please generate a fresh, engaging conversation scenario based on a current hot topic, trend, or social phenomenon.
+Return a JSON object with this exact shape:
+{
+  "label": "short Chinese name for the topic",
+  "prompt": "scenario description and instructions in English for the AI role",
+  "sampleOpening": "a natural English opening line"
+}
+
+Rules:
+- The scenario should be interesting and relevant to current events or trends.
+- The opening should be natural and encourage the user to respond.
+- Keep the topic appropriate for the user's level ${level}.
+
+Return only valid JSON, no markdown.`;
+}
+
+/**
  * 构建薄弱点专项练习提示词
  * @param weakPoint - 用户的薄弱知识点
  * @param count - 练习题目数量

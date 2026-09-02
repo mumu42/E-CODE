@@ -12,6 +12,7 @@ import {
   buildWritePrompt,
   buildWritingTopicPrompt,
   buildChatPrompt,
+  buildChatScenarioPrompt,
   buildWeakPointDrillPrompt,
   buildReadingPrompt,
   buildListeningPrompt,
@@ -258,6 +259,40 @@ export async function sendChatMessage(
   const parsed = safeParseJson<{ reply: string; corrections: string[]; pronunciationTips?: string[] }>(result);
   if (!parsed) {
     throw new Error("Failed to parse chat result");
+  }
+  return parsed;
+}
+
+/**
+ * 生成基于热门话题的 AI 对话场景
+ * @param role - 对话角色
+ * @param target - 学习目标
+ * @param level - 当前等级
+ * @param customPrompt - 自定义提示词模板（可选）
+ * @returns 生成的对话场景
+ */
+export async function generateChatScenario(
+  role: ChatRole,
+  target: Target,
+  level: Level,
+  customPrompt?: string
+): Promise<{ label: string; prompt: string; sampleOpening: string }> {
+  const res = await fetch("/api/ai/chat-scenario", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      prompt: buildChatScenarioPrompt(role, target, level, customPrompt),
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Chat scenario generation failed");
+  }
+
+  const { result } = (await res.json()) as { result: string };
+  const parsed = safeParseJson<{ label: string; prompt: string; sampleOpening: string }>(result);
+  if (!parsed) {
+    throw new Error("Failed to parse chat scenario result");
   }
   return parsed;
 }
