@@ -37,7 +37,7 @@ import type {
 } from "@/lib/types";
 
 /**
- * 安全解析 AI 返回的 JSON 字符串，支持去除 markdown 代码块标记
+ * 安全解析 AI 返回的 JSON 字符串，支持去除 markdown 代码块标记并提取首个 JSON 对象/数组
  * @param text - AI 返回的原始文本
  * @returns 解析后的对象，解析失败返回 null
  */
@@ -47,6 +47,15 @@ function safeParseJson<T>(text: string): T | null {
     const cleaned = text.replace(/```json|```/g, "").trim();
     return JSON.parse(cleaned) as T;
   } catch {
+    // Fallback: extract the first JSON object/array from the text
+    const match = text.match(/(\{[\s\S]*\})/) || text.match(/(\[[\s\S]*\])/);
+    if (match) {
+      try {
+        return JSON.parse(match[1]) as T;
+      } catch {
+        return null;
+      }
+    }
     return null;
   }
 }
@@ -208,6 +217,7 @@ export async function getWritingFeedback(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       prompt: buildWritePrompt(target, level, topic, instructions, userInput, learningContext, customPrompt),
+      maxTokens: 2048,
     }),
   });
 
@@ -218,9 +228,26 @@ export async function getWritingFeedback(
   const { result } = (await res.json()) as { result: string };
   const parsed = safeParseJson<WritingFeedback>(result);
   if (!parsed) {
+    console.error("Failed to parse writing feedback, raw result:", result);
     throw new Error("Failed to parse writing feedback");
   }
-  return parsed;
+  return {
+    ...parsed,
+    score: Number(parsed.score ?? 0),
+    grammarScore: Number(parsed.grammarScore ?? 0),
+    vocabularyScore: Number(parsed.vocabularyScore ?? 0),
+    structureScore: Number(parsed.structureScore ?? 0),
+    errors: (parsed.errors ?? []).map((err) => ({
+      id: err.id || crypto.randomUUID(),
+      original: err.original ?? "",
+      correction: err.correction ?? "",
+      explanation: err.explanation ?? "",
+      type: err.type ?? "grammar",
+    })),
+    suggestions: parsed.suggestions ?? [],
+    improvedVersion: parsed.improvedVersion ?? "",
+    feedback: parsed.feedback ?? "",
+  } as WritingFeedback;
 }
 
 /**

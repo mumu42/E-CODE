@@ -15,13 +15,13 @@ import { callAI } from "@/lib/ai/provider";
  */
 export async function POST(request: Request) {
   try {
-    const { prompt } = (await request.json()) as { prompt: string };
+    const { prompt, maxTokens } = (await request.json()) as { prompt: string; maxTokens?: number };
 
     if (!prompt) {
       return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
     }
 
-    const { result } = await callAI(prompt);
+    const { result } = await callAI({ prompt, maxTokens });
     return NextResponse.json({ result });
   } catch (error) {
     console.error("AI write error:", error);
