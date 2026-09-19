@@ -7,7 +7,7 @@
 
 import Anthropic from "@anthropic-ai/sdk";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-
+import OpenAI from "openai";
 /** AI 调用结果 */
 export interface AIResponse {
   /** AI 返回的文本结果 */
@@ -64,7 +64,7 @@ async function callAnthropic(config: {
  * @param config - 调用配置
  * @returns AI 响应
  */
-async function callOpenAI(config: {
+async function callOpenAIByFetch(config: {
   apiKey: string;
   baseURL: string;
   model: string;
@@ -101,6 +101,46 @@ async function callOpenAI(config: {
   }
 
   return { result: content };
+}
+
+/**
+ * 调用 OpenAI 兼容接口
+ * @param config - 调用配置
+ * @returns AI 响应
+ */
+async function callOpenAI(config: {
+  apiKey: string;
+  baseURL: string;
+  model: string;
+  prompt: string;
+  maxTokens?: number;
+}): Promise<AIResponse> {
+
+  const { apiKey, model } = config
+  const baseURL = config.baseURL.replace(/\/$/, "");
+  
+
+  try {
+    const openai = new OpenAI(
+        {
+            apiKey,
+            baseURL
+        }
+    );
+    const completion = await openai.chat.completions.create({
+      model, //模型列表: https://help.aliyun.com/model-studio/getting-started/models
+      messages: [{ role: "user", content: config.prompt }],
+      max_tokens: config.maxTokens ?? 1024
+    });
+    const content = completion.choices[0].message.content
+    if (!content) {
+      throw new Error("No response content from OpenAI-compatible API");
+    }
+
+    return { result: content };
+  } catch (error) {
+    throw new Error(`错误信息：${error}`);
+  }
 }
 
 /**
