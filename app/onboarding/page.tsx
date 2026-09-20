@@ -7,7 +7,7 @@
 "use client";
 import { t } from "@/lib/i18n/translate";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,9 +47,17 @@ interface AnswerHistory {
  */
 export default function OnboardingPage() {
   const router = useRouter();
+  const profile = useAppStore((state) => state.profile);
   const setProfile = useAppStore((state) => state.setProfile);
   const addAssessment = useAppStore((state) => state.addAssessment);
   const assessmentPrompt = useCustomPrompt("assessment");
+
+  // 已有学习目标时直接跳转学习页
+  useEffect(() => {
+    if (profile) {
+      router.replace("/dashboard");
+    }
+  }, [profile, router]);
 
   const [step, setStep] = useState<"target" | "quiz" | "sample" | "result">("target");
   const [target, setTarget] = useState<Target | null>(null);

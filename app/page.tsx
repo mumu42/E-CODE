@@ -9,6 +9,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mic, FileText, Lock } from "lucide-react";
+import { StartLearningButton } from "@/components/StartLearningButton";
 
 /**
  * 首页组件
@@ -28,9 +29,7 @@ export default function HomePage() {
 
         </p>
         <div className="flex gap-4 justify-center">
-          <Link href="/onboarding">
-            <Button size="lg">{t("\u5F00\u59CB\u5B66\u4E60")}</Button>
-          </Link>
+          <StartLearningButton />
           <Link href="/dashboard">
             <Button variant="outline" size="lg">{t("\u8FDB\u5165 Dashboard")}
 

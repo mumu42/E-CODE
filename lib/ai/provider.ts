@@ -190,16 +190,16 @@ export async function callAI(
     case "fetch":
       return callOpenAIByFetch({
         apiKey: getRequiredEnv("BAILIAN_API_KEY"),
-        baseURL: process.env.BAILIAN_BASE_URL ?? '',
-        model: process.env.BAILIAN_MODEL ?? '',
+        baseURL: process.env.BAILIAN_BASE_URL || '',
+        model: process.env.BAILIAN_MODEL || '',
         prompt,
         maxTokens,
       })
     case "bailian": {
       return callOpenAI({
         apiKey: getRequiredEnv("BAILIAN_API_KEY"),
-        baseURL: process.env.BAILIAN_BASE_URL ?? '',
-        model: process.env.BAILIAN_MODEL ?? '',
+        baseURL: process.env.BAILIAN_BASE_URL || '',
+        model: process.env.BAILIAN_MODEL || '',
         prompt,
         maxTokens,
       });
