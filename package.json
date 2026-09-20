@@ -19,6 +19,8 @@
     "dev:gemini:host": "node scripts/copy-env.js gemini && next dev --hostname 0.0.0.0",
     "dev:gpt": "node scripts/copy-env.js gpt && next dev",
     "dev:gpt:host": "node scripts/copy-env.js gpt && next dev --hostname 0.0.0.0",
+    "dev:fetch": "node scripts/copy-env.js fetch && next dev",
+    "dev:fetch:host": "node scripts/copy-env.js fetch && next dev --hostname 0.0.0.0",
     "build": "next build",
     "build:mobile": "next build && npx cap sync",
     "start": "next start",

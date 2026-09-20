@@ -72,7 +72,7 @@ async function callOpenAIByFetch(config: {
   maxTokens?: number;
 }): Promise<AIResponse> {
   const baseURL = config.baseURL.replace(/\/$/, "");
-  const url = `${baseURL}/v1/chat/completions`;
+  const url = `${baseURL}`;
 
   const response = await fetch(url, {
     method: "POST",
@@ -190,16 +190,16 @@ export async function callAI(
     case "fetch":
       return callOpenAIByFetch({
         apiKey: getRequiredEnv("BAILIAN_API_KEY"),
-        baseURL: process.env.BAILIAN_BASE_URL || "https://cloud-ai-model.rd.ubtrobot.com/",
-        model: process.env.BAILIAN_MODEL || "kimi-k2.7-code",
+        baseURL: process.env.BAILIAN_BASE_URL ?? '',
+        model: process.env.BAILIAN_MODEL ?? '',
         prompt,
         maxTokens,
       })
     case "bailian": {
       return callOpenAI({
         apiKey: getRequiredEnv("BAILIAN_API_KEY"),
-        baseURL: process.env.BAILIAN_BASE_URL || "https://cloud-ai-model.rd.ubtrobot.com/",
-        model: process.env.BAILIAN_MODEL || "kimi-k2.7-code",
+        baseURL: process.env.BAILIAN_BASE_URL ?? '',
+        model: process.env.BAILIAN_MODEL ?? '',
         prompt,
         maxTokens,
       });
