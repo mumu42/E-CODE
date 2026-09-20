@@ -60,7 +60,7 @@ async function callAnthropic(config: {
 }
 
 /**
- * 调用 OpenAI 兼容接口
+ * 调用 转接接口 兼容
  * @param config - 调用配置
  * @returns AI 响应
  */
@@ -187,6 +187,14 @@ export async function callAI(
   const provider = process.env.AI_PROVIDER?.toLowerCase() || "bailian";
 
   switch (provider) {
+    case "fetch":
+      return callOpenAIByFetch({
+        apiKey: getRequiredEnv("BAILIAN_API_KEY"),
+        baseURL: process.env.BAILIAN_BASE_URL || "https://cloud-ai-model.rd.ubtrobot.com/",
+        model: process.env.BAILIAN_MODEL || "kimi-k2.7-code",
+        prompt,
+        maxTokens,
+      })
     case "bailian": {
       return callOpenAI({
         apiKey: getRequiredEnv("BAILIAN_API_KEY"),
