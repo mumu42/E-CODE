@@ -8,7 +8,7 @@
 import { formatDate } from "@/lib/i18n/format";
 import { t } from "@/lib/i18n/translate";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,17 +25,23 @@ import type { TopicRecord } from "@/lib/types";
  */
 export default function TopicsPage() {
   const profile = useAppStore((state) => state.profile);
-  const aiTopics = useAppStore((state) =>
-  state.topics.
-  filter((t) => profile ? t.userId === profile.id : true).
-  slice().
-  sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  const allTopics = useAppStore((state) => state.topics);
+  const allCustomTopics = useAppStore((state) => state.customTopics);
+  const aiTopics = useMemo(
+    () =>
+      allTopics
+        .filter((t) => (profile ? t.userId === profile.id : true))
+        .slice()
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+    [allTopics, profile]
   );
-  const customTopics = useAppStore((state) =>
-  state.customTopics.
-  filter((t) => profile ? t.userId === profile.id : true).
-  slice().
-  sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  const customTopics = useMemo(
+    () =>
+      allCustomTopics
+        .filter((t) => (profile ? t.userId === profile.id : true))
+        .slice()
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+    [allCustomTopics, profile]
   );
   const updateTopic = useAppStore((state) => state.updateTopic);
   const addCustomTopic = useAppStore((state) => state.addCustomTopic);
