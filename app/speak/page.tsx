@@ -20,6 +20,7 @@ import { saveToStatic } from "@/lib/storage/excel";
 import { speak, stopSpeaking, isTTSSupported, calculateSimilarity } from "@/lib/tts";
 import type { SpeakFeedback } from "@/lib/types";
 import { useCustomPrompt } from "@/hooks/usePrompts";
+import { WithVoiceCheck } from "@/components/withVoiceCheck";
 import { Volume2, Square, Mic, RefreshCw } from "lucide-react";
 
 /**
@@ -30,8 +31,20 @@ import { Volume2, Square, Mic, RefreshCw } from "lucide-react";
  * ```
  */
 export default function SpeakPage() {
+  return (
+    <WithVoiceCheck requireAll>
+      <SpeakPageContent />
+    </WithVoiceCheck>
+  );
+}
+
+/**
+ * 口语练习页面实际内容
+ */
+function SpeakPageContent() {
   const router = useRouter();
   const profile = useAppStore((state) => state.profile);
+  const settings = useAppStore((state) => state.settings);
   const topics = useAppStore((state) => state.topics);
   const addTopic = useAppStore((state) => state.addTopic);
   const addSession = useAppStore((state) => state.addSession);

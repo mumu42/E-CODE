@@ -22,6 +22,7 @@ import { saveToStatic } from "@/lib/storage/excel";
 import { assessPronunciation, type WordPronunciation } from "@/lib/voice";
 import { CHAT_ROLES, CHAT_SCENARIOS } from "@/lib/chat/roles";
 import { buildChatReviewErrors, dedupeChatReviewErrors } from "@/lib/chat/review";
+import { WithVoiceCheck } from "@/components/withVoiceCheck";
 import { Mic, Send, Volume2, Square, Pause, Play, BookOpen, Sparkles } from "lucide-react";
 import { speak, stopSpeaking, isTTSSupported } from "@/lib/tts";
 import { generateChatScenario } from "@/lib/ai/client";
@@ -33,6 +34,17 @@ export interface Scenario {
 }
 
 export default function ChatPage() {
+  return (
+    <WithVoiceCheck>
+      <ChatPageContent />
+    </WithVoiceCheck>
+  );
+}
+
+/**
+ * AI 对话页面实际内容
+ */
+function ChatPageContent() {
   const router = useRouter();
   const profile = useAppStore((state) => state.profile);
   const chatSessions = useAppStore((state) => state.chatSessions);

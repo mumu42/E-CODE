@@ -16,8 +16,14 @@ export function StartLearningButton() {
   const router = useRouter();
 
   function handleStart() {
-    const profile = useAppStore.getState().profile;
-    if (profile) {
+    const state = useAppStore.getState();
+    const profile = state.profile;
+    const capabilities = state.settings.browserCapabilities;
+
+    // 优先检查语音检测结果，没有则先跳转到语音检测页面
+    if (!capabilities) {
+      router.push("/voice-check");
+    } else if (profile) {
       router.push("/dashboard");
     } else {
       router.push("/onboarding");

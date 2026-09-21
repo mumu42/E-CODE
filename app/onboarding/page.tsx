@@ -51,13 +51,20 @@ export default function OnboardingPage() {
   const setProfile = useAppStore((state) => state.setProfile);
   const addAssessment = useAppStore((state) => state.addAssessment);
   const assessmentPrompt = useCustomPrompt("assessment");
+  const settings = useAppStore((state) => state.settings);
 
-  // 已有学习目标时直接跳转学习页
+  // 检查浏览器语音功能检测结果，没有则跳转到语音检测页面
   useEffect(() => {
+    if (!settings.browserCapabilities) {
+      router.replace("/voice-check");
+      return;
+    }
+
+    // 已有学习目标时直接跳转学习页
     if (profile) {
       router.replace("/dashboard");
     }
-  }, [profile, router]);
+  }, [profile, settings.browserCapabilities, router]);
 
   const [step, setStep] = useState<"target" | "quiz" | "sample" | "result">("target");
   const [target, setTarget] = useState<Target | null>(null);

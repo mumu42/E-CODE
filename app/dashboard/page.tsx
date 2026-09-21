@@ -6,7 +6,9 @@
  */
 
 "use client";
+import { useState } from "react";
 import { t } from "@/lib/i18n/translate";
+import { WithVoiceCheck } from "@/components/withVoiceCheck";
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -15,7 +17,6 @@ import { useAppStore } from "@/lib/store";
 import { askAdvisor } from "@/lib/ai/client";
 import { useCustomPrompt } from "@/hooks/usePrompts";
 import { Lightbulb } from "lucide-react";
-import { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { FileImporter } from "@/components/FileImporter";
 import { FileExporter } from "@/components/FileExporter";
@@ -49,6 +50,17 @@ const targetMap: Record<string, string> = {
  * ```
  */
 export default function DashboardPage() {
+  return (
+    <WithVoiceCheck>
+      <DashboardPageContent />
+    </WithVoiceCheck>
+  );
+}
+
+/**
+ * Dashboard \u9875\u9762\u5B9E\u9645\u5185\u5BB9
+ */
+function DashboardPageContent() {
   const profile = useAppStore((state) => state.profile);
   const sessions = useAppStore((state) => state.sessions);
   const topics = useAppStore((state) => state.topics);
@@ -57,6 +69,7 @@ export default function DashboardPage() {
   const learningPlan = useAppStore((state) => state.learningPlan);
   const checkIns = useAppStore((state) => state.checkIns);
   const badges = useAppStore((state) => state.badges);
+  const settings = useAppStore((state) => state.settings);
 
   const [adviceQuestion, setAdviceQuestion] = useState("");
   const [advice, setAdvice] = useState<string | null>(null);
@@ -72,7 +85,6 @@ export default function DashboardPage() {
           <Button>{t("\u5F00\u59CB\u5B66\u4E60")}</Button>
         </Link>
       </div>);
-
   }
 
   const today = new Date().toISOString().split("T")[0];

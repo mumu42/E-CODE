@@ -8,6 +8,7 @@
 "use client";
 import { t } from "@/lib/i18n/translate";
 
+import Link from "next/link";
 import { DirectoryAutoSave } from "@/components/DirectoryAutoSave";
 import { FileImporter } from "@/components/FileImporter";
 import { FileExporter } from "@/components/FileExporter";
@@ -17,8 +18,10 @@ import { PushNotificationManager } from "@/components/PushNotificationManager";
 import { DataMigration } from "@/components/DataMigration";
 import { OfflinePackage } from "@/components/OfflinePackage";
 import { BrowserCapabilitiesChecker } from "@/components/BrowserCapabilitiesChecker";
+import { VoiceCapabilitiesSettings } from "@/components/VoiceCapabilitiesSettings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Folder, Upload, Download, MessageSquare, Bell, Keyboard, Database, Wifi, Cloud, Cpu } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Folder, Upload, Download, MessageSquare, Bell, Keyboard, Database, Wifi, Cloud, Cpu, ArrowRight } from "lucide-react";
 
 export default function SettingsPage() {
   return (
@@ -34,6 +37,18 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent>
           <BrowserCapabilitiesChecker />
+          <div className="mt-6 pt-4 border-t">
+            <h3 className="text-sm font-medium mb-3">{t("\u9AD8\u7EA7\u8BBE\u7F6E")}</h3>
+            <VoiceCapabilitiesSettings />
+          </div>
+          <div className="mt-4 pt-4 border-t">
+            <Link href="/voice-check">
+              <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                <ArrowRight className="w-4 h-4 mr-2" />
+                {t("\u524D\u5F80\u8BED\u97F3\u68C0\u6D4B\u9875\u9762")}
+              </Button>
+            </Link>
+          </div>
           <p className="text-xs text-gray-500 mt-4">{t("\u68C0\u6D4B\u5F53\u524D\u6D4F\u89C8\u5668\u662F\u5426\u652F\u6301\u8BED\u97F3\u8BC6\u522B\u3001\u8BED\u97F3\u5408\u6210\uFF08TTS\uFF09\u3001\u9EA6\u514B\u98CE\u8F93\u5165\u3002\u5982\u4E0D\u652F\u6301\uFF0C\u76F8\u5173\u529F\u80FD\u5C06\u88AB\u81EA\u52A8\u5173\u95ED\u3002")}
 
           </p>
