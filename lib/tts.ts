@@ -15,21 +15,71 @@
  * await speak("Hello world", 1);
  * ```
  */
-export function speak(text: string, rate: number = 1): Promise<void> {
-  return new Promise((resolve, reject) => {
+/**
+ * 等待浏览器语音列表加载完成
+ * Chrome 首次调用时 getVoices() 常返回空数组，需监听一次 voiceschanged 再开始
+ * @returns 加载完成后的语音列表；不支持时返回空数组
+ */
+function waitForVoices(): Promise<SpeechSynthesisVoice[]> {
+  return new Promise((resolve) => {
     if (typeof window === "undefined" || !window.speechSynthesis) {
-      reject(new Error("TTS not supported"));
+      resolve([]);
       return;
     }
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length > 0) {
+      resolve(voices);
+      return;
+    }
+    // HACK: Chrome 的 getVoices() 异步加载，监听 voiceschanged 后再取一次
+    window.speechSynthesis.onvoiceschanged = () => {
+      resolve(window.speechSynthesis.getVoices());
+    };
+    // 兜底：1s 后无论是否触发都 resolve，避免永久挂起
+    setTimeout(() => resolve(window.speechSynthesis.getVoices()), 1000);
+  });
+}
+
+export async function speak(text: string, rate: number = 1): Promise<void> {
+  if (typeof window === "undefined" || !window.speechSynthesis) {
+    throw new Error("TTS not supported");
+  }
+
+  // 首次播放前确保语音列表就绪，否则可能静默失败或报错
+  await waitForVoices();
+
+  return new Promise((resolve, reject) => {
+    const synth = window.speechSynthesis;
+
+    // 清掉上一次可能卡住的播放，规避 Chrome speechSynthesis 卡死 bug
+    synth.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "en-US";
     utterance.rate = rate;
 
-    utterance.onend = () => resolve();
-    utterance.onerror = (event) => reject(new Error(event.error));
+    let settled = false;
+    const settle = (fn: () => void) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(resumeTimer);
+      fn();
+    };
 
-    window.speechSynthesis.speak(utterance);
+    utterance.onend = () => settle(resolve);
+    // 把真实 event.error 透传给调用方，便于定位（而非笼统提示「不支持 TTS」）
+    utterance.onerror = (event) =>
+      settle(() => reject(new Error(event.error || "speech-synthesis-error")));
+
+    synth.speak(utterance);
+
+    // HACK: Chrome speechSynthesis 在某些情况下会卡住不触发 onend/onerror
+    // 调用后短暂延时若仍未结束，resume() 一次唤醒引擎
+    const resumeTimer = setTimeout(() => {
+      if (!settled && synth.speaking) {
+        synth.resume();
+      }
+    }, 250);
   });
 }
 

@@ -183,14 +183,19 @@ export const VoiceRecorder = forwardRef<VoiceRecorderHandle, VoiceRecorderProps>
 
     if (!supported) {
       return (
-        <Textarea
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={t("当前浏览器不支持语音输入，请直接输入文字...")}
-          rows={6}
-          className="resize-none"
-          disabled={disabled}
-        />
+        <div className="space-y-2">
+          <p className="text-xs text-orange-600">
+            {t("当前浏览器不支持语音功能，请换浏览器")}
+          </p>
+          <Textarea
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={t("请直接输入文字...")}
+            rows={6}
+            className="resize-none"
+            disabled={disabled}
+          />
+        </div>
       );
     }
 

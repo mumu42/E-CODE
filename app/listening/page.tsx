@@ -71,7 +71,11 @@ export default function ListeningPage() {
       await speak(item.transcript, 1);
     } catch (error) {
       console.error(error);
-      alert("播放失败，当前浏览器可能不支持 TTS。");
+      const message =
+        error instanceof Error && error.message === "TTS not supported"
+          ? t("当前浏览器不支持语音功能，请换浏览器")
+          : t("播放失败：") + (error instanceof Error ? error.message : "");
+      alert(message);
     } finally {
       setPlaying(false);
     }
@@ -89,7 +93,11 @@ export default function ListeningPage() {
       await speak(sentence, 1);
     } catch (error) {
       console.error(error);
-      alert("播放失败，当前浏览器可能不支持 TTS。");
+      const message =
+        error instanceof Error && error.message === "TTS not supported"
+          ? t("当前浏览器不支持语音功能，请换浏览器")
+          : t("播放失败：") + (error instanceof Error ? error.message : "");
+      alert(message);
     } finally {
       setPlaying(false);
     }
@@ -135,7 +143,8 @@ export default function ListeningPage() {
     <div className="container mx-auto px-4 py-8 max-w-3xl">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-2xl">{t("\u542C\u529B\u7406\u89E3")}</CardTitle>
+          {/* \u6807\u9898\u56FA\u5B9A\u663E\u793A\u4E2D\u6587\uFF0C\u4E0D\u505A\u7FFB\u8BD1 */}
+          <CardTitle className="text-2xl">\u542C\u529B\u7406\u89E3</CardTitle>
           <div className="flex items-center gap-2">
             <Link href="/listening/dictation">
               <Button variant="outline" size="sm" type="button">{t("\u542C\u5199\u6A21\u5F0F")}
@@ -182,7 +191,7 @@ export default function ListeningPage() {
                   </Button>
                 </div>
                 {!isTTSSupported() &&
-              <p className="text-xs text-orange-600">{t("\u5F53\u524D\u6D4F\u89C8\u5668\u4E0D\u652F\u6301 TTS\u3002")}</p>
+              <p className="text-xs text-orange-600">{t("\u5F53\u524D\u6D4F\u89C8\u5668\u4E0D\u652F\u6301\u8BED\u97F3\u529F\u80FD\uFF0C\u8BF7\u6362\u6D4F\u89C8\u5668")}</p>
               }
                 {(showTranscript || submitted) &&
               <div className="bg-white border rounded-md p-3 space-y-2">
