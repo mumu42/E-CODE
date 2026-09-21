@@ -207,7 +207,7 @@ export function VoiceCapabilitiesSettings() {
         </div>
 
         <div className="text-xs text-gray-500 space-y-1">
-          <p>{t("原始检测结果时间：")}{new Date(capabilities.detectedAt).toLocaleString("zh-CN")}</p>
+          <p>{t("原始检测结果时间：")}{new Date(capabilities.detectedAt ?? Date.now()).toLocaleString("zh-CN")}</p>
           <p>{t("提示：某些浏览器可能需要 HTTPS 环境才能使用语音功能。")}</p>
         </div>
       </CardContent>

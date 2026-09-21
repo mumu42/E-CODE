@@ -31,11 +31,14 @@ interface SkillRadarChartProps {
  * @returns 雷达图 JSX 元素
  */
 export function SkillRadarChart({ data }: SkillRadarChartProps) {
+  // recharts 3.x 在 React 19 下类型不兼容，用断言绕过
+  const TypedPolarAngleAxis = PolarAngleAxis as unknown as React.FC<{ dataKey: string }>;
+
   return (
     <ResponsiveContainer width="100%" height={300}>
       <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
         <PolarGrid />
-        <PolarAngleAxis dataKey="subject" />
+        <TypedPolarAngleAxis dataKey="subject" />
         <PolarRadiusAxis angle={30} domain={[0, 100]} />
         <Radar
           name="能力值"

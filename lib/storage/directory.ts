@@ -14,6 +14,16 @@ declare global {
     requestPermission(descriptor?: { mode: "readwrite" }): Promise<PermissionState>;
   }
 
+  interface FileSystemWritableFileStream {
+    write(data: Blob | BufferSource | string): Promise<void>;
+    close(): Promise<void>;
+  }
+
+  interface FileSystemFileHandle {
+    createWritable(): Promise<FileSystemWritableFileStream>;
+    getFile(): Promise<File>;
+  }
+
   interface FileSystemDirectoryHandle {
     values(): AsyncIterableIterator<FileSystemHandle>;
   }
