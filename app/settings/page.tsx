@@ -16,13 +16,29 @@ import { LearningReminder } from "@/components/LearningReminder";
 import { PushNotificationManager } from "@/components/PushNotificationManager";
 import { DataMigration } from "@/components/DataMigration";
 import { OfflinePackage } from "@/components/OfflinePackage";
+import { BrowserCapabilitiesChecker } from "@/components/BrowserCapabilitiesChecker";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Folder, Upload, Download, MessageSquare, Bell, Keyboard, Database, Wifi, Cloud } from "lucide-react";
+import { Folder, Upload, Download, MessageSquare, Bell, Keyboard, Database, Wifi, Cloud, Cpu } from "lucide-react";
 
 export default function SettingsPage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
       <h1 className="text-2xl font-bold mb-6">{t("\u8BBE\u7F6E")}</h1>
+
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Cpu className="w-5 h-5 text-blue-500" />{t("\u6D4F\u89C8\u5668\u80FD\u529B\u68C0\u6D4B")}
+
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <BrowserCapabilitiesChecker />
+          <p className="text-xs text-gray-500 mt-4">{t("\u68C0\u6D4B\u5F53\u524D\u6D4F\u89C8\u5668\u662F\u5426\u652F\u6301\u8BED\u97F3\u8BC6\u522B\u3001\u8BED\u97F3\u5408\u6210\uFF08TTS\uFF09\u3001\u9EA6\u514B\u98CE\u8F93\u5165\u3002\u5982\u4E0D\u652F\u6301\uFF0C\u76F8\u5173\u529F\u80FD\u5C06\u88AB\u81EA\u52A8\u5173\u95ED\u3002")}
+
+          </p>
+        </CardContent>
+      </Card>
 
       <Card className="mb-6">
         <CardHeader>

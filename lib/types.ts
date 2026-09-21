@@ -58,6 +58,18 @@ export interface ShortcutSettings {
   enabled: boolean;
 }
 
+/** 浏览器能力检测结果 */
+export interface BrowserCapabilitiesSettings {
+  /** 是否支持语音识别（SpeechRecognition） */
+  speechRecognition: boolean;
+  /** 是否支持语音合成（TTS） */
+  tts: boolean;
+  /** 是否支持麦克风输入 */
+  microphone: boolean;
+  /** 检测时间戳 */
+  detectedAt?: number;
+}
+
 /** 应用设置 */
 export interface AppSettings {
   /** 自定义 Prompt 模板 */
@@ -66,6 +78,8 @@ export interface AppSettings {
   reminders: ReminderSettings;
   /** 键盘快捷键 */
   shortcuts: ShortcutSettings;
+  /** 浏览器能力检测结果 */
+  browserCapabilities?: BrowserCapabilitiesSettings;
 }
 
 /** 成就徽章 */

@@ -2,8 +2,10 @@
  * @file lib/tts.ts
  * @description 浏览器语音合成（TTS）与跟读相似度计算工具
  * @author English Agent Team
- * @date 2026-08-07
+ * @date 2026-09-21
  */
+
+import { getCachedCapabilities } from "@/lib/utils/browser-capabilities";
 
 /**
  * 朗读指定英文文本
@@ -94,10 +96,34 @@ export function stopSpeaking(): void {
 
 /**
  * 判断当前浏览器是否支持 TTS
+ * 优先参考缓存的浏览器能力检测结果（首次进入页面时检测），缓存为同步读取
  * @returns 支持返回 true，否则返回 false
  */
 export function isTTSSupported(): boolean {
-  return typeof window !== "undefined" && "speechSynthesis" in window;
+  if (typeof window === "undefined") return false;
+
+  // 已有检测结果且显示不支持时，视为功能已关闭
+  const cached = getCachedCapabilities();
+  if (cached && !cached.tts) return false;
+
+  return "speechSynthesis" in window;
+}
+
+/**
+ * 安全播放语音（考虑浏览器能力检测结果）
+ * 如果浏览器不支持 TTS，会抛出友好错误
+ * @param text - 要朗读的文本
+ * @param rate - 语速倍率，默认 1
+ * @returns Promise，朗读结束时 resolve
+ */
+export async function safeSpeak(text: string, rate: number = 1): Promise<void> {
+  // 首先检查浏览器本身是否支持
+  if (!isTTSSupported()) {
+    throw new Error("当前浏览器不支持语音合成功能");
+  }
+
+  // 然后尝试播放
+  return speak(text, rate);
 }
 
 /**

@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Mic, Square } from "lucide-react";
+import { useAppStore } from "@/lib/store";
 
 /** 单词置信度 */
 export interface WordConfidence {
@@ -73,10 +74,13 @@ export const VoiceRecorder = forwardRef<VoiceRecorderHandle, VoiceRecorderProps>
     ref
   ) {
     const [isListening, setIsListening] = useState(false);
-    const [supported] = useState(() => {
-      if (typeof window === "undefined") return false;
-      return "webkitSpeechRecognition" in window || "SpeechRecognition" in window;
-    });
+    const settings = useAppStore((state) => state.settings);
+
+    // 使用 store 中的检测结果，如果没有则回退到实时检测
+    const supported = settings.browserCapabilities?.speechRecognition ??
+      (typeof window !== "undefined" &&
+        ("webkitSpeechRecognition" in window || "SpeechRecognition" in window));
+
     const recognitionRef = useRef<SpeechRecognition | null>(null);
     const transcriptRef = useRef(value);
     const submittedRef = useRef(false);
@@ -185,7 +189,7 @@ export const VoiceRecorder = forwardRef<VoiceRecorderHandle, VoiceRecorderProps>
       return (
         <div className="space-y-2">
           <p className="text-xs text-orange-600">
-            {t("当前浏览器不支持语音功能，请换浏览器")}
+            {t("当前浏览器不支持语音识别功能，已自动关闭语音输入。您可以在设置页面查看浏览器能力检测详情。")}
           </p>
           <Textarea
             value={value}

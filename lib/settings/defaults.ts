@@ -247,4 +247,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   shortcuts: {
     enabled: true,
   },
+  browserCapabilities: undefined,
 };

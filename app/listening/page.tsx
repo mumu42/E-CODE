@@ -66,6 +66,8 @@ export default function ListeningPage() {
 
   async function handlePlay() {
     if (!item || playing) return;
+    // TTS 不支持时（含检测结果判定不支持）直接关闭播放功能
+    if (!isTTSSupported()) return;
     setPlaying(true);
     try {
       await speak(item.transcript, 1);
@@ -88,6 +90,8 @@ export default function ListeningPage() {
 
   async function handlePlaySentence(sentence: string) {
     if (playing) return;
+    // TTS 不支持时（含检测结果判定不支持）直接关闭单句播放
+    if (!isTTSSupported()) return;
     setPlaying(true);
     try {
       await speak(sentence, 1);
@@ -168,7 +172,7 @@ export default function ListeningPage() {
           <>
               <div className="bg-blue-50 p-4 rounded-lg space-y-4">
                 <div className="flex items-center gap-3">
-                  <Button onClick={handlePlay} disabled={playing} type="button">
+                  <Button onClick={handlePlay} disabled={playing || !isTTSSupported()} type="button">
                     {playing ?
                   <Square className="w-4 h-4 mr-2" /> :
 
@@ -191,7 +195,7 @@ export default function ListeningPage() {
                   </Button>
                 </div>
                 {!isTTSSupported() &&
-              <p className="text-xs text-orange-600">{t("\u5F53\u524D\u6D4F\u89C8\u5668\u4E0D\u652F\u6301\u8BED\u97F3\u529F\u80FD\uFF0C\u8BF7\u6362\u6D4F\u89C8\u5668")}</p>
+              <p className="text-xs text-orange-600">{t("\u5F53\u524D\u6D4F\u89C8\u5668\u4E0D\u652F\u6301\u8BED\u97F3\u64AD\u653E\u529F\u80FD\uFF0C\u5DF2\u81EA\u52A8\u5173\u95ED\u3002\u60A8\u53EF\u4EE5\u5728\u8BBE\u7F6E\u9875\u9762\u91CD\u65B0\u68C0\u6D4B\u6D4F\u89C8\u5668\u80FD\u529B\u3002")}</p>
               }
                 {(showTranscript || submitted) &&
               <div className="bg-white border rounded-md p-3 space-y-2">
@@ -202,7 +206,7 @@ export default function ListeningPage() {
                     key={idx}
                     type="button"
                     onClick={() => handlePlaySentence(sentence)}
-                    disabled={playing}
+                    disabled={playing || !isTTSSupported()}
                     className="block w-full text-left text-sm text-gray-700 hover:bg-gray-100 p-2 rounded transition-colors">
                     
                           {sentence}

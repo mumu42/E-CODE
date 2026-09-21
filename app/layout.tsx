@@ -15,6 +15,7 @@ import { I18nProvider } from "@/lib/i18n";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { LearningReminder } from "@/components/LearningReminder";
 import { KeyboardShortcuts } from "@/components/KeyboardShortcuts";
+import { BrowserCapabilitiesInitializer } from "@/components/BrowserCapabilitiesInitializer";
 import { cn } from "@/lib/utils/cn";
 
 /** 无衬线字体配置 */
@@ -69,6 +70,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground transition-colors">
         <ThemeProvider>
           <I18nProvider>
+            <BrowserCapabilitiesInitializer />
             <ServiceWorkerRegister />
             <LearningReminder />
             <KeyboardShortcuts />
