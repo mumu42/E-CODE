@@ -7,7 +7,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { t } from "@/lib/i18n/translate";
 import { Button } from "@/components/ui/button";
 import { Bell, BellOff, Copy } from "lucide-react";
@@ -34,11 +34,19 @@ function getInitialEnabled() {
 
 /** 推送通知管理组件 */
 export function PushNotificationManager() {
-  const [enabled, setEnabled] = useState(getInitialEnabled);
-  const [token, setToken] = useState(getInitialToken);
-  const [permission, setPermission] = useState(checkPushPermission);
+  const [mounted, setMounted] = useState(false);
+  const [enabled, setEnabled] = useState(false);
+  const [token, setToken] = useState("");
+  const [permission, setPermission] = useState<NotificationPermission>("default");
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    setEnabled(getInitialEnabled());
+    setToken(getInitialToken());
+    setPermission(checkPushPermission());
+  }, []);
 
   async function handleEnable() {
     setLoading(true);
@@ -91,7 +99,31 @@ export function PushNotificationManager() {
     }
   }
 
-  if (!isPushSupported()) {
+  if (!mounted) {
+    return null;
+  }
+
+  if (!mounted) {
+    return null;
+  }
+
+  if (!mounted) {
+    return null;
+  }
+
+  if (!mounted) {
+    return null;
+  }
+
+  if (!mounted) {
+    return <div className="h-20" />; // 占位符，避免 hydration mismatch
+  }
+
+  if (!mounted) {
+    return null;
+  }
+
+  if (!mounted || !isPushSupported()) {
     return (
       <p className="text-xs text-orange-600">
         {t("当前环境不支持推送通知（需安装 PWA 或原生 App）")}
