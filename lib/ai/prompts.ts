@@ -5,7 +5,7 @@
  * @date 2026-08-21
  */
 
-import type { Level, Target, ChatRole, LearningPlan, ReadingPassage, ListeningItem, ErrorItem } from "@/lib/types";
+import type { Level, Target, ChatRole, LearningPlan, ReadingPassage, ListeningItem, ErrorItem, ExamQuestionType } from "@/lib/types";
 import { renderPromptTemplate } from "@/lib/settings/promptTemplate";
 
 /** 弱项概览 */
@@ -444,6 +444,69 @@ Return a JSON array with this exact shape:
 ]
 
 Return only valid JSON, no markdown.`;
+}
+
+/**
+ * 构建真题风格出题提示词
+ * @param examType - 考试类型（CET4 / CET6 / IELTS / TOEFL）
+ * @param count - 题目数量
+ * @param options - 可选配置（题型、难度、去重题干）
+ * @returns 真题出题提示词字符串
+ * @example
+ * ```ts
+ * const prompt = buildExamQuestionsPrompt("CET4", 20, { sections: ["reading", "listening"] });
+ * ```
+ */
+export function buildExamQuestionsPrompt(
+  examType: string,
+  count: number,
+  options?: {
+    sections?: ExamQuestionType[];
+    difficulty?: "easy" | "medium" | "hard";
+    excludeQuestions?: string[];
+  }
+): string {
+  const sections = options?.sections?.length
+    ? options.sections.join(", ")
+    : "reading, listening, writing, speaking";
+  const difficultyHint = options?.difficulty
+    ? `Difficulty should be "${options.difficulty}".`
+    : "Mix easy, medium, and hard difficulties.";
+  const excludeHint =
+    options?.excludeQuestions && options.excludeQuestions.length > 0
+      ? `\nDo NOT repeat any of these previously used question stems:\n${options.excludeQuestions
+          .slice(0, 60)
+          .map((q) => `- ${q}`)
+          .join("\n")}`
+      : "";
+
+  return `You are a professional English exam question author. Generate ${count} authentic-style questions for the ${examType} exam.
+Cover these sections: ${sections}. ${difficultyHint}${excludeHint}
+
+For objective questions (reading / listening), provide a short passage or context when helpful, 4 options, the correct answer, and a Chinese explanation.
+For productive questions (writing / speaking), provide the prompt only.
+
+Return a JSON array with this exact shape:
+[
+  {
+    "type": "reading" | "listening" | "writing" | "speaking",
+    "section": "reading" | "listening" | "writing" | "speaking",
+    "question": "the question stem",
+    "passage": "optional passage or transcript context",
+    "options": ["option A", "option B", "option C", "option D"],
+    "answer": "the correct option text",
+    "explanation": "解析（中文）",
+    "difficulty": "easy" | "medium" | "hard",
+    "year": "2024",
+    "score": 7.5,
+    "timeLimit": 30
+  }
+]
+
+- "options" and "answer" are required for reading/listening; omit them for writing/speaking.
+- "score" and "timeLimit" are optional.
+- Every question must be unique and original.
+Return only valid JSON, no markdown, no extra text.`;
 }
 
 /**

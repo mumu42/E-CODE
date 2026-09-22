@@ -16,6 +16,7 @@ import type {
   ErrorItem,
   ExamRecord,
   ExamQuestion,
+  ExamWrongQuestion,
   Badge,
   ReadingRecord,
   ListeningItem,
@@ -55,6 +56,7 @@ export function mergeProfileData(target: ProfileData, source: Partial<ProfileDat
     topics: mergeById(target.topics, source.topics ?? []),
     errors: mergeById(target.errors, source.errors ?? []),
     examRecords: mergeById(target.examRecords, source.examRecords ?? []),
+    examWrongQuestions: mergeById(target.examWrongQuestions, source.examWrongQuestions ?? []),
     readingRecords: mergeById(target.readingRecords, source.readingRecords ?? []),
     listeningRecords: mergeById(target.listeningRecords, source.listeningRecords ?? []),
     dictationRecords: mergeById(target.dictationRecords, source.dictationRecords ?? []),
@@ -106,6 +108,7 @@ export function mergeAppData(snapshots: Partial<AppData>[]): Partial<AppData> {
   const topics: TopicRecord[] = [];
   const errors: ErrorItem[] = [];
   const examRecords: ExamRecord[] = [];
+  const examWrongQuestions: ExamWrongQuestion[] = [];
   const readingRecords: ReadingRecord[] = [];
   const listeningRecords: ListeningItem[] = [];
   const dictationRecords: DictationRecord[] = [];
@@ -122,6 +125,7 @@ export function mergeAppData(snapshots: Partial<AppData>[]): Partial<AppData> {
     topics.push(...(snapshot.topics ?? []));
     errors.push(...(snapshot.errors ?? []));
     examRecords.push(...(snapshot.examRecords ?? []));
+    examWrongQuestions.push(...(snapshot.examWrongQuestions ?? []));
     readingRecords.push(...(snapshot.readingRecords ?? []));
     listeningRecords.push(...(snapshot.listeningRecords ?? []));
     dictationRecords.push(...(snapshot.dictationRecords ?? []));
@@ -138,6 +142,7 @@ export function mergeAppData(snapshots: Partial<AppData>[]): Partial<AppData> {
   result.topics = mergeById(topics, []);
   result.errors = mergeById(errors, []);
   result.examRecords = mergeById(examRecords, []);
+  result.examWrongQuestions = mergeById(examWrongQuestions, []);
   result.readingRecords = mergeById(readingRecords, []);
   result.listeningRecords = mergeById(listeningRecords, []);
   result.dictationRecords = mergeById(dictationRecords, []);

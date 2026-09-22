@@ -198,6 +198,8 @@ export interface AppData {
   topics: TopicRecord[];
   errors: ErrorItem[];
   examRecords: ExamRecord[];
+  /** 模拟考试客观题错题列表 */
+  examWrongQuestions: ExamWrongQuestion[];
   readingRecords: ReadingRecord[];
   listeningRecords: ListeningItem[];
   dictationRecords: DictationRecord[];
@@ -237,6 +239,8 @@ export interface ProfileData {
   errors: ErrorItem[];
   /** 模拟考试记录列表 */
   examRecords: ExamRecord[];
+  /** 模拟考试客观题错题列表 */
+  examWrongQuestions: ExamWrongQuestion[];
   /** 阅读理解练习记录列表 */
   readingRecords: ReadingRecord[];
   /** 听力理解练习记录列表 */
@@ -575,6 +579,50 @@ export interface ExamRecord {
   score: number;
   /** 分项得分 */
   sectionScores?: Record<ExamQuestionType, number>;
+}
+
+/** 模拟考试客观题错题记录 */
+export interface ExamWrongQuestion {
+  /** 错题 ID */
+  id: string;
+  /** 用户 ID */
+  userId: string;
+  /** 所属考试记录 ID */
+  examRecordId: string;
+  /** 发生时间 */
+  date: string;
+  /** 题型 */
+  type: ExamQuestionType;
+  /** 真题所属部分（听力/阅读/写作/口语） */
+  section?: ExamQuestionType;
+  /** 真题考试类型（如 CET4 / CET6 / IELTS / TOEFL） */
+  examType?: string;
+  /** 真题年份 */
+  year?: string;
+  /** 题干 */
+  question: string;
+  /** 音频/阅读材料（可选） */
+  passage?: string;
+  /** 选项（客观题） */
+  options?: string[];
+  /** 正确答案 */
+  answer?: string;
+  /** 用户答案 */
+  userAnswer?: string;
+  /** 解析 */
+  explanation?: string;
+  /** 难度（可选） */
+  difficulty?: "easy" | "medium" | "hard";
+  /** 是否已复习 */
+  reviewed?: boolean;
+  /** 下次复习日期（SM-2） */
+  nextReviewDate?: string;
+  /** 复习间隔（天，SM-2） */
+  interval?: number;
+  /** 连续复习次数（SM-2） */
+  repetitionCount?: number;
+  /** 容易度因子（SM-2） */
+  easeFactor?: number;
 }
 
 /** 阅读理解选择题 */

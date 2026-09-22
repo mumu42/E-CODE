@@ -20,6 +20,7 @@ import type {
   LearningPlan,
   ExamRecord,
   ExamQuestion,
+  ExamWrongQuestion,
   Badge,
   AppSettings,
   ReadingRecord,
@@ -45,6 +46,7 @@ const emptyProfileData = (): ProfileData => ({
   topics: [],
   errors: [],
   examRecords: [],
+  examWrongQuestions: [],
   readingRecords: [],
   listeningRecords: [],
   dictationRecords: [],
@@ -104,6 +106,10 @@ export interface AppState extends AppData {
   scheduleReview: (errorId: string, grade: "hard" | "good" | "easy") => void;
   /** 添加一条模拟考试记录 */
   addExamRecord: (record: ExamRecord) => void;
+  /** 批量添加考试客观题错题（按 id 去重） */
+  addExamWrongQuestions: (items: ExamWrongQuestion[]) => void;
+  /** 将考试错题标记为已复习 */
+  markExamWrongReviewed: (id: string) => void;
   /** 添加一条阅读理解练习记录 */
   addReadingRecord: (record: ReadingRecord) => void;
   /** 添加一条听力理解练习记录 */
@@ -156,6 +162,7 @@ const initialState: AppData = {
   topics: [],
   errors: [],
   examRecords: [],
+  examWrongQuestions: [],
   readingRecords: [],
   listeningRecords: [],
   dictationRecords: [],
@@ -196,6 +203,7 @@ function migrateFromLocalStorage(): AppData | undefined {
       topics: parsed.topics ?? [],
       errors: parsed.errors ?? [],
       examRecords: parsed.examRecords ?? [],
+      examWrongQuestions: parsed.examWrongQuestions ?? [],
       readingRecords: parsed.readingRecords ?? [],
       listeningRecords: parsed.listeningRecords ?? [],
       dictationRecords: parsed.dictationRecords ?? [],
@@ -279,6 +287,7 @@ export const useAppStore = create<AppState>()(
         topics: [],
         errors: [],
         examRecords: [],
+        examWrongQuestions: [],
         readingRecords: [],
         listeningRecords: [],
         dictationRecords: [],
@@ -305,6 +314,7 @@ export const useAppStore = create<AppState>()(
                 topics: state.topics,
                 errors: state.errors,
                 examRecords: state.examRecords,
+                examWrongQuestions: state.examWrongQuestions,
                 readingRecords: state.readingRecords,
                 listeningRecords: state.listeningRecords,
                 dictationRecords: state.dictationRecords,
@@ -524,6 +534,19 @@ export const useAppStore = create<AppState>()(
             badges: newBadges.length > 0 ? [...state.badges, ...newBadges] : state.badges,
           };
         }),
+      addExamWrongQuestions: (items) =>
+        set((state) => {
+          const existing = new Set(state.examWrongQuestions.map((q) => q.id));
+          const merged = [...state.examWrongQuestions, ...items.filter((q) => !existing.has(q.id))];
+          return { ...state, examWrongQuestions: merged };
+        }),
+      markExamWrongReviewed: (id) =>
+        set((state) => ({
+          ...state,
+          examWrongQuestions: state.examWrongQuestions.map((q) =>
+            q.id === id ? { ...q, reviewed: true } : q
+          ),
+        })),
       addReadingRecord: (record) =>
         set((state) => ({
           ...state,
@@ -617,6 +640,7 @@ export const useAppStore = create<AppState>()(
                 topics: migrated.topics ?? [],
                 errors: migrated.errors ?? [],
                 examRecords: migrated.examRecords ?? [],
+                examWrongQuestions: migrated.examWrongQuestions ?? [],
                 readingRecords: migrated.readingRecords ?? [],
                 listeningRecords: migrated.listeningRecords ?? [],
                 dictationRecords: migrated.dictationRecords ?? [],
@@ -660,6 +684,11 @@ export const useAppStore = create<AppState>()(
               (data.currentProfileId && data.profileData
                 ? data.profileData[data.currentProfileId].examRecords
                 : state.examRecords),
+            examWrongQuestions:
+              data.examWrongQuestions ??
+              (data.currentProfileId && data.profileData
+                ? data.profileData[data.currentProfileId].examWrongQuestions
+                : state.examWrongQuestions),
             learningProfile:
               data.learningProfile ??
               (data.currentProfileId && data.profileData
@@ -699,6 +728,7 @@ export const useAppStore = create<AppState>()(
             topics: merged.topics ?? state.topics,
             errors: merged.errors ?? state.errors,
             examRecords: merged.examRecords ?? state.examRecords,
+            examWrongQuestions: merged.examWrongQuestions ?? state.examWrongQuestions,
             readingRecords: merged.readingRecords ?? state.readingRecords,
             listeningRecords: merged.listeningRecords ?? state.listeningRecords,
             dictationRecords: merged.dictationRecords ?? state.dictationRecords,
@@ -784,6 +814,7 @@ useAppStore.subscribe((state) => {
           topics: state.topics,
           errors: state.errors,
           examRecords: state.examRecords,
+          examWrongQuestions: state.examWrongQuestions,
           readingRecords: state.readingRecords,
           listeningRecords: state.listeningRecords,
           dictationRecords: state.dictationRecords,

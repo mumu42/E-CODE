@@ -17,7 +17,7 @@ import { generateWeakPointDrill } from "@/lib/ai/client";
 import { getDueErrors } from "@/lib/review/utils";
 import { askAdvisor } from "@/lib/ai/client";
 import { useCustomPrompt } from "@/hooks/usePrompts";
-import { Loader2, ArrowLeft, Layers, Headphones, PenTool, Zap, BookOpen, CheckCircle, AlertCircle } from "lucide-react";
+import { Loader2, ArrowLeft, Layers, Headphones, PenTool, Zap, BookOpen, CheckCircle, AlertCircle, FileText } from "lucide-react";
 import { FlashcardMode } from "@/components/review/FlashcardMode";
 import { DictationMode } from "@/components/review/DictationMode";
 import { FillBlankMode } from "@/components/review/FillBlankMode";
@@ -93,6 +93,7 @@ export default function ReviewPage() {
   const router = useRouter();
   const profile = useAppStore((state) => state.profile);
   const errors = useAppStore((state) => state.errors);
+  const examWrongQuestions = useAppStore((state) => state.examWrongQuestions);
   const sessions = useAppStore((state) => state.sessions);
   const chatSessions = useAppStore((state) => state.chatSessions);
   const markErrorReviewed = useAppStore((state) => state.markErrorReviewed);
@@ -400,6 +401,23 @@ export default function ReviewPage() {
             {dueErrors.length === 0 ?
             <p className="text-gray-500">{t("今天没有需要复习的错题。")}</p> :
             <p className="text-sm">{t("共 ")}{dueErrors.length}{t(" 条错题待复习，点击开始。")}</p>
+            }
+          </CardContent>
+        </Card>
+
+        <Card
+          className="cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => router.push("/review/exam")}
+        >
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-blue-500" />{t("考试错题")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {examWrongQuestions.length === 0 ?
+            <p className="text-gray-500">{t("暂无考试错题。")}</p> :
+            <p className="text-sm">{t("共 ")}{examWrongQuestions.length}{t(" 条考试错题，点击查看。")}</p>
             }
           </CardContent>
         </Card>

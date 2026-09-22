@@ -26,9 +26,10 @@ import {
   getRealExamQuestions,
   type RealExamType } from
 "@/lib/exam/real/bank";
-import { Volume2, Square } from "lucide-react";
+import { generateExamQuestions } from "@/lib/ai/client";
+import { Volume2, Square, Loader2 } from "lucide-react";
 import { speak, stopSpeaking, isTTSSupported } from "@/lib/tts";
-import type { ExamQuestion, ExamRecord } from "@/lib/types";
+import type { ExamQuestion, ExamRecord, ExamWrongQuestion } from "@/lib/types";
 
 const configs = getRealExamConfigs();
 
@@ -41,9 +42,13 @@ export default function RealExamPage() {
   const router = useRouter();
   const profile = useAppStore((state) => state.profile);
   const addExamRecord = useAppStore((state) => state.addExamRecord);
+  const addExamWrongQuestions = useAppStore((state) => state.addExamWrongQuestions);
+  const examRecords = useAppStore((state) => state.examRecords);
 
   const [selectedType, setSelectedType] = useState<RealExamType>("CET4");
   const [started, setStarted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [genError, setGenError] = useState<string | null>(null);
   const [questions, setQuestions] = useState<ExamQuestion[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -63,21 +68,58 @@ export default function RealExamPage() {
 
   }
 
-  function startExam() {
-    const loaded = getRealExamQuestions(selectedType);
-    const padded = [...loaded];
-    // 若样题不足，循环填充到配置数量
-    while (padded.length < config.questionCount) {
-      padded.push(...loaded);
+  async function startExam() {
+    setLoading(true);
+    setGenError(null);
+    try {
+      // 去重池：取该考试类型近期做过的题目
+      const recentRecords = examRecords.filter((r) => r.type === `REAL_${selectedType}`);
+      const usedIds = new Set(recentRecords.flatMap((r) => r.questions.map((q) => q.id)));
+      const excludeQuestions = Array.from(
+        new Set(recentRecords.flatMap((r) => r.questions.map((q) => q.question)))
+      );
+
+      let finalQuestions: ExamQuestion[] = [];
+      try {
+        const aiQuestions = await generateExamQuestions(selectedType, config.questionCount, {
+          excludeQuestions,
+        });
+        // 对同一批 AI 题目按题干文本去重（忽略空白和大小写）
+        const seenAi = new Set<string>();
+        for (const q of aiQuestions) {
+          const key = q.question.trim().toLowerCase();
+          if (!seenAi.has(key)) {
+            seenAi.add(key);
+            finalQuestions.push(q);
+          }
+        }
+        finalQuestions = finalQuestions.slice(0, config.questionCount);
+      } catch (aiErr) {
+        console.error("AI 出题失败，降级本地题库:", aiErr);
+        setGenError("AI 出题失败，已使用本地题库");
+      }
+
+      // 本地兜底：AI 失败或数量不足时补足，按题干文本去重，不再循环重复
+      if (finalQuestions.length < config.questionCount) {
+        const seenLocal = new Set(finalQuestions.map((q) => q.question.trim().toLowerCase()));
+        const local = getRealExamQuestions(selectedType).filter(
+          (q) =>
+            !usedIds.has(q.id) &&
+            !seenLocal.has(q.question.trim().toLowerCase())
+        );
+        finalQuestions = [...finalQuestions, ...local].slice(0, config.questionCount);
+      }
+
+      setQuestions(finalQuestions);
+      setAnswers({});
+      setCurrentIndex(0);
+      setFinished(false);
+      setRecord(null);
+      startedAtRef.current = new Date().toISOString();
+      setStarted(true);
+    } finally {
+      setLoading(false);
     }
-    const final = padded.slice(0, config.questionCount);
-    setQuestions(final);
-    setAnswers({});
-    setCurrentIndex(0);
-    setFinished(false);
-    setRecord(null);
-    startedAtRef.current = new Date().toISOString();
-    setStarted(true);
   }
 
   function handleSelect(questionId: string, value: string) {
@@ -112,6 +154,31 @@ export default function RealExamPage() {
     };
 
     addExamRecord(newRecord);
+
+    // 抽取客观题答错项进入考试错题库
+    const wrongItems: ExamWrongQuestion[] = answeredQuestions
+      .filter((q) => isObjective(q.type) && q.answer && q.userAnswer && q.userAnswer !== q.answer)
+      .map((q) => ({
+        id: crypto.randomUUID(),
+        userId: profile.id,
+        examRecordId: newRecord.id,
+        date: endedAt,
+        type: q.type,
+        section: q.section,
+        examType: q.examType,
+        question: q.question,
+        passage: q.passage,
+        options: q.options,
+        answer: q.answer,
+        userAnswer: q.userAnswer,
+        explanation: q.explanation,
+        difficulty: q.difficulty,
+        year: q.year,
+      }));
+    if (wrongItems.length > 0) {
+      addExamWrongQuestions(wrongItems);
+    }
+
     setRecord(newRecord);
     setFinished(true);
   }
@@ -172,11 +239,15 @@ export default function RealExamPage() {
                 {config.duration}{t("\u5206\u949F\uFF0C\u5171")}{config.questionCount}{t("\u9898")}
               </p>
             </div>
-            <Button onClick={startExam} size="lg">{t("\u5F00\u59CB\u771F\u9898\u6A21\u8003")}
-
+            <Button onClick={startExam} size="lg" disabled={loading}>
+              {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              {loading ? t("AI \u51FA\u9898\u4E2D...") : t("\u5F00\u59CB\u771F\u9898\u6A21\u8003")}
             </Button>
           </CardContent>
         </Card>
+        {genError &&
+        <p className="text-sm text-orange-600 mb-4">{t(genError)}</p>
+        }
       </div>);
 
   }

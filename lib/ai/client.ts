@@ -17,6 +17,7 @@ import {
   buildReadingPrompt,
   buildListeningPrompt,
   buildAdvisorPrompt,
+  buildExamQuestionsPrompt,
   parseReadingResponse,
   parseListeningResponse,
 } from "./prompts";
@@ -34,6 +35,8 @@ import type {
   ErrorItem,
   ReadingPassage,
   ListeningItem,
+  ExamQuestion,
+  ExamQuestionType,
 } from "@/lib/types";
 
 /**
@@ -353,6 +356,64 @@ export async function generateWeakPointDrill(
     throw new Error("Failed to parse drill result");
   }
   return parsed;
+}
+
+/**
+ * 模拟考试 AI 实时出题
+ * @param examType - 考试类型（CET4 / CET6 / IELTS / TOEFL）
+ * @param count - 题目数量
+ * @param options - 可选配置（题型、难度、去重题干）
+ * @returns 生成的真题风格题目列表
+ * @example
+ * ```ts
+ * const questions = await generateExamQuestions("CET4", 20, { excludeQuestions: ["..."] });
+ * ```
+ */
+export async function generateExamQuestions(
+  examType: string,
+  count: number,
+  options?: {
+    sections?: ExamQuestionType[];
+    difficulty?: "easy" | "medium" | "hard";
+    excludeQuestions?: string[];
+  }
+): Promise<ExamQuestion[]> {
+  const res = await fetch("/api/ai/exam-questions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ examType, count, ...options }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Exam question generation failed");
+  }
+
+  const { result, questions } = (await res.json()) as { result?: string; questions?: ExamQuestion[] };
+  // 兼容路由返回 { questions } 与 { result } 两种形态
+  const raw = questions ?? (result ? safeParseJson<ExamQuestion[]>(result) : null);
+  const list: ExamQuestion[] = raw ?? [];
+  if (list.length === 0) {
+    throw new Error("Failed to parse exam questions");
+  }
+
+  // 补全 AI 可能漏掉的字段
+  const objective = (type: string) => type === "reading" || type === "listening";
+  return list.map((q) => ({
+    id: q.id || crypto.randomUUID(),
+    type: q.type ?? "reading",
+    section: q.section ?? q.type ?? "reading",
+    examType: q.examType ?? examType,
+    question: q.question ?? "",
+    passage: q.passage,
+    options: q.options,
+    answer: q.answer,
+    explanation: q.explanation,
+    difficulty: q.difficulty,
+    year: q.year,
+    score: q.score ?? (objective(q.type ?? "reading") ? 7.5 : 20),
+    timeLimit: q.timeLimit,
+    source: "custom" as const,
+  }));
 }
 
 /**

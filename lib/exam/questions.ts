@@ -44,6 +44,10 @@ export const EXAM_CONFIGS: ExamConfig[] = [
 /** 共享的阅读/听力素材（示例） */
 const PASSAGE_1 = `The history of the English language is traditionally divided into three periods: Old English, Middle English, and Modern English. Old English was brought to Britain by Anglo-Saxon settlers in the 5th century and was spoken until around 1150. During this period, English absorbed vocabulary from Latin and Old Norse.`;
 
+const PASSAGE_2 = `Climate change is one of the most pressing issues of our time. Rising global temperatures have led to more frequent extreme weather events, melting polar ice caps, and rising sea levels. Scientists warn that without immediate action, the consequences could be catastrophic.`;
+
+const PASSAGE_3 = `The internet has revolutionized the way we communicate, work, and access information. Social media platforms connect people across the globe, while e-commerce has transformed shopping habits. However, concerns about privacy and misinformation continue to grow.`;
+
 /** 题库 */
 const QUESTION_BANK: Record<ExamType, ExamQuestion[]> = {
   IELTS: [
@@ -76,6 +80,36 @@ const QUESTION_BANK: Record<ExamType, ExamQuestion[]> = {
       score: 5,
       passage: PASSAGE_1,
     },
+    {
+      id: "ielts-4",
+      type: "reading",
+      question: "What is the author's main concern about climate change according to the passage?",
+      options: ["It is too late to take action.", "Immediate action is needed to avoid catastrophe.", "Only governments can solve the problem.", "The effects are only temporary."],
+      answer: "Immediate action is needed to avoid catastrophe.",
+      explanation: "The passage warns that without immediate action, consequences could be catastrophic.",
+      score: 5,
+      passage: PASSAGE_2,
+    },
+    {
+      id: "ielts-5",
+      type: "listening",
+      question: "What does the speaker imply about social media?",
+      options: ["It has only positive effects.", "It has both benefits and drawbacks.", "It should be banned.", "It is losing popularity."],
+      answer: "It has both benefits and drawbacks.",
+      explanation: "The passage mentions both the connecting power of social media and concerns about privacy and misinformation.",
+      score: 5,
+      passage: PASSAGE_3,
+    },
+    {
+      id: "ielts-6",
+      type: "reading",
+      question: "According to the passage, what has the internet changed?",
+      options: ["Only shopping habits", "Communication, work, and access to information", "Only social interactions", "Only entertainment"],
+      answer: "Communication, work, and access to information",
+      explanation: "The passage states the internet revolutionized how we communicate, work, and access information.",
+      score: 5,
+      passage: PASSAGE_3,
+    },
   ],
   TOEFL: [
     {
@@ -97,6 +131,36 @@ const QUESTION_BANK: Record<ExamType, ExamQuestion[]> = {
       score: 5,
       passage: "Smartphones have become ubiquitous in modern society.",
     },
+    {
+      id: "toefl-3",
+      type: "reading",
+      question: "What is one negative aspect of the internet mentioned in the passage?",
+      options: ["It is too expensive.", "Concerns about privacy and misinformation.", "It is difficult to use.", "It reduces productivity."],
+      answer: "Concerns about privacy and misinformation.",
+      explanation: "The passage mentions growing concerns about privacy and misinformation.",
+      score: 5,
+      passage: PASSAGE_3,
+    },
+    {
+      id: "toefl-4",
+      type: "listening",
+      question: "Which word is closest in meaning to 'catastrophic' as used in the passage?",
+      options: ["Minor", "Disastrous", "Beneficial", "Gradual"],
+      answer: "Disastrous",
+      explanation: "The passage warns of catastrophic consequences, meaning disastrous or extremely harmful.",
+      score: 5,
+      passage: PASSAGE_2,
+    },
+    {
+      id: "toefl-5",
+      type: "reading",
+      question: "What does the passage say about rising global temperatures?",
+      options: ["They have no significant impact.", "They have led to more extreme weather events.", "They are decreasing.", "They only affect polar regions."],
+      answer: "They have led to more extreme weather events.",
+      explanation: "The passage states rising global temperatures have led to more frequent extreme weather events.",
+      score: 5,
+      passage: PASSAGE_2,
+    },
   ],
   CET4: [
     {
@@ -117,6 +181,35 @@ const QUESTION_BANK: Record<ExamType, ExamQuestion[]> = {
       explanation: "The conversation suggests he needs to borrow some books.",
       score: 6.6,
     },
+    {
+      id: "cet4-3",
+      type: "reading",
+      question: "根据文章，互联网主要改变了什么？",
+      options: ["购物方式", "沟通、工作和获取信息的方式", "娱乐方式", "交通方式"],
+      answer: "沟通、工作和获取信息的方式",
+      explanation: "文章指出互联网革命性地改变了通信、工作和信息获取方式。",
+      score: 6.6,
+      passage: PASSAGE_3,
+    },
+    {
+      id: "cet4-4",
+      type: "listening",
+      question: "What does 'ubiquitous' most likely mean?",
+      options: ["罕见的", "无处不在的", "昂贵的", "复杂的"],
+      answer: "无处不在的",
+      explanation: "'Ubiquitous' 意为普遍存在的、无处不在的。",
+      score: 6.6,
+    },
+    {
+      id: "cet4-5",
+      type: "reading",
+      question: "作者对气候变化的建议是什么？",
+      options: ["等待技术解决", "立即采取行动", "忽略问题", "仅减少碳排放"],
+      answer: "立即采取行动",
+      explanation: "文章表明没有立即行动可能导致灾难性后果。",
+      score: 6.6,
+      passage: PASSAGE_2,
+    },
   ],
   CET6: [
     {
@@ -129,6 +222,56 @@ const QUESTION_BANK: Record<ExamType, ExamQuestion[]> = {
       score: 6.6,
       passage: "Recent studies suggest that blended learning improves retention rates.",
     },
+    {
+      id: "cet6-2",
+      type: "listening",
+      question: "What does the speaker suggest about the impact of the internet?",
+      options: ["It has only positive effects on society.", "It comes with both opportunities and risks.", "It is primarily used for entertainment.", "It has replaced traditional education."],
+      answer: "It comes with both opportunities and risks.",
+      explanation: "The speaker mentions both the transformative power of the internet and concerns about privacy.",
+      score: 6.6,
+      passage: PASSAGE_3,
+    },
+    {
+      id: "cet6-3",
+      type: "reading",
+      question: "Which of the following is mentioned as a consequence of climate change?",
+      options: ["Decreased rainfall", "Melting polar ice caps", "Lower temperatures", "Reduced biodiversity only"],
+      answer: "Melting polar ice caps",
+      explanation: "The passage mentions melting polar ice caps as one consequence of rising global temperatures.",
+      score: 6.6,
+      passage: PASSAGE_2,
+    },
+    {
+      id: "cet6-4",
+      type: "reading",
+      question: "The word 'revolutionized' in the passage is closest in meaning to:",
+      options: ["slightly improved", "completely transformed", "slowly changed", "negatively affected"],
+      answer: "completely transformed",
+      explanation: "'Revolutionized' means to completely and fundamentally change something.",
+      score: 6.6,
+      passage: PASSAGE_3,
+    },
+    {
+      id: "cet6-5",
+      type: "listening",
+      question: "What can be inferred about Old English from the passage?",
+      options: ["It was exclusively spoken by Vikings.", "It was influenced by Latin and Old Norse.", "It was identical to Modern English.", "It disappeared in the 5th century."],
+      answer: "It was influenced by Latin and Old Norse.",
+      explanation: "The passage says Old English absorbed vocabulary from Latin and Old Norse.",
+      score: 6.6,
+      passage: PASSAGE_1,
+    },
+    {
+      id: "cet6-6",
+      type: "reading",
+      question: "What is the author's tone toward the subject of climate change?",
+      options: ["Optimistic", "Urgent", "Indifferent", "Skeptical"],
+      answer: "Urgent",
+      explanation: "The author emphasizes the need for immediate action, indicating an urgent tone.",
+      score: 6.6,
+      passage: PASSAGE_2,
+    },
   ],
   GENERAL: [
     {
@@ -139,6 +282,88 @@ const QUESTION_BANK: Record<ExamType, ExamQuestion[]> = {
       answer: "had started",
       explanation: "Use the past perfect for an action completed before another past action.",
       score: 10,
+    },
+    {
+      id: "general-2",
+      type: "reading",
+      question: "Select the correct word: She _____ to the store every Sunday.",
+      options: ["go", "goes", "going", "gone"],
+      answer: "goes",
+      explanation: "Third person singular present simple requires 'goes'.",
+      score: 10,
+    },
+    {
+      id: "general-3",
+      type: "listening",
+      question: "Choose the best response: 'Thank you for your help.'",
+      options: ["No problem.", "Yes, please.", "I don't know.", "That's right."],
+      answer: "No problem.",
+      explanation: "'No problem' is a polite response to thanks.",
+      score: 10,
+    },
+    {
+      id: "general-4",
+      type: "reading",
+      question: "Which word is a synonym for 'happy'?",
+      options: ["sad", "angry", "joyful", "tired"],
+      answer: "joyful",
+      explanation: "'Joyful' is a synonym for 'happy', meaning feeling joy or pleasure.",
+      score: 10,
+    },
+    {
+      id: "general-5",
+      type: "listening",
+      question: "What does 'break the ice' mean?",
+      options: ["To freeze water", "To start a conversation", "To break something", "To feel cold"],
+      answer: "To start a conversation",
+      explanation: "'Break the ice' is an idiom meaning to initiate conversation in a social setting.",
+      score: 10,
+    },
+    {
+      id: "general-6",
+      type: "reading",
+      question: "Choose the correct preposition: She is interested _____ learning Spanish.",
+      options: ["in", "on", "at", "for"],
+      answer: "in",
+      explanation: "The correct collocation is 'interested in'.",
+      score: 10,
+    },
+    {
+      id: "general-7",
+      type: "reading",
+      question: "Which sentence uses the present perfect correctly?",
+      options: ["I have went to Paris.", "I have been to Paris.", "I have go to Paris.", "I have going to Paris."],
+      answer: "I have been to Paris.",
+      explanation: "'Have been' is the correct present perfect form of 'go' for experience.",
+      score: 10,
+    },
+    {
+      id: "general-8",
+      type: "listening",
+      question: "If someone says 'I'm under the weather', how do they feel?",
+      options: ["Very happy", "A bit ill", "Extremely busy", "Quite angry"],
+      answer: "A bit ill",
+      explanation: "'Under the weather' is an idiom meaning feeling slightly ill.",
+      score: 10,
+    },
+    {
+      id: "general-9",
+      type: "reading",
+      question: "Choose the correct form: If it _____ tomorrow, we will stay home.",
+      options: ["rains", "rained", "will rain", "is raining"],
+      answer: "rains",
+      explanation: "In first conditional sentences, use present simple in the if-clause.",
+      score: 10,
+    },
+    {
+      id: "general-10",
+      type: "reading",
+      question: "What does the passage say about social media?",
+      options: ["It only has negative effects.", "It connects people globally.", "It is rarely used.", "It is the same as e-commerce."],
+      answer: "It connects people globally.",
+      explanation: "The passage states social media platforms connect people across the globe.",
+      score: 10,
+      passage: PASSAGE_3,
     },
   ],
 };
@@ -232,7 +457,7 @@ const PRODUCTIVE_TEMPLATES: Record<ExamType, { writing: ExamQuestion; speaking: 
  * @param type - 考试类型
  * @param count - 题目数量
  * @param customQuestions - 用户导入的自定义题库（可选）
- * @returns 题目列表
+ * @returns 题目列表（保证唯一题干）
  */
 export function generateExamQuestions(
   type: ExamType,
@@ -255,23 +480,49 @@ export function generateExamQuestions(
     (q) => q.type === "writing" || q.type === "speaking"
   );
 
-  const objectiveBuiltIn = [...(QUESTION_BANK[type] ?? [])];
-  while (objectiveBuiltIn.length < count) {
-    objectiveBuiltIn.push(...objectiveBuiltIn);
+  const builtIn = QUESTION_BANK[type] ?? [];
+
+  // 优先使用自定义题目，不足时从内置题库随机抽取（同一题不重复出现）
+  const objective: ExamQuestion[] = [];
+  const usedKeys = new Set<string>();
+
+  function isDuplicate(q: ExamQuestion): boolean {
+    const key = `${q.type}:${q.question.trim().toLowerCase()}`;
+    if (usedKeys.has(key)) return true;
+    usedKeys.add(key);
+    return false;
   }
 
-  // 优先使用自定义题目，不足时从内置题库补足
-  const objective: ExamQuestion[] = [];
+  // 从数组中随机取一个该轮未用过的题目，用完返回 null
+  function pickUnique(source: ExamQuestion[]): ExamQuestion | null {
+    const remaining = source.filter((q) => !isDuplicate(q));
+    if (remaining.length === 0) return null;
+    const picked = remaining[Math.floor(Math.random() * remaining.length)];
+    isDuplicate(picked); // 登记已用
+    return picked;
+  }
+
+  // 第 1 轮：优先从自定义题库取唯一题，不足时从内置题库取
   for (let i = 0; i < count; i++) {
+    // 优先用自定义
     if (objectiveCustom.length > 0) {
-      const [q] = objectiveCustom.splice(
-        Math.floor(Math.random() * objectiveCustom.length),
-        1
-      );
-      objective.push(q);
-    } else {
-      objective.push(objectiveBuiltIn[i % objectiveBuiltIn.length]);
+      const picked = pickUnique(objectiveCustom);
+      if (picked) {
+        objective.push(picked);
+        continue;
+      }
     }
+    // 从内置题库随机取一个未用过的
+    const picked = pickUnique(builtIn);
+    if (picked) {
+      objective.push(picked);
+    }
+  }
+
+  // 第 2 轮：如果唯一题不够 count，从内置题库随机补足（可重复，但确保类型分布均匀）
+  while (objective.length < count && builtIn.length > 0) {
+    const fallback = builtIn[Math.floor(Math.random() * builtIn.length)];
+    objective.push({ ...fallback, id: `${fallback.id}-r${objective.length}` });
   }
 
   const { writing, speaking } =
