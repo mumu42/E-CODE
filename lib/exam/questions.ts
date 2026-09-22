@@ -486,19 +486,18 @@ export function generateExamQuestions(
   const objective: ExamQuestion[] = [];
   const usedKeys = new Set<string>();
 
-  function isDuplicate(q: ExamQuestion): boolean {
-    const key = `${q.type}:${q.question.trim().toLowerCase()}`;
-    if (usedKeys.has(key)) return true;
-    usedKeys.add(key);
-    return false;
+  function getKey(q: ExamQuestion): string {
+    return `${q.type}:${q.question.trim().toLowerCase()}`;
   }
 
   // 从数组中随机取一个该轮未用过的题目，用完返回 null
   function pickUnique(source: ExamQuestion[]): ExamQuestion | null {
-    const remaining = source.filter((q) => !isDuplicate(q));
+    // 只检查不登记，防止 filter 副作用
+    const remaining = source.filter((q) => !usedKeys.has(getKey(q)));
     if (remaining.length === 0) return null;
     const picked = remaining[Math.floor(Math.random() * remaining.length)];
-    isDuplicate(picked); // 登记已用
+    // 只登记真正选中的题目
+    usedKeys.add(getKey(picked));
     return picked;
   }
 
