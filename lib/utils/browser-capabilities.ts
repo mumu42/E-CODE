@@ -2,7 +2,7 @@
  * @file lib/utils/browser-capabilities.ts
  * @description 浏览器语音与听力能力检测，支持检测结果缓存到 localStorage
  * @author English Agent Team
- * @date 2026-09-21
+ * @date 2026-09-23
  */
 
 /** 浏览器能力检测结果 */
@@ -68,14 +68,17 @@ export function getCachedCapabilities(): BrowserCapabilities | null {
     ) {
       return parsed;
     }
+    // 格式无效时清除损坏的缓存
+    localStorage.removeItem(CACHE_KEY);
     return null;
   } catch {
+    // localStorage 不可用时静默忽略
     return null;
   }
 }
 
 /**
- * 将检测结果写入 localStorage 缓存
+ * 将检测结果写入 localStorage 缓存（同步写入）
  * @param cap - 检测结果
  */
 export function setCachedCapabilities(cap: BrowserCapabilities): void {
