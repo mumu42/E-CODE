@@ -9,7 +9,7 @@
 import { formatDate, formatScore } from "@/lib/i18n/format";
 import { t } from "@/lib/i18n/translate";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAppStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
@@ -21,11 +21,11 @@ import {
   CardDescription } from
 "@/components/ui/card";
 import { ExamTimer } from "@/components/ExamTimer";
-import { generateExamQuestions, EXAM_CONFIGS } from "@/lib/exam/questions";
-import { askAdvisor } from "@/lib/ai/client";
+import { EXAM_CONFIGS } from "@/lib/exam/questions";
+import { generateExamQuestions as generateAIQuestions, askAdvisor } from "@/lib/ai/client";
 import { useCustomPrompt } from "@/hooks/usePrompts";
 import { Loader2, CheckCircle, XCircle, AlertCircle } from "lucide-react";
-import type { ExamQuestion, ExamRecord } from "@/lib/types";
+import type { ExamQuestion, ExamQuestionType, ExamRecord } from "@/lib/types";
 
 /** 模拟考试会话内容 */
 export function ExamSession() {
@@ -34,7 +34,7 @@ export function ExamSession() {
   const typeParam = searchParams.get("type") ?? "GENERAL";
   const profile = useAppStore((state) => state.profile);
   const addExamRecord = useAppStore((state) => state.addExamRecord);
-  const customQuestions = useAppStore((state) => state.customQuestions);
+  const settings = useAppStore((state) => state.settings);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -42,6 +42,9 @@ export function ExamSession() {
   const [record, setRecord] = useState<ExamRecord | null>(null);
   const [explainingId, setExplainingId] = useState<string | null>(null);
   const [explanations, setExplanations] = useState<Record<string, string>>({});
+  const [questions, setQuestions] = useState<ExamQuestion[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [questionError, setQuestionError] = useState<string | null>(null);
   const startedAtRef = useRef<string>(new Date().toISOString());
   const advisorPrompt = useCustomPrompt("advisor");
 
@@ -57,10 +60,50 @@ export function ExamSession() {
     [examType]
   );
 
-  const questions = useMemo(
-    () => profile ? generateExamQuestions(examType, config.questionCount, customQuestions) : [],
-    [profile, examType, config.questionCount, customQuestions]
-  );
+  /** 浏览器是否支持语音合成（TTS） */
+  const isTTSNotSupported = useMemo(() => {
+    const capabilities = settings.browserCapabilities;
+    return !!capabilities && !capabilities.tts;
+  }, [settings.browserCapabilities]);
+
+  /** 由 AI 生成试卷题目 */
+  useEffect(() => {
+    if (!profile) return;
+
+    let cancelled = false;
+    setLoading(true);
+    setQuestionError(null);
+
+    (async () => {
+      try {
+        // GENERAL 没有对应的 AI 考试类型，映射到 CET4
+        const aiType = examType === "GENERAL" ? "CET4" : examType;
+
+        // 根据语音能力决定是否包含听力题
+        const sections: ExamQuestionType[] = isTTSNotSupported
+          ? ["reading", "writing", "speaking"]
+          : ["reading", "listening", "writing", "speaking"];
+
+        // 生成 config.questionCount 道题 + 写作/口语
+        const generated = await generateAIQuestions(aiType, config.questionCount, { sections });
+
+        if (!cancelled) {
+          setQuestions(generated);
+        }
+      } catch (err) {
+        console.error("AI 出题失败:", err);
+        if (!cancelled) {
+          setQuestionError("生成题目失败，请稍后重试");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [profile, examType, config.questionCount, isTTSNotSupported]);
 
   function handleSelect(questionId: string, value: string) {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
@@ -147,15 +190,36 @@ export function ExamSession() {
     }
   }
 
+  useEffect(() => {
+    if (!profile) {
+      router.replace("/onboarding");
+    }
+  }, [profile, router]);
+
   if (!profile) {
-    router.replace("/onboarding");
     return null;
+  }
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-12 text-center space-y-4">
+        <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
+        <p>{t("AI 正在生成试卷...")}</p>
+      </div>);
+  }
+
+  if (questionError) {
+    return (
+      <div className="container mx-auto px-4 py-12 text-center space-y-4">
+        <p className="text-red-600">{t(questionError)}</p>
+        <Button onClick={() => window.location.reload()}>{t("重试")}</Button>
+      </div>);
   }
 
   if (questions.length === 0) {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
-        <p>{t("正在加载试卷...")}</p>
+        <p>{t("暂无可用题目")}</p>
       </div>);
 
   }
@@ -312,6 +376,12 @@ export function ExamSession() {
           }} />
 
       </div>
+
+      {isTTSNotSupported && (
+        <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-md text-sm text-amber-700 dark:text-amber-300">
+          {t("当前浏览器不支持语音功能，已隐藏听力题。")}
+        </div>
+      )}
 
       <Card className="mb-6">
         <CardHeader>
