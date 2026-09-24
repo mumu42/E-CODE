@@ -1,0 +1,168 @@
+---
+description: 组件拆分与复用边界规范。写码前先出文件树，禁止堆叠式巨型单文件。
+globs: ["**/*.vue", "**/*.tsx", "**/*.jsx", "**/*.ts"]
+alwaysApply: true
+---
+
+# 组件拆分与复用边界规范
+
+本规范只管一件事：**AI 写 UI 代码时如何正确地拆组件、以及什么该抽成什么**。
+
+## 0. 最高优先级：写码前先交结构，禁止直接输出巨型单文件
+
+任何 UI 需求，**第一步必须输出文件树**，禁止上来就甩一个几百行的单文件组件。
+
+必须先输出，再等确认（用户说"直接写"才可跳过）：
+
+```
+文件树
+└ 每个文件一句话职责
+└ 每个组件的 props / emits 签名
+```
+
+反面典型（禁止）：一个 Page 文件里塞进取数、表格、筛选表单、抽屉、行内编辑、样式，800 行。
+
+---
+
+## 1. 硬红线（违反即判定不合格，必须重构后交付）
+
+| 指标 | 红线 | 超限处置 |
+|---|---|---|
+| 单文件总行数 | ≤ 500 行 | 拆子组件 / 抽逻辑 |
+| 模板 / JSX 行数 | ≤ 220 行 | 抽子组件 |
+| 单组件内 state 数量（ref/reactive/useState） | ≤ 5 | 拆组件或抽 composable / hook |
+| useEffect / watch / watchEffect 个数 | ≤ 3 | 抽 composable / hook |
+| props 个数 | ≤ 8 | 合并为对象 prop、改插槽、或拆组件 |
+| 模板 / JSX 嵌套层级 | ≤ 4 层 | 抽子组件 |
+| v-if / 三元 / && 嵌套 | ≤ 2 层 | 抽组件、早返回、或用字典映射替代表达式 |
+| 单个函数行数 | ≤ 40 行 | 拆函数 |
+| 一个文件对外组件数 | = 1 | 私有子组件另开文件 |
+
+红线是**触发重构的信号**，不是让你为了过线而机械切文件。
+
+---
+
+## 2. 拆分的 6 个触发信号（命中任一即拆）
+
+1. **重复**：同一段 UI 结构出现 ≥ 2 次 → 抽复用组件
+2. **职责混杂**：取数 / 布局 / 交互 / 业务规则 有两项以上挤在同一文件 → 按职责分层
+3. **独立状态**：某块有自己的状态且与其余部分无耦合 → 独立成组件
+4. **渲染隔离**：大列表的行、表单的每一项 → 必须独立组件（否则整体重渲染）
+5. **需单独测试 / 单独复用**：能独立描述它"做什么" → 独立成文件
+6. **可命名区块**：卡片、工具栏、抽屉、表格列、空状态、加载骨架 → 天然是组件
+
+---
+
+## 3. 反过度抽象（与拆分同等重要）
+
+- **Rule of Three**：只在 1 处使用、且无独立测试或复用价值 → **不抽**，就地写
+- **禁止为拆而拆**：按行数机械切分，切完父子仍互相改同一份状态 → 不如不拆，只是多了层跳转
+- **禁止 props 透传超过 2 层**：> 2 层改用 provide/inject（Vue）或 Context / store（React）
+- **禁止配置化的假组件**：给一次性业务写一个 `config` 数组然后在组件里 switch → 直接写死更易读
+- **禁止空壳包装**：组件里只有一个 `<div><Child/></div>` → 删除该层
+
+---
+
+## 4. 四层职责模型
+
+| 层 | 职责 | 禁止 |
+|---|---|---|
+| **页面层** Page | 路由入口，编排取数与布局 | 不写具体 UI 细节、不写业务判断 |
+| **容器层** Container / Feature | 组合业务状态 + 若干展示组件 | 不写样式细节、不做纯展示 |
+| **展示层** Presentational | 纯 props in / emits out | 不取数、不直连 store、不发请求 |
+| **逻辑层** composables / hooks | 只返回状态与方法 | 不写模板 / JSX |
+
+**判定口诀**
+
+- 有模板/JSX 且**不取数** → 展示组件
+- 取数但**不写样式** → 容器组件
+- **不写模板/JSX**，只用响应式 API → composable / hook
+- 无状态、纯输入输出 → util
+
+---
+
+## 5. 复用边界决策表（抽错层比不抽更糟）
+
+| 要复用的东西 | 抽成 | 判定依据 |
+|---|---|---|
+| UI 结构 + 样式 | **组件** | 有模板 / JSX |
+| 状态 + 副作用，无 UI | **composable / hook** | 用到 ref/useState、watch、生命周期 |
+| 纯函数：格式化、校验、转换 | **util**（`src/utils`） | 无框架 API，可独立单测 |
+| 常量、枚举、映射表 | **constants / config** | 无逻辑 |
+| 跨页面共享的领域状态 | **store**（Pinia / Zustand / Redux slice） | 被 ≥ 2 个页面**读且写** |
+| TypeScript 类型 | **types.ts** | 被 ≥ 2 个文件引用 |
+
+**注意**：hooks / composables 不是杂物间。只有"状态 + 副作用"才进去；纯函数去 utils。
+
+---
+
+## 6. Vue 3 专项约束
+
+- 一律 `<script setup lang="ts">`，不用 Options API
+- props：`interface Props` + `withDefaults(defineProps<Props>(), {...})`
+- emits：类型化声明
+  ```ts
+  const emit = defineEmits<{
+    (e: 'update:modelValue', v: string): void
+    (e: 'submit', payload: FormData): void
+  }>()
+  ```
+- 逻辑超 30 行，或涉及 `watch` / `onMounted` / 异步 → 抽 `useXxx.ts` 放同目录 `composables/`
+- 父子通信优先 props/emits；跨 2 层以上用 provide/inject；全局共享才 Pinia
+- **插槽优先于布尔 props**：配置项超过 3 个就用 `<slot>`，避免 prop 爆炸
+- 命名：组件 `PascalCase.vue`，composable `useXxx.ts`
+
+---
+
+## 7. React 专项约束
+
+- 函数组件 + TS，`interface XxxProps`，**禁用 `React.FC`**
+- 逻辑超 30 行或有 `useEffect` → 抽 `useXxx.ts`
+- **禁止在组件内部定义组件**（每次渲染重新挂载，状态丢失）
+- 列表项必须抽为独立组件并 `memo` 包裹，key 用稳定 id 而非 index
+- 状态就近原则：`useState` → 提升到共同父级 → 跨层才 Context / store，**不要一开始就上全局**
+- 副作用一个 `useEffect` 只做一件事，依赖数组必须完整
+- 命名：组件 `PascalCase.tsx`，hook `useXxx.ts`
+
+---
+
+## 8. 目录约定（就近放置，不要按类型全局摊平）
+
+```
+src/features/<feature>/
+  index.ts                  # 对外只暴露入口
+  <Feature>Page.vue|.tsx    # 页面层
+  components/               # 仅本 feature 使用的私有组件
+  composables/ 或 hooks/    # 本 feature 逻辑
+  types.ts
+  utils.ts
+src/components/             # 全局通用组件（无任何业务语义）
+src/composables/ 或 hooks/
+src/utils/
+```
+
+**晋升规则**：某组件被 ≥ 2 个 feature 使用，才从 `features/x/components/` 提到 `src/components/`。反之，一个"通用组件"只被 1 处使用 → 迁回 feature 目录。
+
+---
+
+## 9. AI 输出契约（每次写码强制遵守）
+
+1. 先给**文件树**，再写代码
+2. 每个文件标注：一句话职责 + props/emits 签名
+3. 一个文件一个对外组件
+4. 超过 3 个文件时，按「依赖顺序」输出：types → utils → hooks → 展示组件 → 容器 → 页面
+5. 交付末尾附**自检清单勾选结果**
+
+---
+
+## 10. 自检清单（交付前逐条核对并输出）
+
+- [ ] 无文件超过 500 行，模板/JSX 无超过 220 行
+- [ ] 无组件承担 2 类以上职责
+- [ ] 取数、副作用不在展示组件里
+- [ ] props ≤ 8，且透传不超过 2 层
+- [ ] 重复 UI 代码块（≥ 2 处）已抽取
+- [ ] 逻辑层无模板 / JSX；utils 层无响应式 API
+- [ ] 无空壳包装、无"为拆而拆"的一层套壳
+- [ ] 新增的通用组件已确认 ≥ 2 处复用途
+- [ ] 命名符合 PascalCase / useXxx 约定

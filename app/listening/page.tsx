@@ -148,7 +148,7 @@ export default function ListeningPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           {/* \u6807\u9898\u56FA\u5B9A\u663E\u793A\u4E2D\u6587\uFF0C\u4E0D\u505A\u7FFB\u8BD1 */}
-          <CardTitle className="text-2xl">\u542C\u529B\u7406\u89E3</CardTitle>
+          <CardTitle className="text-2xl">{"\u542C\u529B\u7406\u89E3"}</CardTitle>
           <div className="flex items-center gap-2">
             <Link href="/listening/dictation">
               <Button variant="outline" size="sm" type="button">{t("\u542C\u5199\u6A21\u5F0F")}

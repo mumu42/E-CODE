@@ -291,6 +291,27 @@ export interface VocabularyItem {
   easeFactor?: number;
 }
 
+/** 单词查询结果（右键查词 AI 返回结构） */
+export interface WordLookupResult {
+  /** 查询的单词或短语 */
+  word: string;
+  /** 中文释义 */
+  meaning: string;
+  /** 词性（如 adj./v./n.） */
+  partOfSpeech: string;
+  /** 音标（可选） */
+  phonetic?: string;
+  /** 其他词性与释义（可选） */
+  otherMeanings?: { partOfSpeech: string; meaning: string }[];
+  /** 例句 */
+  example: {
+    /** 英文例句 */
+    english: string;
+    /** 中文翻译 */
+    chinese: string;
+  };
+}
+
 /** 学习画像 */
 export interface LearningProfile {
   /** 高频错误类型及示例 */

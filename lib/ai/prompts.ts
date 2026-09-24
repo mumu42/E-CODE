@@ -592,6 +592,39 @@ Rules:
 Return only valid JSON, no markdown.`;
 }
 
+/**
+ * 构建单词查询提示词（右键查词功能）
+ * @param word - 用户选中的单词/短语
+ * @returns AI 提示词字符串
+ */
+export function buildWordLookupPrompt(word: string): string {
+  return `You are an English-Chinese dictionary assistant. Look up the word or phrase below and return its definition, part of speech, phonetic transcription, and an example sentence.
+
+Word: "${word}"
+
+Return a JSON object with this exact shape:
+{
+  "word": "${word}",
+  "meaning": "Chinese definition(s) in the most common usage",
+  "partOfSpeech": "part of speech in Chinese style (e.g. adj./v./n./adv./prep./phrase)",
+  "phonetic": "IPA phonetic transcription (optional, omit if unavailable)",
+  "otherMeanings": [
+    { "partOfSpeech": "other part of speech", "meaning": "corresponding Chinese definition" }
+  ],
+  "example": {
+    "english": "an English example sentence using the word in its most common sense",
+    "chinese": "Chinese translation of the example sentence"
+  }
+}
+
+Rules:
+- The word may be a single word or a short phrase.
+- Focus on the most common meaning first; include other common meanings in otherMeanings.
+- Keep example sentence concise and natural.
+- Return only valid JSON, no markdown.`;
+}
+
+
 /** 从 AI 返回的字符串安全解析听力理解 JSON */
 export function parseListeningResponse(raw: string): Omit<ListeningItem, "id" | "userId" | "date" | "score"> {
   const cleaned = raw.replace(/^```json\s*|\s*```$/g, "").trim();

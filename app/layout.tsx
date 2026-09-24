@@ -16,6 +16,7 @@ import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { LearningReminder } from "@/components/LearningReminder";
 import { KeyboardShortcuts } from "@/components/KeyboardShortcuts";
 import { BrowserCapabilitiesInitializer } from "@/components/BrowserCapabilitiesInitializer";
+import TextSelectionPopup from "@/components/TextSelectionPopup";
 import { cn } from "@/lib/utils/cn";
 
 /** 无衬线字体配置 */
@@ -74,6 +75,7 @@ export default function RootLayout({
             <ServiceWorkerRegister />
             <LearningReminder />
             <KeyboardShortcuts />
+            <TextSelectionPopup />
             <Header />
             <main className="flex-1 pb-16 md:pb-0">{children}</main>
             <MobileNav />
