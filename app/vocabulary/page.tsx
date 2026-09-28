@@ -15,7 +15,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useAppStore } from "@/lib/store";
 import { parseVocabularyCsv, exportVocabularyCsv, exportVocabularyJson } from "@/lib/vocabulary/csv";
-import { BookOpen, Trash2, Upload, Download, Brain } from "lucide-react";
+import { speak, isTTSSupported } from "@/lib/tts";
+import { BookOpen, Trash2, Upload, Download, Brain, Volume2, ClipboardCheck } from "lucide-react";
 
 /**
  * 词汇本管理页面
@@ -35,7 +36,20 @@ export default function VocabularyPage() {
   const [word, setWord] = useState("");
   const [meaning, setMeaning] = useState("");
   const [example, setExample] = useState("");
+  const [speakingId, setSpeakingId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleSpeak(text: string, id: string) {
+    if (!isTTSSupported()) return;
+    setSpeakingId(id);
+    try {
+      await speak(text);
+    } catch {
+      // silently fail
+    } finally {
+      setSpeakingId(null);
+    }
+  }
 
   if (!profile) {
     return (
@@ -195,6 +209,10 @@ export default function VocabularyPage() {
             <Brain className="w-4 h-4 mr-2" />{t("\u95EA\u5361\u590D\u4E60")}
 
           </Button>
+          <Button variant="outline" onClick={() => router.push("/vocabulary/exam")}>
+            <ClipboardCheck className="w-4 h-4 mr-2" />{t("\u8BCD\u6C47\u8003\u8BD5")}
+
+          </Button>
         </CardContent>
       </Card>
 
@@ -207,13 +225,28 @@ export default function VocabularyPage() {
           <p className="text-gray-500">{t("\u6682\u65E0\u8BCD\u6C47\uFF0C\u8BF7\u624B\u52A8\u6DFB\u52A0\u6216\u5BFC\u5165\u3002")}</p> :
 
           <div className="space-y-3">
-              {vocabulary.map((item) =>
+              {[...vocabulary].sort((a, b) =>
+                new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+              ).map((item) =>
             <div
               key={item.id}
               className="flex items-start justify-between border rounded-lg p-3">
               
                   <div>
-                    <p className="font-bold text-lg">{item.word}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-bold text-lg">{item.word}</p>
+                      {isTTSSupported() &&
+                    <button
+                      type="button"
+                      onClick={() => handleSpeak(item.word, item.id)}
+                      disabled={speakingId === item.id}
+                      className="p-1 rounded hover:bg-gray-100 transition-colors disabled:opacity-50"
+                      aria-label={t("朗读")}>
+
+                          <Volume2 className={`w-4 h-4 ${speakingId === item.id ? "text-blue-500 animate-pulse" : "text-gray-400"}`} />
+                        </button>
+                    }
+                    </div>
                     <p className="text-sm text-gray-700">{item.meaning}</p>
                     {item.example &&
                 <p className="text-xs text-gray-500 mt-1">{item.example}</p>

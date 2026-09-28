@@ -485,6 +485,8 @@ export interface ErrorItem {
   repetitionCount?: number;
   /** 容易度因子（SM-2） */
   easeFactor?: number;
+  /** 原文上下文（阅读文章/听力原文等） */
+  context?: string;
 }
 
 /** 薄弱点统计 */

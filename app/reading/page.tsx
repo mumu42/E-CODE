@@ -15,7 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAppStore } from "@/lib/store";
 import { generateReadingPassage } from "@/lib/ai/client";
 import { useCustomPrompt } from "@/hooks/usePrompts";
-import type { ReadingPassage } from "@/lib/types";
+import type { ReadingPassage, ErrorItem } from "@/lib/types";
 
 /**
  * 阅读理解练习页面
@@ -28,6 +28,7 @@ export default function ReadingPage() {
   const router = useRouter();
   const profile = useAppStore((state) => state.profile);
   const addReadingRecord = useAppStore((state) => state.addReadingRecord);
+  const addErrors = useAppStore((state) => state.addErrors);
   const readingPrompt = useCustomPrompt("reading");
 
   const [passage, setPassage] = useState<ReadingPassage | null>(null);
@@ -74,8 +75,10 @@ export default function ReadingPage() {
     setScore(percentage);
     setSubmitted(true);
 
+    const recordId = crypto.randomUUID();
+
     addReadingRecord({
-      id: crypto.randomUUID(),
+      id: recordId,
       userId: profile.id,
       date: new Date().toISOString(),
       target: profile.target,
@@ -85,6 +88,28 @@ export default function ReadingPage() {
       questions: passage.questions,
       score: percentage
     });
+
+    // 将答错的题目存入复习模块，附带文章全文作为上下文
+    const wrongErrors: ErrorItem[] = [];
+    passage.questions.forEach((q, idx) => {
+      if (answers[idx] !== q.answerIndex) {
+        wrongErrors.push({
+          id: crypto.randomUUID(),
+          userId: profile.id,
+          sessionId: recordId,
+          type: "CHAT",
+          date: new Date().toISOString(),
+          original: q.question,
+          correction: q.options[q.answerIndex],
+          explanation: q.explanation,
+          errorType: "vocabulary",
+          context: passage.passage,
+        });
+      }
+    });
+    if (wrongErrors.length > 0) {
+      addErrors(wrongErrors);
+    }
   }
 
   if (!profile) {
@@ -136,12 +161,12 @@ export default function ReadingPage() {
                         disabled={submitted}
                         className={`w-full text-left p-3 rounded-md border text-sm transition-colors ${
                         showCorrect ?
-                        "bg-green-50 border-green-500 text-green-900" :
+                        "bg-green-50 border-green-500 text-green-900 dark:bg-green-900 dark:text-green-100 dark:border-green-400" :
                         showWrong ?
-                        "bg-red-50 border-red-500 text-red-900" :
+                        "bg-red-50 border-red-500 text-red-900 dark:bg-red-900 dark:text-red-100 dark:border-red-400" :
                         selected ?
-                        "bg-blue-50 border-blue-500" :
-                        "hover:bg-gray-50"}`
+                        "bg-blue-50 border-blue-500 text-blue-900 dark:bg-blue-900 dark:text-blue-100 dark:border-blue-400" :
+                        "hover:bg-gray-50 dark:hover:bg-gray-800"}`
                         }>
                         
                             {opt}

@@ -171,10 +171,6 @@ function ChatPageContent() {
       console.error(error);
     } finally {
       setPlaying(false);
-      // 语音模式下 TTS 播完后自动继续监听
-      if (isVoiceActive && voiceRecorderRef.current) {
-        voiceRecorderRef.current.start();
-      }
     }
   }
 
@@ -247,7 +243,17 @@ function ChatPageContent() {
   }
 
   async function handleSend() {
-    await submitMessage(input);
+    const text = input;
+    // 语音模式下，发送前触发发音评估
+    if (isVoiceActive && text.trim()) {
+      const assessment = assessPronunciation(text, wordConfidences);
+      setPronunciationFeedback((prev) => ({
+        transcript: assessment.transcript,
+        words: assessment.words,
+        tips: prev?.tips ?? [],
+      }));
+    }
+    await submitMessage(text);
   }
 
   function handleFinalTranscript(transcript: string) {
@@ -437,6 +443,21 @@ function ChatPageContent() {
                   </div>
                 ))}
                 <div ref={bottomRef} />
+                  {/* AI 思考 / 播报中的加载提示 */}
+                  {(loading || playing) && (
+                    <div className="flex justify-start">
+                      <div className="max-w-[80%] p-3 rounded-lg bg-white border shadow-sm">
+                        <div className="flex items-center gap-2">
+                          <span className="flex gap-1">
+                            <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                            <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                            <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                          </span>
+                          <span className="text-sm text-gray-500">{playing ? t("AI 正在播报...") : t("AI 正在回答...")}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
               </div>
 
               {pronunciationFeedback && pronunciationFeedback.words.length > 0 && (
@@ -488,9 +509,6 @@ function ChatPageContent() {
                       value={input}
                       onChange={setInput}
                       onConfidenceChange={setWordConfidences}
-                      onFinalTranscript={handleFinalTranscript}
-                      autoStopOnSilence
-                      autoSubmit
                     />
                     <div className="flex gap-2">
                       <Button
@@ -512,6 +530,10 @@ function ChatPageContent() {
                       >
                         {playing ? <Square className="w-4 h-4 mr-2" /> : <Volume2 className="w-4 h-4 mr-2" />}
                         {playing ? t("停止") : t("播放最近回复")}
+                      </Button>
+                      <Button onClick={handleSend} disabled={loading || !input.trim()} className="flex-1">
+                        <Send className="w-4 h-4 mr-2" />
+                        {t("发送回答")}
                       </Button>
                     </div>
                   </div>

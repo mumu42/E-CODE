@@ -17,7 +17,7 @@ import { useAppStore } from "@/lib/store";
 import { generateListeningItem } from "@/lib/ai/client";
 import { useCustomPrompt } from "@/hooks/usePrompts";
 import { speak, stopSpeaking, isTTSSupported } from "@/lib/tts";
-import type { ListeningItem } from "@/lib/types";
+import type { ListeningItem, ErrorItem } from "@/lib/types";
 import { Volume2, Square } from "lucide-react";
 
 /**
@@ -31,6 +31,7 @@ export default function ListeningPage() {
   const router = useRouter();
   const profile = useAppStore((state) => state.profile);
   const addListeningRecord = useAppStore((state) => state.addListeningRecord);
+  const addErrors = useAppStore((state) => state.addErrors);
   const listeningPrompt = useCustomPrompt("listening");
 
   const [item, setItem] = useState<Omit<ListeningItem, "id" | "userId" | "date" | "score"> | null>(null);
@@ -127,8 +128,10 @@ export default function ListeningPage() {
     setScore(percentage);
     setSubmitted(true);
 
+    const recordId = crypto.randomUUID();
+
     addListeningRecord({
-      id: crypto.randomUUID(),
+      id: recordId,
       userId: profile.id,
       date: new Date().toISOString(),
       target: profile.target,
@@ -137,6 +140,28 @@ export default function ListeningPage() {
       questions: item.questions,
       score: percentage
     });
+
+    // 将答错的题目存入复习模块，附带听力原文作为上下文
+    const wrongErrors: ErrorItem[] = [];
+    item.questions.forEach((q, idx) => {
+      if (answers[idx] !== q.answerIndex) {
+        wrongErrors.push({
+          id: crypto.randomUUID(),
+          userId: profile.id,
+          sessionId: recordId,
+          type: "CHAT",
+          date: new Date().toISOString(),
+          original: q.question,
+          correction: q.options[q.answerIndex],
+          explanation: q.explanation,
+          errorType: "vocabulary",
+          context: item.transcript,
+        });
+      }
+    });
+    if (wrongErrors.length > 0) {
+      addErrors(wrongErrors);
+    }
   }
 
   if (!profile) {
@@ -236,12 +261,12 @@ export default function ListeningPage() {
                         disabled={submitted}
                         className={`w-full text-left p-3 rounded-md border text-sm transition-colors ${
                         showCorrect ?
-                        "bg-green-50 border-green-500 text-green-900" :
+                        "bg-green-50 border-green-500 text-green-900 dark:bg-green-900 dark:text-green-100 dark:border-green-400" :
                         showWrong ?
-                        "bg-red-50 border-red-500 text-red-900" :
+                        "bg-red-50 border-red-500 text-red-900 dark:bg-red-900 dark:text-red-100 dark:border-red-400" :
                         selected ?
-                        "bg-blue-50 border-blue-500" :
-                        "hover:bg-gray-50"}`
+                        "bg-blue-50 border-blue-500 text-blue-900 dark:bg-blue-900 dark:text-blue-100 dark:border-blue-400" :
+                        "hover:bg-gray-50 dark:hover:bg-gray-800"}`
                         }>
                         
                             {opt}

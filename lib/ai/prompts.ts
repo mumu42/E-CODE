@@ -436,13 +436,14 @@ export function buildWeakPointDrillPrompt(
 Return a JSON array with this exact shape:
 [
   {
-    "question": "the question in English or Chinese-English mix",
+    "question": "the question entirely in English",
     "options": ["A", "B", "C", "D"],
     "answer": "the correct option",
     "explanation": "explanation in Chinese"
   }
 ]
 
+IMPORTANT: question and options must be in English. Only explanation can be in Chinese.
 Return only valid JSON, no markdown.`;
 }
 
@@ -486,16 +487,18 @@ Cover these sections: ${sections}. ${difficultyHint}${excludeHint}
 For objective questions (reading / listening), provide a short passage or context when helpful, 4 options, the correct answer, and a Chinese explanation.
 For productive questions (writing / speaking), provide the prompt only.
 
+IMPORTANT: All passages, questions, options, and answers must be written entirely in English. Only "explanation" can be in Chinese.
+
 Return a JSON array with this exact shape:
 [
   {
     "type": "reading" | "listening" | "writing" | "speaking",
     "section": "reading" | "listening" | "writing" | "speaking",
-    "question": "the question stem",
-    "passage": "optional passage or transcript context",
+    "question": "the question stem in English",
+    "passage": "optional passage or transcript in English",
     "options": ["option A", "option B", "option C", "option D"],
-    "answer": "the correct option text",
-    "explanation": "解析（中文）",
+    "answer": "the correct option text in English",
+    "explanation": "解析（中文，英文题目的中文解析）",
     "difficulty": "easy" | "medium" | "hard",
     "year": "2024",
     "score": 7.5,
@@ -526,10 +529,10 @@ export function buildReadingPrompt(target: Target, level: Level, customPrompt?: 
 Return a JSON object with this exact shape:
 {
   "title": "short title in English",
-  "passage": "the reading passage text in English",
+  "passage": "the reading passage text — MUST be entirely in English",
   "questions": [
     {
-      "question": "question text in English or Chinese-English mix",
+      "question": "question text — MUST be entirely in English, Chinese is NOT allowed here",
       "options": ["A. option 1", "B. option 2", "C. option 3", "D. option 4"],
       "answerIndex": 0,
       "explanation": "explanation in Chinese"
@@ -537,11 +540,13 @@ Return a JSON object with this exact shape:
   ]
 }
 
-Rules:
+IMPORTANT RULES:
+- The passage, title, questions, and options MUST all be written in English ONLY.
 - The passage length and vocabulary should match level ${level}.
 - Each question should test reading comprehension, not just vocabulary.
 - answerIndex is the zero-based index of the correct option.
-- Include concise explanations in Chinese.
+- Only "explanation" can be in Chinese (to help learners understand).
+- Do NOT use any Chinese in the passage, title, questions, or options.
 
 Return only valid JSON, no markdown.`;
 }
@@ -572,10 +577,10 @@ export function buildListeningPrompt(target: Target, level: Level, customPrompt?
 
 Return a JSON object with this exact shape:
 {
-  "transcript": "the listening script in English",
+  "transcript": "the listening script — MUST be entirely in English",
   "questions": [
     {
-      "question": "question text in English or Chinese-English mix",
+      "question": "question text — MUST be entirely in English, Chinese is NOT allowed here",
       "options": ["A. option 1", "B. option 2", "C. option 3", "D. option 4"],
       "answerIndex": 0,
       "explanation": "explanation in Chinese"
@@ -583,11 +588,13 @@ Return a JSON object with this exact shape:
   ]
 }
 
-Rules:
+IMPORTANT RULES:
+- The transcript, questions, and options MUST all be written in English ONLY.
 - The transcript should be suitable for ${level} listening practice.
 - Questions should test comprehension, not just literal matching.
 - answerIndex is the zero-based index of the correct option.
-- Include concise explanations in Chinese.
+- Only "explanation" can be in Chinese (to help learners understand).
+- Do NOT use any Chinese in the transcript, questions, or options.
 
 Return only valid JSON, no markdown.`;
 }

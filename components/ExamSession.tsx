@@ -24,7 +24,8 @@ import { ExamTimer } from "@/components/ExamTimer";
 import { EXAM_CONFIGS } from "@/lib/exam/questions";
 import { generateExamQuestions as generateAIQuestions, askAdvisor } from "@/lib/ai/client";
 import { useCustomPrompt } from "@/hooks/usePrompts";
-import { Loader2, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { speak, stopSpeaking, isTTSSupported } from "@/lib/tts";
+import { Loader2, CheckCircle, XCircle, AlertCircle, Volume2, Square, Eye, EyeOff } from "lucide-react";
 import type { ExamQuestion, ExamQuestionType, ExamRecord } from "@/lib/types";
 
 /** 模拟考试会话内容 */
@@ -45,6 +46,8 @@ export function ExamSession() {
   const [questions, setQuestions] = useState<ExamQuestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [questionError, setQuestionError] = useState<string | null>(null);
+  const [playing, setPlaying] = useState(false);
+  const [showTranscript, setShowTranscript] = useState(false);
   const startedAtRef = useRef<string>(new Date().toISOString());
   const advisorPrompt = useCustomPrompt("advisor");
 
@@ -107,6 +110,24 @@ export function ExamSession() {
 
   function handleSelect(questionId: string, value: string) {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
+  }
+
+  async function handlePlayAudio(text: string) {
+    if (playing || !text) return;
+    if (!isTTSSupported()) return;
+    setPlaying(true);
+    try {
+      await speak(text, 1);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setPlaying(false);
+    }
+  }
+
+  function handleStopAudio() {
+    stopSpeaking();
+    setPlaying(false);
   }
 
   function handleSubmit() {
@@ -390,11 +411,46 @@ export function ExamSession() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {current.passage &&
-          <div className="p-3 bg-muted rounded-md text-sm leading-relaxed">
+          {current.type === "listening" && current.passage ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={playing ? handleStopAudio : () => handlePlayAudio(current.passage!)}
+                  disabled={!isTTSSupported()}
+                >
+                  {playing ? (
+                    <><Square className="w-4 h-4 mr-2" />{t("停止播放")}</>
+                  ) : (
+                    <><Volume2 className="w-4 h-4 mr-2" />{t("播放音频")}</>
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowTranscript((v) => !v)}
+                >
+                  {showTranscript ? (
+                    <><EyeOff className="w-4 h-4 mr-2" />{t("隐藏文本")}</>
+                  ) : (
+                    <><Eye className="w-4 h-4 mr-2" />{t("显示文本")}</>
+                  )}
+                </Button>
+              </div>
+              {showTranscript && (
+                <div className="p-3 bg-muted rounded-md text-sm leading-relaxed">
+                  {current.passage}
+                </div>
+              )}
+            </div>
+          ) : current.passage && (
+            <div className="p-3 bg-muted rounded-md text-sm leading-relaxed">
               {current.passage}
             </div>
-          }
+          )}
           <p className="font-medium dark:text-white">{current.question}</p>
           {isObjective && current.options ?
           <div className="space-y-2">
@@ -430,7 +486,7 @@ export function ExamSession() {
         <Button
           variant="outline"
           disabled={currentIndex === 0}
-          onClick={() => setCurrentIndex((i) => i - 1)}>{t("上一题")}
+          onClick={() => { setCurrentIndex((i) => i - 1); setShowTranscript(false); }}>{t("上一题")}
 
 
         </Button>

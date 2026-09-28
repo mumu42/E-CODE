@@ -110,6 +110,12 @@ export function FlashcardMode({ errors, onGrade }: FlashcardModeProps) {
             <CardContent className="text-center space-y-2">
               <p className="text-lg font-medium text-green-700">{current.correction}</p>
               <CardDescription>{current.explanation}</CardDescription>
+              {current.context &&
+            <details className="mt-2 text-left">
+              <summary className="text-xs text-blue-500 cursor-pointer hover:text-blue-700">{t("查看原文上下文")}</summary>
+              <p className="text-xs text-gray-500 mt-1 p-2 bg-gray-50 rounded whitespace-pre-wrap leading-relaxed max-h-32 overflow-y-auto">{current.context}</p>
+            </details>
+            }
             </CardContent>
           </Card>
         </motion.div>

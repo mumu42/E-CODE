@@ -268,6 +268,12 @@ export default function ReviewPage() {
                         <span className="line-through text-red-600">{err.original}</span> →{" "}
                         <span className="text-green-600">{err.correction || err.explanation}</span>
                       </p>
+                      {err.context &&
+                    <details className="mt-2">
+                      <summary className="text-xs text-blue-600 cursor-pointer hover:text-blue-800">{t("查看原文上下文")}</summary>
+                      <p className="text-xs text-gray-600 mt-1 p-2 bg-gray-50 rounded whitespace-pre-wrap leading-relaxed">{err.context}</p>
+                    </details>
+                    }
                       <p className="text-xs text-gray-500 mt-1">
                         {err.errorType} · {formatDate(err.date)}
                       </p>

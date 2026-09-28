@@ -26,8 +26,8 @@ import {
   getRealExamQuestions,
   type RealExamType } from
 "@/lib/exam/real/bank";
-import { generateExamQuestions } from "@/lib/ai/client";
-import { Volume2, Square, Loader2 } from "lucide-react";
+import { generateExamQuestions, askAdvisor } from "@/lib/ai/client";
+import { Volume2, Square, Loader2, CheckCircle, XCircle, AlertCircle } from "lucide-react";
 import { speak, stopSpeaking, isTTSSupported } from "@/lib/tts";
 import type { ExamQuestion, ExamRecord, ExamWrongQuestion } from "@/lib/types";
 
@@ -55,6 +55,9 @@ export default function RealExamPage() {
   const [finished, setFinished] = useState(false);
   const [record, setRecord] = useState<ExamRecord | null>(null);
   const [playing, setPlaying] = useState(false);
+  const [showTranscript, setShowTranscript] = useState(false);
+  const [explainingId, setExplainingId] = useState<string | null>(null);
+  const [explanations, setExplanations] = useState<Record<string, string>>({});
   const startedAtRef = useRef<string>(new Date().toISOString());
 
   const config = configs.find((c) => c.type === selectedType) ?? configs[0];
@@ -200,6 +203,43 @@ export default function RealExamPage() {
     setPlaying(false);
   }
 
+  async function handleExplain(q: ExamQuestion) {
+    if (!profile) return;
+    setExplainingId(q.id);
+    const context = [
+      `题型：${q.section ?? q.type}`,
+      q.examType ? `考试类型：${q.examType}` : "",
+      `题干：${q.question}`,
+      q.passage ? `材料：${q.passage}` : "",
+      q.options ? `选项：${q.options.join(" / ")}` : "",
+      q.answer ? `正确答案：${q.answer}` : "",
+      q.userAnswer ? `我的答案：${q.userAnswer}` : "",
+      q.explanation ? `参考解析：${q.explanation}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    try {
+      const result = await askAdvisor(
+        profile.target,
+        profile.level,
+        "请讲解这道考试错题，说明为什么正确答案对、我的答案错、解题思路与考点，并给出类似例句或类似题。",
+        context,
+        undefined,
+        undefined
+      );
+      setExplanations((prev) => ({ ...prev, [q.id]: result.reply }));
+    } catch (error) {
+      console.error(error);
+      setExplanations((prev) => ({
+        ...prev,
+        [q.id]: "解析失败，请稍后重试。",
+      }));
+    } finally {
+      setExplainingId(null);
+    }
+  }
+
   if (!started || questions.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -252,37 +292,142 @@ export default function RealExamPage() {
 
   }
 
-  if (finished && record) {
+ if (finished && record) {
     const percentage =
     record.totalScore > 0 ?
     Math.round(record.score / record.totalScore * 100) :
     0;
+    const wrongQuestions = record.questions.filter(
+      (q): q is ExamQuestion & { userAnswer: string; answer: string } =>
+        isObjective(q.type) && !!q.answer && !!q.userAnswer && q.userAnswer !== q.answer
+    );
     return (
       <div className="container mx-auto px-4 py-8">
-        <Card className="max-w-2xl mx-auto">
+        <Card className="max-w-2xl mx-auto mb-6">
           <CardHeader>
-            <CardTitle>{t("\u771F\u9898\u6A21\u8003\u6210\u7EE9")}</CardTitle>
+            <CardTitle>{t("真题模考成绩")}</CardTitle>
             <CardDescription>
               {config.label} · {formatDate(record.startedAt)}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="text-4xl font-bold text-primary">{percentage}{t("\u5206")}</div>
-            <p className="text-sm text-muted-foreground">{t("\u5F97\u5206")}
-              {formatScore(record.score)}{t("/ \u603B\u5206")}{formatScore(record.totalScore)}
+            <div className="text-4xl font-bold text-primary">{percentage}{t("分")}</div>
+            <p className="text-sm text-muted-foreground">{t("得分")}
+              {formatScore(record.score)}{t("/ 总分")}{formatScore(record.totalScore)}
             </p>
+            {wrongQuestions.length > 0 && (
+              <p className="text-sm text-muted-foreground">
+                {t("客观题：")}
+                <span className="text-green-600">{record.questions.filter((q) => isObjective(q.type) && q.answer).length - wrongQuestions.length}{t(" 正确")}</span>
+                {" · "}
+                <span className="text-red-600">{wrongQuestions.length}{t(" 错误")}</span>
+                {" / "}{record.questions.filter((q) => isObjective(q.type) && q.answer).length}{t("题")}
+              </p>
+            )}
             <div className="flex gap-2">
-              <Button onClick={() => router.push("/exam/real")}>{t("\u518D\u6765\u4E00\u6B21")}</Button>
-              <Button variant="outline" onClick={() => router.push("/progress")}>{t("\u67E5\u770B\u8FDB\u5EA6")}
+              <Button onClick={() => router.push("/exam/real")}>{t("再来一次")}</Button>
+              <Button variant="outline" onClick={() => router.push("/progress")}>{t("查看进度")}
 
               </Button>
             </div>
           </CardContent>
         </Card>
+
+        {/* 错题回顾列表 */}
+        {wrongQuestions.length > 0 && (
+          <div className="max-w-2xl mx-auto space-y-4">
+            <h2 className="text-lg font-bold flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-red-500" />
+              {t("错题回顾")}
+              <span className="text-sm font-normal text-muted-foreground">({wrongQuestions.length}{t("题")})</span>
+            </h2>
+            {wrongQuestions.map((q) => (
+              <Card key={q.id}>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <XCircle className="w-4 h-4 text-red-500" />
+                    {t("第")}
+                    {
+                      record.questions.findIndex(
+                        (rq) => rq.id === q.id || rq.question === q.question
+                      ) + 1
+                    }
+                    {t("题 ·")}
+                    {q.section ?? q.type}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {q.passage && (
+                    <div className="p-3 bg-muted rounded-md text-sm leading-relaxed">
+                      {q.passage}
+                    </div>
+                  )}
+                  <p className="font-medium text-sm">{q.question}</p>
+                  {q.options && q.options.length > 0 && (
+                    <div className="space-y-1.5">
+                      {q.options.map((option) => {
+                        const isCorrect = option === q.answer;
+                        const isUserWrong = option === q.userAnswer && option !== q.answer;
+                        return (
+                          <div
+                            key={option}
+                            className={`flex items-center gap-2 p-2.5 rounded-md border text-sm ${
+                              isCorrect
+                                ? "bg-green-50 border-green-300 text-green-700"
+                                : isUserWrong
+                                ? "bg-red-50 border-red-300 text-red-700"
+                                : ""
+                            }`}
+                          >
+                            {isCorrect && <CheckCircle className="w-4 h-4 shrink-0" />}
+                            {isUserWrong && <XCircle className="w-4 h-4 shrink-0" />}
+                            <span>{option}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <div className="text-sm space-y-1">
+                    <p className="text-red-600">
+                      {t("你的答案：")}{q.userAnswer}
+                    </p>
+                    <p className="text-green-600">
+                      {t("正确答案：")}{q.answer}
+                    </p>
+                  </div>
+                  {q.explanation && (
+                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md text-sm">
+                      <p className="font-medium mb-1">{t("参考解析")}</p>
+                      <p>{q.explanation}</p>
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleExplain(q)}
+                      disabled={explainingId === q.id}
+                    >
+                      {explainingId === q.id && (
+                        <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                      )}
+                      {t("AI 解析")}
+                    </Button>
+                  </div>
+                  {explanations[q.id] && (
+                    <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-md text-sm whitespace-pre-wrap">
+                      <p className="font-medium mb-1">{t("AI 详细解析")}</p>
+                      <p>{explanations[q.id]}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>);
 
   }
-
   const current = questions[currentIndex];
   const objective = isObjective(current.type);
 
