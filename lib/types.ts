@@ -324,6 +324,37 @@ export type TranslationDirection = "en2zh" | "zh2en";
 /** 翻译模式 */
 export type TranslationMode = "word" | "sentence";
 
+/** 翻译练习模块分类 */
+export type TranslationExerciseModule = "tense" | "daily" | "business" | "academic";
+
+/** 翻译练习模块显示配置 */
+export const TRANSLATION_MODULES: Record<TranslationExerciseModule, { label: string; description: string }> = {
+  tense: { label: "时态", description: "一般现在时、过去时、将来时、完成时等时态练习" },
+  daily: { label: "日常", description: "购物、问路、点餐、旅行等日常场景" },
+  business: { label: "商务", description: "邮件、会议、谈判、简历等商务场景" },
+  academic: { label: "学术", description: "论文、报告、演讲等学术场景" },
+};
+
+/** 单项翻译练习题目 */
+export interface TranslationExerciseItem {
+  /** 题目 ID */
+  id: string;
+  /** 中文原文（用户需翻译的内容） */
+  sourceText: string;
+  /** AI 参考英文译文 */
+  referenceTranslation?: string;
+  /** 用户英文翻译 */
+  userTranslation?: string;
+  /** AI 评分（0-100） */
+  score?: number;
+  /** 维度分 */
+  dimensionScores?: { accuracy: number; fluency: number; completeness: number };
+  /** 错误点列表 */
+  errors?: TranslationErrorPoint[];
+  /** AI 解析 */
+  analysis?: TranslationAnalysis;
+}
+
 /** AI 解析结构（翻译模块返回） */
 export interface TranslationAnalysis {
   /** 语法结构分析：句子成分、时态、语态、从句类型、核心句型拆解 */
@@ -374,20 +405,24 @@ export interface TranslationRecord {
   direction: TranslationDirection;
   /** 练习日期 */
   date: string;
-  /** 原文 */
-  sourceText: string;
-  /** 用户自译（可空） */
+  /** 原文（练习模式下为首题原文，兼容旧单条模式） */
+  sourceText?: string;
+  /** 用户自译（兼容旧单条模式） */
   userTranslation?: string;
-  /** AI 参考译文 */
-  aiTranslation: string;
-  /** 评分（句子模式，0-100；单词模式可空） */
+  /** AI 参考译文（兼容旧单条模式） */
+  aiTranslation?: string;
+  /** 评分（兼容旧单条模式） */
   score?: number;
-  /** 维度分（句子模式） */
+  /** 维度分（兼容旧单条模式） */
   dimensionScores?: { accuracy: number; fluency: number; completeness: number };
-  /** AI 解析 */
-  analysis: TranslationAnalysis;
-  /** AI 发现翻译错误点列表（句子模式+自译时） */
+  /** AI 解析（兼容旧单条模式） */
+  analysis?: TranslationAnalysis;
+  /** AI 发现翻译错误点列表（兼容旧单条模式） */
   errors?: TranslationErrorPoint[];
+  /** 翻译练习模块（练习模式） */
+  module?: TranslationExerciseModule;
+  /** 批量练习题目列表（练习模式） */
+  items?: TranslationExerciseItem[];
   /** 是否已沉淀为错题 */
   addedToReview: boolean;
 }

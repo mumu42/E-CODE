@@ -21,9 +21,11 @@
 
 ### 2.1 本期包含
 
-- 新增 `app/translate` 独立翻译页
-- 单词 / 句子双模式、英→中 / 中→英双向
-- `POST /api/ai/translate` 翻译 + 解析接口
+- 新增 `app/translate` 独立翻译练习页
+- 分模块 AI 出题（时态/日常/商务/学术）、单词/句子可切换
+- AI 出中文题 → 用户中译英 → AI 批量批改纠错
+- `POST /api/ai/translate` 翻译练习出题 + 批改接口
+- `TranslationExerciseItem` 单项练习数据
 - `TranslationAnalysis` 结构化解析（语法 / 搭配 / 技巧 / 文化）
 - AI 自评评分（0–100，准确度/流畅度/完整度维度分）
 - 翻译错题自动沉淀与去重（复用 `ErrorItem` + SM-2）

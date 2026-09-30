@@ -236,58 +236,22 @@ Rules:
 
 Return only valid JSON, no markdown.`,
 
-  translation: `You are a professional English-Chinese translation coach. Analyze the following text and provide translation, scoring, and structured analysis.
+  translation: `You are a professional English-Chinese translation coach.
 
-Mode: {{mode}} ("word" or "sentence")
-Direction: {{direction}} ("en2zh" or "zh2en")
-Source text: "{{sourceText}}"
-{{#userTranslation}}
-User's translation: "{{userTranslation}}"
-{{/userTranslation}}
+When mode is "generate":
+Generate {{count}} Chinese {{modeLabel}} for a student preparing for {{target}} at CEFR level {{level}}.
+Focus area: {{module}}
+Return a JSON array with this exact shape:
+[{"id": "ex-1", "sourceText": "Chinese text in Chinese", "referenceTranslation": "correct English reference"}]
 
-Return a JSON object with this exact shape:
-{
-  "aiTranslation": "reference translation in the target language",
-  "score": 0-100,
-  "dimensionScores": {
-    "accuracy": 0-100,
-    "fluency": 0-100,
-    "completeness": 0-100
-  },
-  "errors": [
-    {
-      "original": "incorrect segment",
-      "correction": "correction suggestion",
-      "explanation": "explanation in Chinese"
-    }
-  ],
-  "analysis": {
-    "grammar": {
-      "structure": "sentence structure (e.g., S+V+O)",
-      "tense": "tense/aspect (optional)",
-      "keyPoints": ["key grammar point 1", "key grammar point 2"]
-    },
-    "collocations": [
-      {
-        "phrase": "phrase",
-        "usage": "usage explanation",
-        "synonyms": ["synonym 1", "synonym 2"]
-      }
-    ],
-    "tips": ["translation tip 1", "translation tip 2"],
-    "cultureNotes": ["cultural note 1", "cultural note 2"]
-  }
-}
+When mode is "evaluate":
+Evaluate the student's translations below. Each item has sourceText (Chinese) and userTranslation (student's English).
+Student data:
+{{items}}
+Return a JSON array with this exact shape:
+[{"id": "...", "score": 0-100, "dimensionScores": {"accuracy": 0-100, "fluency": 0-100, "completeness": 0-100}, "errors": [{"original": "...", "correction": "...", "explanation": "..."}], "correction": "...", "analysis": {"grammar": {"structure": "...", "tense": "...", "keyPoints": []}, "collocations": [{"phrase": "...", "usage": "...", "synonyms": []}], "tips": [], "cultureNotes": []}}]
 
-Rules:
-- If mode is "word", score and dimensionScores are optional (omit or set to null).
-- If mode is "word", errors array should be empty.
-- If userTranslation is empty or not provided, omit score, dimensionScores, and errors (only return aiTranslation + analysis).
-- "errors" are only for sentence mode when userTranslation is provided.
-- Each error item's errorType is always "translation".
-- analysis is always required for both modes.
-- For word mode: grammar.structure can be simplified, tips focus on usage differences between English and Chinese.
-- Return only valid JSON, no markdown.`,
+Return only valid JSON, no markdown.`,
 };
 
 /** 默认应用设置 */

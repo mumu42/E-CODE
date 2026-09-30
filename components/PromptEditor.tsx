@@ -39,7 +39,7 @@ const PROMPT_VARIABLES: Record<PromptType, string[]> = {
   reading: ["target", "level"],
   listening: ["target", "level"],
   advisor: ["target", "level", "question", "context", "errorOriginal", "errorCorrection", "errorExplanation", "learningContext"],
-  translation: ["mode", "direction", "sourceText", "userTranslation"]
+  translation: ["mode", "module", "target", "level", "modeLabel", "count", "items"]
 };
 
 /** Prompt 编辑器组件 */

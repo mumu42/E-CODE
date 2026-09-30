@@ -709,79 +709,149 @@ Return only valid JSON, no markdown.`;
 }
 
 /**
- * 构建翻译+解析提示词
- * @param mode - 翻译模式（word / sentence）
- * @param direction - 翻译方向（en2zh / zh2en）
- * @param sourceText - 原文
- * @param userTranslation - 用户自译（句子模式可选）
- * @param customPrompt - 自定义提示词模板（可选）
- * @returns 翻译提示词字符串
+ * 构建翻译练习出题提示词
+ * 根据模块、学习目标、级别生成中文题目，供用户翻译为英文
+ * @param module - 练习模块（tense/daily/business/academic）
+ * @param target - 用户学习目标
+ * @param level - 用户英语水平
+ * @param mode - word（词/短语）或 sentence（句子）
+ * @param count - 出题数量（默认 5）
+ * @param customPrompt - 自定义提示词模板（可选，变量: module, target, level, mode, count）
+ * @returns 出题提示词字符串
  */
-export function buildTranslatePrompt(
+export function buildTranslationExercisePrompt(
+  module: string,
+  target: string,
+  level: string,
   mode: "word" | "sentence",
-  direction: "en2zh" | "zh2en",
-  sourceText: string,
-  userTranslation?: string,
+  count: number = 5,
   customPrompt?: string
 ): string {
+  const moduleLabels: Record<string, string> = {
+    tense: "英语时态（一般现在时、过去时、将来时、完成时等）",
+    daily: "日常生活场景（购物、问路、点餐、旅行等）",
+    business: "商务场景（邮件、会议、谈判、简历等）",
+    academic: "学术场景（论文、报告、演讲等）",
+  };
+
   if (customPrompt) {
+    const modeLabel = mode === "word" ? "单词或短语" : "句子";
     return renderPromptTemplate(customPrompt, {
-      mode,
-      direction,
-      sourceText,
-      userTranslation: userTranslation || "",
+      module: moduleLabels[module] || module,
+      target,
+      level,
+      mode: "generate",
+      modeLabel,
+      count: String(count),
     });
   }
 
-  const directionText = direction === "en2zh" ? "English to Chinese" : "Chinese to English";
+  const moduleDesc = moduleLabels[module] || module;
+  const typeLabel = mode === "word" ? "单词或短语" : "句子";
 
-  return `You are a professional English-Chinese translation coach. Analyze the following text and provide translation, scoring, and structured analysis.
+  return `You are a professional English-Chinese translation exercise creator. Generate ${count} Chinese ${typeLabel}s for a student preparing for ${target} at CEFR level ${level}.
 
-Mode: ${mode} (${mode === "word" ? "word/phrase" : "sentence"})
-Direction: ${directionText}
-Source text: "${sourceText}"${userTranslation ? `\nUser's translation: "${userTranslation}"` : ""}
+Focus area: ${moduleDesc}
 
-Return a JSON object with this exact shape:
-{
-  "aiTranslation": "reference translation in the target language",
-  "score": 0-100,
-  "dimensionScores": {
-    "accuracy": 0-100,
-    "fluency": 0-100,
-    "completeness": 0-100
-  },
-  "errors": [
-    {
-      "original": "incorrect segment",
-      "correction": "correction suggestion",
-      "explanation": "explanation in Chinese"
-    }
-  ],
-  "analysis": {
-    "grammar": {
-      "structure": "sentence structure (e.g., S+V+O)",
-      "tense": "tense/aspect (optional)",
-      "keyPoints": ["key grammar point 1", "key grammar point 2"]
-    },
-    "collocations": [
-      {
-        "phrase": "phrase",
-        "usage": "usage explanation",
-        "synonyms": ["synonym 1", "synonym 2"]
-      }
-    ],
-    "tips": ["translation tip 1", "translation tip 2"],
-    "cultureNotes": ["cultural note 1", "cultural note 2"]
+Each item should be a natural Chinese ${typeLabel} that the student will translate into English.
+For word mode: provide short Chinese words/phrases that teach key vocabulary.
+For sentence mode: provide complete Chinese sentences that test grammar and expression.
+
+Return a JSON array with this exact shape:
+[
+  {
+    "id": "ex-1",
+    "sourceText": "Chinese text to translate (must be in Chinese)",
+    "referenceTranslation": "correct English translation (reference only, hidden from student until evaluation)"
   }
-}
+]
 
 Rules:
-- If mode is "word", score and dimensionScores are optional (omit or set to null).
-- If mode is "word", errors array should be empty.
-- If userTranslation is empty or not provided, omit score, dimensionScores, and errors (only return aiTranslation + analysis).
-- "errors" are only for sentence mode when userTranslation is provided.
-- analysis is always required for both modes.
-- For word mode: grammar.structure can be simplified, tips focus on usage differences between English and Chinese.
+- All sourceText must be in Chinese only.
+- Each referenceTranslation must be natural, correct English.
+- Match difficulty to CEFR level ${level}.
+- Cover different aspects within the focus area.
+- DO NOT include any English in sourceText.
+- Do NOT wrap the array in an object like {"items": [...]}. Return ONLY the JSON array.
 - Return only valid JSON, no markdown.`;
+}
+
+/**
+ * 构建批量翻译批改提示词
+ * 对用户的一组翻译逐条评分、纠错、解析
+ * @param items - 用户作答列表
+ * @param customPrompt - 自定义提示词模板（可选，变量: items）
+ * @returns 批改提示词字符串
+ */
+export function buildBatchEvaluatePrompt(
+  items: { id: string; sourceText: string; userTranslation: string }[],
+  customPrompt?: string
+): string {
+  const itemsJson = JSON.stringify(items, null, 2);
+
+  if (customPrompt) {
+    return renderPromptTemplate(customPrompt, { items: itemsJson, mode: "evaluate" });
+  }
+
+  return `You are a strict but encouraging English-Chinese translation coach. Evaluate the student's translations below.
+
+Each item contains:
+- sourceText: the original Chinese text
+- userTranslation: the student's English translation
+
+For each item, evaluate the translation quality and return:
+
+Return a JSON array with this exact shape:
+[
+  {
+    "id": "same id as input",
+    "score": 0-100,
+    "dimensionScores": {
+      "accuracy": 0-100,
+      "fluency": 0-100,
+      "completeness": 0-100
+    },
+    "errors": [
+      {
+        "original": "incorrect segment from student's translation",
+        "correction": "corrected segment",
+        "explanation": "explanation of the error in Chinese"
+      }
+    ],
+    "correction": "the fully corrected English translation",
+    "analysis": {
+      "grammar": {
+        "structure": "sentence structure (e.g., S+V+O)",
+        "tense": "tense/aspect used",
+        "keyPoints": ["key grammar point 1", "key grammar point 2"]
+      },
+      "collocations": [
+        {
+          "phrase": "key phrase",
+          "usage": "usage explanation",
+          "synonyms": ["synonym 1"]
+        }
+      ],
+      "tips": ["translation tip 1"],
+      "cultureNotes": ["cultural note 1"]
+    }
+  }
+]
+
+Evaluation criteria:
+- accuracy (0-100): how faithfully the translation conveys the original meaning
+- fluency (0-100): how natural and idiomatic the English sounds
+- completeness (0-100): whether all information from source is included
+
+Rules:
+- For word/phrase items, score and dimensionScores may be omitted if not applicable.
+- errors array can be empty if no mistakes.
+- analysis should always be provided when possible.
+- Be encouraging but honest about errors.
+- Do NOT wrap the array in an object like {"results": [...]}. Return ONLY the JSON array.
+- Return only valid JSON, no markdown.
+
+Student's translations:
+${itemsJson}`;
 }
 

@@ -20,7 +20,8 @@ import {
   buildExamQuestionsPrompt,
   parseReadingResponse,
   parseListeningResponse,
-  buildTranslatePrompt,
+  buildTranslationExercisePrompt,
+  buildBatchEvaluatePrompt,
 } from "./prompts";
 import { buildSummaryPrompt } from "./memory";
 import type {
@@ -38,7 +39,6 @@ import type {
   ListeningItem,
   ExamQuestion,
   ExamQuestionType,
-  TranslationRecord,
 } from "@/lib/types";
 
 /**
@@ -543,67 +543,150 @@ export async function askAdvisor(
 }
 
 /**
- * 翻译文本并获取评分+解析
- *
- * 翻译响应类型定义在 lib/types.ts 的 TranslationRecord 中，
- * 包含 aiTranslation, score, dimensionScores, errors, analysis 等字段。
- *
- * @param mode - 翻译模式 word | sentence
- * @param direction - 翻译方向 en2zh | zh2en
- * @param sourceText - 原文（单词 ≤60 字符，句子 ≤500 字符）
- * @param userTranslation - 用户自译（句子模式可选，传空则不评分）
- * @param customPrompt - 自定义提示词模板（可选）
- * @returns 翻译结果
+ * 从 AI 返回文本中提取 JSON 数组，支持多种包装格式
+ * AI 可能返回纯数组、包裹在对象中的数组、带 markdown 标记的文本
  */
-export async function translateText(
+function extractJsonArray<T>(text: string): T[] | null {
+  const cleaned = text.replace(/```json|```/g, "").trim();
+
+  try {
+    const parsed = JSON.parse(cleaned);
+    if (Array.isArray(parsed)) return parsed as T[];
+    // 可能是对象包裹了数组 items / exercises / data
+    if (parsed && typeof parsed === "object") {
+      for (const key of ["items", "exercises", "data", "questions", "results"]) {
+        if (Array.isArray(parsed[key]) && parsed[key].length > 0) {
+          return parsed[key] as T[];
+        }
+      }
+    }
+  } catch {
+    // fall through
+  }
+
+  // fallback: 尝试从文本中提取数组（从第一个 [ 到最后一个 ]）
+  const arrayMatch = text.match(/(\[[\s\S]*\])/);
+  if (arrayMatch) {
+    try {
+      const parsed = JSON.parse(arrayMatch[1]);
+      if (Array.isArray(parsed)) return parsed as T[];
+    } catch {
+      return null;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * 生成翻译练习题目
+ * AI 根据模块/目标/级别生成中文题目，用户需翻译为英文
+ * @param module - 练习模块
+ * @param target - 学习目标
+ * @param level - 英语水平
+ * @param mode - 单词或句子模式
+ * @param count - 题目数量（默认 5）
+ * @param customPrompt - 自定义提示词模板（可选）
+ * @returns 题目列表
+ */
+export async function generateTranslationExercise(
+  module: string,
+  target: string,
+  level: string,
   mode: "word" | "sentence",
-  direction: "en2zh" | "zh2en",
-  sourceText: string,
-  userTranslation?: string,
+  count: number = 5,
   customPrompt?: string
-): Promise<{
-  aiTranslation: string;
-  score?: number;
-  dimensionScores?: { accuracy: number; fluency: number; completeness: number };
-  errors?: { original: string; correction: string; explanation: string }[];
-  analysis: TranslationRecord["analysis"];
-}> {
+): Promise<{ id: string; sourceText: string; referenceTranslation: string }[]> {
   const res = await fetch("/api/ai/translate", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      prompt: buildTranslatePrompt(mode, direction, sourceText, userTranslation, customPrompt),
+      prompt: buildTranslationExercisePrompt(module, target, level, mode, count, customPrompt),
     }),
   });
 
   if (!res.ok) {
-    throw new Error("Translation failed");
+    throw new Error("Exercise generation failed");
   }
 
   const { result } = (await res.json()) as { result: string };
-  const parsed = safeParseJson<{
-    aiTranslation: string;
-    score?: number;
-    dimensionScores?: { accuracy: number; fluency: number; completeness: number };
-    errors?: { original: string; correction: string; explanation: string }[];
-    analysis: TranslationRecord["analysis"];
-  }>(result);
+  const parsed = extractJsonArray<{ id: string; sourceText: string; referenceTranslation: string }>(result);
 
-  if (!parsed || !parsed.aiTranslation) {
-    throw new Error("Failed to parse translation result");
+  if (!parsed || parsed.length === 0) {
+    console.error("Raw AI response:", result.slice(0, 500));
+    throw new Error("Failed to parse exercise items");
   }
 
-  return {
-    aiTranslation: parsed.aiTranslation ?? "",
-    score: parsed.score,
-    dimensionScores: parsed.dimensionScores,
-    errors: parsed.errors ?? [],
-    analysis: parsed.analysis ?? {
-      grammar: { structure: "", keyPoints: [] },
+  return parsed;
+}
+
+/**
+ * 批量批改翻译练习
+ * 对用户的一组翻译逐条评分、纠错、解析
+ * @param items - 用户作答列表（需包含 id, sourceText, userTranslation）
+ * @param customPrompt - 自定义提示词模板（可选）
+ * @returns 批改结果列表
+ */
+export async function evaluateBatchTranslations(
+  items: { id: string; sourceText: string; userTranslation: string }[],
+  customPrompt?: string
+): Promise<{
+  id: string;
+  score: number;
+  dimensionScores?: { accuracy: number; fluency: number; completeness: number };
+  errors: { original: string; correction: string; explanation: string }[];
+  correction: string;
+  analysis: {
+    grammar: { structure: string; tense?: string; keyPoints?: string[] };
+    collocations: { phrase: string; usage: string; synonyms?: string[] }[];
+    tips: string[];
+    cultureNotes: string[];
+  };
+}[]> {
+  const res = await fetch("/api/ai/translate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      prompt: buildBatchEvaluatePrompt(items, customPrompt),
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Batch evaluation failed");
+  }
+
+  const { result } = (await res.json()) as { result: string };
+  const parsed = extractJsonArray<{
+    id: string;
+    score: number;
+    dimensionScores?: { accuracy: number; fluency: number; completeness: number };
+    errors: { original: string; correction: string; explanation: string }[];
+    correction: string;
+    analysis: {
+      grammar: { structure: string; tense?: string; keyPoints?: string[] };
+      collocations: { phrase: string; usage: string; synonyms?: string[] }[];
+      tips: string[];
+      cultureNotes: string[];
+    };
+  }>(result);
+
+  if (!parsed) {
+    console.error("Raw AI response:", result.slice(0, 500));
+    throw new Error("Failed to parse evaluation results");
+  }
+
+  return parsed.map((p) => ({
+    id: p.id,
+    score: p.score ?? 0,
+    dimensionScores: p.dimensionScores,
+    errors: p.errors ?? [],
+    correction: p.correction ?? "",
+    analysis: p.analysis ?? {
+      grammar: { structure: "" },
       collocations: [],
       tips: [],
       cultureNotes: [],
     },
-  };
+  }));
 }
 

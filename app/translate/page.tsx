@@ -1,6 +1,6 @@
 /**
  * @file app/translate/page.tsx
- * @description 翻译页面：单词/句子双模式、英↔中双向、AI 自评纠错与解析
+ * @description 翻译练习页：分模块 AI 出题 → 用户中译英 → 批量批改纠错
  * @author English Agent Team
  * @date 2026-09-30
  */
@@ -12,13 +12,13 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useAppStore } from "@/lib/store";
-import { translateText } from "@/lib/ai/client";
+import { generateTranslationExercise, evaluateBatchTranslations } from "@/lib/ai/client";
 import { useCustomPrompt } from "@/hooks/usePrompts";
 import { buildTranslationReviewErrors, dedupeTranslationErrors } from "@/lib/review/utils";
-import type { TranslationRecord, TranslationDirection, TranslationMode } from "@/lib/types";
+import type { TranslationRecord, TranslationExerciseModule, TranslationExerciseItem, TranslationMode } from "@/lib/types";
+import { TRANSLATION_MODULES } from "@/lib/types";
 import {
   Loader2,
-  ArrowLeft,
   Languages,
   BookOpen,
   ChevronDown,
@@ -26,56 +26,14 @@ import {
   CheckCircle2,
   AlertCircle,
   RefreshCw,
+  Sparkles,
+  Send,
 } from "lucide-react";
 
-const WORD_MAX = 60;
-const SENTENCE_MAX = 500;
-
-const DIRECTION_LABELS: Record<TranslationDirection, string> = {
-  en2zh: "英 → 中",
-  zh2en: "中 → 英",
-};
+const EXERCISE_COUNT = 5;
 
 /**
- * 简单 diff 高亮：将用户原文与参考译文逐字对比，标记不同部分
- * 返回一个带 <mark> 标签的 JSX 片段
- */
-function DiffHighlight({ userText, refText }: { userText: string; refText: string }) {
-  const uWords = userText.split(/(\s+)/);
-  const rWords = refText.split(/(\s+)/);
-  const parts: { text: string; diff: boolean }[] = [];
-
-  const maxLen = Math.max(uWords.length, rWords.length);
-  for (let i = 0; i < maxLen; i++) {
-    const u = uWords[i] ?? "";
-    const r = rWords[i] ?? "";
-    if (u === r) {
-      parts.push({ text: r, diff: false });
-    } else {
-      if (r) parts.push({ text: r, diff: true });
-    }
-  }
-
-  return (
-    <span>
-      {parts.map((p, i) =>
-        p.diff ? (
-          <mark
-            key={i}
-            className="bg-yellow-200 dark:bg-yellow-700/40 text-inherit rounded px-0.5"
-          >
-            {p.text}
-          </mark>
-        ) : (
-          <span key={i}>{p.text}</span>
-        )
-      )}
-    </span>
-  );
-}
-
-/**
- * 翻译页面
+ * 翻译练习页面
  */
 export default function TranslatePage() {
   const router = useRouter();
@@ -84,112 +42,199 @@ export default function TranslatePage() {
   const addErrors = useAppStore((state) => state.addErrors);
   const translationPrompt = useCustomPrompt("translation");
 
-  const [mode, setMode] = useState<TranslationMode>("word");
-  const [direction, setDirection] = useState<TranslationDirection>("en2zh");
-  const [sourceText, setSourceText] = useState("");
-  const [userTranslation, setUserTranslation] = useState("");
+  // 配置状态
+  const [module, setModule] = useState<TranslationExerciseModule>("tense");
+  const [mode, setMode] = useState<TranslationMode>("sentence");
+
+  // 练习状态
   const [loading, setLoading] = useState(false);
+  const [evaluating, setEvaluating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 结果状态
-  const [result, setResult] = useState<{
-    aiTranslation: string;
-    score?: number;
+  // 题目列表
+  const [items, setItems] = useState<TranslationExerciseItem[]>([]);
+  // 用户作答（id → userTranslation）
+  const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
+  // 已提交批改
+  const [evaluated, setEvaluated] = useState(false);
+  // 批改结果
+  const [evaluationResults, setEvaluationResults] = useState<Record<string, {
+    score: number;
     dimensionScores?: { accuracy: number; fluency: number; completeness: number };
-    errors?: { original: string; correction: string; explanation: string }[];
-    analysis: TranslationRecord["analysis"];
-  } | null>(null);
+    errors: { original: string; correction: string; explanation: string }[];
+    correction: string;
+    analysis: {
+      grammar: { structure: string; tense?: string; keyPoints?: string[] };
+      collocations: { phrase: string; usage: string; synonyms?: string[] }[];
+      tips: string[];
+      cultureNotes: string[];
+    };
+  }>>({});
 
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    grammar: true,
-    collocations: false,
-    tips: false,
-    culture: false,
-  });
-
+  const [expandedResults, setExpandedResults] = useState<Record<string, boolean>>({});
   const [addedToReview, setAddedToReview] = useState(false);
 
-  const maxLength = mode === "word" ? WORD_MAX : SENTENCE_MAX;
-  const isValidInput = sourceText.trim().length > 0 && sourceText.length <= maxLength;
-  const isSentenceMode = mode === "sentence";
-  const canSubmit = isValidInput;
+  const modules = Object.entries(TRANSLATION_MODULES) as [TranslationExerciseModule, { label: string; description: string }][];
 
-  const handleModeChange = useCallback((newMode: TranslationMode) => {
-    setMode(newMode);
-    setResult(null);
-    setError(null);
-    setAddedToReview(false);
-    if (newMode === "word") setUserTranslation("");
-  }, []);
-
-  const handleDirectionChange = useCallback((newDir: TranslationDirection) => {
-    setDirection(newDir);
-    setResult(null);
+  const handleModuleChange = useCallback((m: TranslationExerciseModule) => {
+    setModule(m);
+    setItems([]);
+    setUserAnswers({});
+    setEvaluated(false);
+    setEvaluationResults({});
     setError(null);
     setAddedToReview(false);
   }, []);
 
-  const toggleSection = (key: string) => {
-    setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }));
+  const handleModeChange = useCallback((m: TranslationMode) => {
+    setMode(m);
+    setItems([]);
+    setUserAnswers({});
+    setEvaluated(false);
+    setEvaluationResults({});
+    setError(null);
+    setAddedToReview(false);
+  }, []);
+
+  const toggleResult = (id: string) => {
+    setExpandedResults((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  async function handleSubmit() {
-    if (!profile || !canSubmit) return;
+  async function handleGenerate() {
+    if (!profile) return;
     setLoading(true);
     setError(null);
-    setResult(null);
+    setItems([]);
+    setUserAnswers({});
+    setEvaluated(false);
+    setEvaluationResults({});
     setAddedToReview(false);
 
     try {
-      const data = await translateText(
+      const exerciseItems = await generateTranslationExercise(
+        module,
+        profile.target,
+        profile.level,
         mode,
-        direction,
-        sourceText.trim(),
-        isSentenceMode ? userTranslation.trim() || undefined : undefined,
-        translationPrompt
+        EXERCISE_COUNT,
       );
 
-      setResult(data);
+      const mapped: TranslationExerciseItem[] = exerciseItems.map((ei) => ({
+        id: ei.id,
+        sourceText: ei.sourceText,
+        referenceTranslation: ei.referenceTranslation,
+      }));
+
+      setItems(mapped);
+    } catch (err) {
+      console.error("Generate exercise error:", err);
+      setError("生成练习失败，请重试");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleAnswerChange(id: string, value: string) {
+    setUserAnswers((prev) => ({ ...prev, [id]: value }));
+  }
+
+  async function handleEvaluate() {
+    if (!profile) return;
+    setEvaluating(true);
+    setError(null);
+
+    try {
+      const answersToEvaluate = items
+        .map((item) => ({
+          id: item.id,
+          sourceText: item.sourceText,
+          userTranslation: userAnswers[item.id] || "",
+        }))
+        .filter((a) => a.userTranslation.trim().length > 0);
+
+      if (answersToEvaluate.length === 0) {
+        setError("请至少翻译一题后再提交");
+        setEvaluating(false);
+        return;
+      }
+
+      const results = await evaluateBatchTranslations(answersToEvaluate);
+
+      const resultMap: Record<string, typeof results[0]> = {};
+      let totalErrors = 0;
+      results.forEach((r) => {
+        resultMap[r.id] = r;
+        if (r.errors) totalErrors += r.errors.length;
+      });
+
+      setEvaluationResults(resultMap);
+      setEvaluated(true);
+
+      // 展开有错误的题目
+      const expanded: Record<string, boolean> = {};
+      results.forEach((r) => {
+        if (r.errors && r.errors.length > 0) expanded[r.id] = true;
+      });
+      setExpandedResults(expanded);
 
       // 写入翻译记录
-      const translationErrors = isSentenceMode && data.errors
-        ? data.errors.map((e) => ({ ...e, errorType: "translation" as const }))
-        : undefined;
+      const updatedItems: TranslationExerciseItem[] = items.map((item) => ({
+        ...item,
+        userTranslation: userAnswers[item.id] || "",
+        ...(resultMap[item.id] ? {
+          score: resultMap[item.id].score,
+          dimensionScores: resultMap[item.id].dimensionScores,
+          errors: resultMap[item.id].errors?.map((e) => ({
+            ...e,
+            errorType: "translation" as const,
+          })),
+          analysis: resultMap[item.id].analysis,
+        } : {}),
+      }));
 
       const record: TranslationRecord = {
         id: crypto.randomUUID(),
         userId: profile.id,
         mode,
-        direction,
+        direction: "zh2en",
         date: new Date().toISOString(),
-        sourceText: sourceText.trim(),
-        userTranslation: isSentenceMode ? userTranslation.trim() || undefined : undefined,
-        aiTranslation: data.aiTranslation,
-        score: data.score,
-        dimensionScores: data.dimensionScores,
-        analysis: data.analysis,
-        errors: translationErrors,
+        module,
+        items: updatedItems,
         addedToReview: false,
       };
 
       addTranslationRecord(record);
 
-      // 句子模式 + 有自译 + 有错误点 → 沉淀错题
-      if (translationErrors && translationErrors.length > 0) {
-        const errorItems = buildTranslationReviewErrors(record, profile.id);
-        if (errorItems.length > 0) {
-          const deduped = dedupeTranslationErrors(errorItems);
+      // 沉淀错题
+      if (totalErrors > 0) {
+        const allErrorItems = updatedItems.flatMap((item) =>
+          buildTranslationReviewErrors(
+            {
+              ...record,
+              userTranslation: item.userTranslation,
+              mode: "sentence",
+              errors: item.errors,
+            },
+            profile.id,
+          )
+        );
+
+        if (allErrorItems.length > 0) {
+          const deduped = dedupeTranslationErrors(allErrorItems);
           addErrors(deduped);
           setAddedToReview(true);
         }
       }
     } catch (err) {
-      console.error("Translation error:", err);
-      setError("解析失败，请重试");
+      console.error("Evaluate error:", err);
+      setError("批改失败，请重试");
     } finally {
-      setLoading(false);
+      setEvaluating(false);
     }
   }
+
+  const allAnswered = items.length > 0 && items.every((item) => (userAnswers[item.id] || "").trim().length > 0);
+  const anyAnswered = items.length > 0 && items.some((item) => (userAnswers[item.id] || "").trim().length > 0);
 
   if (!profile) {
     return (
@@ -201,31 +246,46 @@ export default function TranslatePage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-3xl">
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
       {/* 头部 */}
       <div className="flex items-center gap-2 mb-6">
-        <Button variant="outline" size="sm" onClick={() => router.back()}>
-          <ArrowLeft className="w-4 h-4 mr-1" />
-          {t("返回")}
-        </Button>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <Languages className="w-6 h-6 text-blue-500" />
-          {t("翻译")}
-        </h1>
+        <Languages className="w-6 h-6 text-blue-500" />
+        <h1 className="text-2xl font-bold">{t("翻译练习")}</h1>
       </div>
 
-      {/* 模式与方向切换 */}
+      {/* 模块选择 */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="text-base">{t("选择练习模块")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {modules.map(([key, config]) => (
+              <Button
+                key={key}
+                variant={module === key ? "default" : "outline"}
+                className="flex flex-col items-start gap-1 h-auto py-3 px-4"
+                onClick={() => handleModuleChange(key)}
+              >
+                <span className="text-sm font-medium">{t(config.label)}</span>
+                <span className="text-xs opacity-70 font-normal">{t(config.description)}</span>
+              </Button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 模式 + 生成按钮 */}
       <Card className="mb-6">
         <CardContent className="pt-6 space-y-4">
-          {/* 模式切换 */}
-          <div className="flex flex-wrap gap-2">
-            <span className="text-sm font-medium text-gray-500 self-center mr-2">{t("模式")}</span>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-sm font-medium text-gray-500">{t("出题模式")}</span>
             <Button
               variant={mode === "word" ? "default" : "outline"}
               size="sm"
               onClick={() => handleModeChange("word")}
             >
-              {t("单词")}
+              {t("单词/短语")}
             </Button>
             <Button
               variant={mode === "sentence" ? "default" : "outline"}
@@ -234,130 +294,45 @@ export default function TranslatePage() {
             >
               {t("句子")}
             </Button>
-          </div>
-
-          {/* 方向切换 */}
-          <div className="flex flex-wrap gap-2">
-            <span className="text-sm font-medium text-gray-500 self-center mr-2">{t("方向")}</span>
-            <Button
-              variant={direction === "en2zh" ? "default" : "outline"}
-              size="sm"
-              onClick={() => handleDirectionChange("en2zh")}
-            >
-              {t(DIRECTION_LABELS.en2zh)}
-            </Button>
-            <Button
-              variant={direction === "zh2en" ? "default" : "outline"}
-              size="sm"
-              onClick={() => handleDirectionChange("zh2en")}
-            >
-              {t(DIRECTION_LABELS.zh2en)}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* 输入区 */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-base">{t("原文")}</CardTitle>
-          <CardDescription>
-            {t(mode === "word" ? "输入要翻译的单词或短语" : "输入要翻译的句子")}
-            {isSentenceMode && (
-              <span className="ml-2 text-blue-500">
-                {t("翻译后将由 AI 评分")}
-              </span>
-            )}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="relative">
-            <textarea
-              value={sourceText}
-              onChange={(e) => {
-                setSourceText(e.target.value);
-                setResult(null);
-                setAddedToReview(false);
-              }}
-              placeholder={direction === "en2zh" ? t("请输入英文...") : t("请输入中文...")}
-              className="w-full min-h-[100px] p-3 border rounded-md text-sm resize-y"
-              maxLength={maxLength}
-              rows={mode === "word" ? 2 : 4}
-            />
-            <span className="absolute bottom-2 right-2 text-xs text-gray-400">
-              {sourceText.length}/{maxLength}
-            </span>
-          </div>
-
-          {/* 自译区（句子模式） */}
-          {isSentenceMode && (
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-500 mb-1">
-                {t("你的翻译（可选）")}
-                <span className="text-xs text-gray-400 ml-2">
-                  {t("填写后 AI 将对照评分并纠正错误")}
-                </span>
-              </label>
-              <textarea
-                value={userTranslation}
-                onChange={(e) => setUserTranslation(e.target.value)}
-                placeholder={direction === "en2zh" ? t("请输入你的中文翻译...") : t("请输入你的英文翻译...")}
-                className="w-full min-h-[80px] p-3 border rounded-md text-sm resize-y"
-                maxLength={maxLength * 2}
-                rows={3}
-              />
-            </div>
-          )}
-
-          <div className="flex items-center gap-3">
-            <Button
-              onClick={handleSubmit}
-              disabled={!canSubmit || loading}
-              className="flex items-center gap-2"
-            >
-              {loading ? (
-                <>
+            <div className="ml-auto">
+              <Button
+                onClick={handleGenerate}
+                disabled={loading}
+                className="flex items-center gap-2"
+              >
+                {loading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  {t("翻译中...")}
-                </>
-              ) : (
-                <>
-                  <Languages className="w-4 h-4" />
-                  {t("翻译")}
-                </>
-              )}
-            </Button>
-            {!isValidInput && sourceText.length > 0 && (
-              <span className="text-xs text-red-500">
-                {sourceText.length > maxLength
-                  ? t("超出长度限制")
-                  : t("请输入内容")}
-              </span>
-            )}
+                ) : (
+                  <Sparkles className="w-4 h-4" />
+                )}
+                {loading ? t("AI 出题中...") : t("生成练习")}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* 加载态：骨架屏 */}
+      {/* 加载态 */}
       {loading && (
         <Card className="mb-6">
           <CardContent className="py-8 space-y-4">
-            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-1/3" />
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-2/3" />
-            <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-full" />
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-1/2" />
-            <div className="h-16 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-full" />
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="space-y-2">
+                <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-3/4" />
+                <div className="h-20 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-full" />
+              </div>
+            ))}
           </CardContent>
         </Card>
       )}
 
       {/* 错误态 */}
-      {error && !loading && (
+      {error && (
         <Card className="mb-6 border-red-200 dark:border-red-800">
           <CardContent className="py-6 text-center space-y-3">
             <AlertCircle className="w-8 h-8 mx-auto text-red-500" />
             <p className="text-red-600 dark:text-red-400">{t(error)}</p>
-            <Button variant="outline" size="sm" onClick={handleSubmit}>
+            <Button variant="outline" size="sm" onClick={error.includes("生成") ? handleGenerate : handleEvaluate}>
               <RefreshCw className="w-4 h-4 mr-1" />
               {t("重试")}
             </Button>
@@ -365,110 +340,176 @@ export default function TranslatePage() {
         </Card>
       )}
 
-      {/* 结果区 */}
-      {result && !loading && (
+      {/* 题目列表 */}
+      {items.length > 0 && !loading && (
         <div className="space-y-6">
-          {/* 参考译文 */}
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-green-500" />
-                {t("参考译文")}
+                <BookOpen className="w-5 h-5 text-blue-500" />
+                {t("翻译以下内容为英文")}
               </CardTitle>
+              <CardDescription>
+                {t(module === "tense" ? "时态" : module === "daily" ? "日常" : module === "business" ? "商务" : "学术")}
+                · {t(mode === "word" ? "单词/短语" : "句子")}
+                · {t("共")} {items.length} {t("题")}
+              </CardDescription>
             </CardHeader>
-            <CardContent>
-              {/* 句子模式+有自译：diff 高亮 */}
-              {isSentenceMode && userTranslation.trim() ? (
-                <div className="space-y-3">
-                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
-                    <p className="text-xs text-gray-500 mb-1">{t("你的翻译")}</p>
-                    <p className="text-sm line-through text-red-600">{userTranslation.trim()}</p>
-                  </div>
-                  <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-md">
-                    <p className="text-xs text-gray-500 mb-1">{t("参考译文（高亮为与你的差异）")}</p>
-                    <p className="text-sm leading-relaxed">
-                      <DiffHighlight
-                        userText={userTranslation.trim()}
-                        refText={result.aiTranslation}
+            <CardContent className="space-y-6">
+              {items.map((item, index) => {
+                const result = evaluationResults[item.id];
+                const isExpanded = expandedResults[item.id];
+
+                return (
+                  <div
+                    key={item.id}
+                    className={`border rounded-lg p-4 ${
+                      evaluated && result
+                        ? result.errors && result.errors.length > 0
+                          ? "border-red-200 dark:border-red-800"
+                          : "border-green-200 dark:border-green-800"
+                        : ""
+                    }`}
+                  >
+                    {/* 题号 + 中文原文 */}
+                    <div className="flex items-start gap-3 mb-3">
+                      <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 text-sm font-medium shrink-0">
+                        {index + 1}
+                      </span>
+                      <div className="flex-1">
+                        <p className="text-base font-medium">{item.sourceText}</p>
+                      </div>
+                      {/* 评分（已批改） */}
+                      {evaluated && result && (
+                        <span className={`text-lg font-bold shrink-0 ${
+                          result.score >= 80 ? "text-green-600" : result.score >= 60 ? "text-yellow-600" : "text-red-600"
+                        }`}>
+                          {result.score}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* 输入框 */}
+                    {!evaluated ? (
+                      <textarea
+                        value={userAnswers[item.id] || ""}
+                        onChange={(e) => handleAnswerChange(item.id, e.target.value)}
+                        placeholder={t("请输入你的英文翻译...")}
+                        className="w-full min-h-[70px] p-3 border rounded-md text-sm resize-y"
+                        rows={2}
                       />
-                    </p>
+                    ) : (
+                      /* 批改结果 */
+                      <div className="space-y-3">
+                        {/* 用户译文 */}
+                        <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                          <p className="text-xs text-gray-500 mb-1">{t("你的翻译")}</p>
+                          <p className="text-sm">{userAnswers[item.id] || t("（未作答）")}</p>
+                        </div>
+
+                        {/* 参考译文 */}
+                        {result && (
+                          <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-md">
+                            <p className="text-xs text-gray-500 mb-1">{t("参考译文")}</p>
+                            <p className="text-sm font-medium text-green-700 dark:text-green-300">
+                              {result.correction || item.referenceTranslation}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* 错误点 */}
+                        {result && result.errors && result.errors.length > 0 && (
+                          <div className="space-y-2">
+                            {result.errors.map((err, ei) => (
+                              <div key={ei} className="p-2 bg-red-50 dark:bg-red-900/20 rounded text-sm">
+                                <p>
+                                  <span className="text-red-600 line-through">{err.original}</span>
+                                  <span className="mx-2">→</span>
+                                  <span className="text-green-600">{err.correction}</span>
+                                </p>
+                                <p className="text-xs text-gray-500 mt-1">{err.explanation}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* 详细分析（可折叠） */}
+                        {result && result.analysis && (
+                          <div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleResult(item.id)}
+                              className="flex items-center gap-1 text-xs"
+                            >
+                              {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                              {isExpanded ? t("收起解析") : t("展开解析")}
+                            </Button>
+
+                            {isExpanded && (
+                              <div className="mt-2 space-y-2 text-sm">
+                                {result.analysis.grammar?.structure && (
+                                  <p><span className="font-medium text-gray-600">{t("结构")}:</span> {result.analysis.grammar.structure}</p>
+                                )}
+                                {result.analysis.grammar?.tense && (
+                                  <p><span className="font-medium text-gray-600">{t("时态")}:</span> {result.analysis.grammar.tense}</p>
+                                )}
+                                {result.analysis.tips && result.analysis.tips.length > 0 && (
+                                  <ul className="list-disc list-inside text-gray-600">
+                                    {result.analysis.tips.map((tip, ti) => (
+                                      <li key={ti}>{tip}</li>
+                                    ))}
+                                  </ul>
+                                )}
+                                {result.analysis.cultureNotes && result.analysis.cultureNotes.length > 0 && (
+                                  <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded">
+                                    <p className="font-medium text-xs mb-1">{t("文化注释")}</p>
+                                    {result.analysis.cultureNotes.map((note, ni) => (
+                                      <p key={ni} className="text-xs">{note}</p>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                </div>
-              ) : (
-                <p className="text-lg leading-relaxed">{result.aiTranslation}</p>
-              )}
+                );
+              })}
             </CardContent>
           </Card>
 
-          {/* 评分卡片（句子模式且有自译时展示） */}
-          {result.score !== undefined && result.score !== null && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">{t("评分")}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* 总分 */}
-                <div className="flex items-center gap-3">
-                  <span className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                    {result.score}
-                  </span>
-                  <span className="text-gray-500 text-sm">{t("/ 100")}</span>
-                </div>
-
-                {/* 维度分 */}
-                {result.dimensionScores && (
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                      <p className="text-xs text-gray-500">{t("准确度")}</p>
-                      <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
-                        {result.dimensionScores.accuracy}
-                      </p>
-                    </div>
-                    <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                      <p className="text-xs text-gray-500">{t("流畅度")}</p>
-                      <p className="text-xl font-bold text-green-600 dark:text-green-400">
-                        {result.dimensionScores.fluency}
-                      </p>
-                    </div>
-                    <div className="text-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                      <p className="text-xs text-gray-500">{t("完整度")}</p>
-                      <p className="text-xl font-bold text-purple-600 dark:text-purple-400">
-                        {result.dimensionScores.completeness}
-                      </p>
-                    </div>
-                  </div>
+          {/* 提交批改按钮 */}
+          {!evaluated && (
+            <div className="flex justify-center">
+              <Button
+                onClick={handleEvaluate}
+                disabled={evaluating || !anyAnswered}
+                size="lg"
+                className="flex items-center gap-2 px-8"
+              >
+                {evaluating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    {t("AI 批改中...")}
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" />
+                    {t("提交批改")}
+                  </>
                 )}
-
-                {/* 错误列表 */}
-                {result.errors && result.errors.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      {t("改进点")}
-                    </p>
-                    {result.errors.map((err, idx) => (
-                      <div
-                        key={idx}
-                        className="p-3 bg-red-50 dark:bg-red-900/20 rounded-md text-sm space-y-1"
-                      >
-                        <p>
-                          <span className="text-red-600 line-through">{err.original}</span>
-                          <span className="mx-2">→</span>
-                          <span className="text-green-600">{err.correction}</span>
-                        </p>
-                        <p className="text-xs text-gray-500">{err.explanation}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+              </Button>
+            </div>
           )}
 
           {/* 已加入错题本提示 */}
-          {addedToReview && (
-            <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 rounded-md text-sm text-green-700 dark:text-green-300">
-              <CheckCircle2 className="w-4 h-4" />
-              {t("翻译错误已加入错题本，快去复习吧")}
+          {evaluated && addedToReview && (
+            <div className="flex items-center gap-2 p-4 bg-green-50 dark:bg-green-900/20 rounded-md text-sm text-green-700 dark:text-green-300">
+              <CheckCircle2 className="w-5 h-5 shrink-0" />
+              <span>{t("翻译错误已加入错题本")}</span>
               <Button
                 variant="link"
                 size="sm"
@@ -480,127 +521,17 @@ export default function TranslatePage() {
             </div>
           )}
 
-          {/* AI 解析四区块（可折叠） */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">{t("AI 解析")}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {/* 语法结构 */}
-              <AnalysisSection
-                title={t("语法结构")}
-                isOpen={expandedSections.grammar}
-                onToggle={() => toggleSection("grammar")}
-              >
-                <div className="space-y-2">
-                  <p>
-                    <span className="font-medium text-gray-600">{t("结构")}：</span>
-                    {result.analysis.grammar.structure}
-                  </p>
-                  {result.analysis.grammar.tense && (
-                    <p>
-                      <span className="font-medium text-gray-600">{t("时态")}：</span>
-                      {result.analysis.grammar.tense}
-                    </p>
-                  )}
-                  {result.analysis.grammar.keyPoints && result.analysis.grammar.keyPoints.length > 0 && (
-                    <ul className="list-disc list-inside space-y-1">
-                      {result.analysis.grammar.keyPoints.map((kp, i) => (
-                        <li key={i} className="text-sm">{kp}</li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </AnalysisSection>
-
-              {/* 重点词组搭配 */}
-              <AnalysisSection
-                title={t("重点词组搭配")}
-                isOpen={expandedSections.collocations}
-                onToggle={() => toggleSection("collocations")}
-              >
-                {result.analysis.collocations.length === 0 ? (
-                  <p className="text-sm text-gray-400">{t("暂无")}</p>
-                ) : (
-                  <div className="space-y-3">
-                    {result.analysis.collocations.map((c, i) => (
-                      <div key={i} className="border-b pb-2 last:border-0">
-                        <p className="font-medium text-sm">{c.phrase}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">{c.usage}</p>
-                        {c.synonyms && c.synonyms.length > 0 && (
-                          <p className="text-xs text-gray-400 mt-1">
-                            {t("近义")}：{c.synonyms.join("、")}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </AnalysisSection>
-
-              {/* 翻译技巧 */}
-              <AnalysisSection
-                title={t("翻译技巧点拨")}
-                isOpen={expandedSections.tips}
-                onToggle={() => toggleSection("tips")}
-              >
-                {result.analysis.tips.length === 0 ? (
-                  <p className="text-sm text-gray-400">{t("暂无")}</p>
-                ) : (
-                  <ul className="list-disc list-inside space-y-1">
-                    {result.analysis.tips.map((tip, i) => (
-                      <li key={i} className="text-sm">{tip}</li>
-                    ))}
-                  </ul>
-                )}
-              </AnalysisSection>
-
-              {/* 文化语境 */}
-              <AnalysisSection
-                title={t("文化/语境注释")}
-                isOpen={expandedSections.culture}
-                onToggle={() => toggleSection("culture")}
-              >
-                {result.analysis.cultureNotes.length === 0 ? (
-                  <p className="text-sm text-gray-400">{t("暂无")}</p>
-                ) : (
-                  <ul className="list-disc list-inside space-y-1">
-                    {result.analysis.cultureNotes.map((note, i) => (
-                      <li key={i} className="text-sm">{note}</li>
-                    ))}
-                  </ul>
-                )}
-              </AnalysisSection>
-            </CardContent>
-          </Card>
+          {/* 再来一组 */}
+          {evaluated && (
+            <div className="flex justify-center mt-4">
+              <Button variant="outline" onClick={handleGenerate} className="flex items-center gap-2">
+                <RefreshCw className="w-4 h-4" />
+                {t("再来一组")}
+              </Button>
+            </div>
+          )}
         </div>
       )}
-    </div>
-  );
-}
-
-/** 可折叠分析区块 */
-function AnalysisSection({
-  title,
-  isOpen,
-  onToggle,
-  children,
-}: {
-  title: string;
-  isOpen: boolean;
-  onToggle: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="border rounded-md overflow-hidden">
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center justify-between p-3 text-sm font-medium bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-      >
-        <span>{title}</span>
-        {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-      </button>
-      {isOpen && <div className="p-3 text-sm">{children}</div>}
     </div>
   );
 }
