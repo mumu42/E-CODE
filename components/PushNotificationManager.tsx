@@ -37,7 +37,7 @@ export function PushNotificationManager() {
   const [mounted, setMounted] = useState(false);
   const [enabled, setEnabled] = useState(false);
   const [token, setToken] = useState("");
-  const [permission, setPermission] = useState<NotificationPermission>("default");
+  const [permission, setPermission] = useState<NotificationPermission | "unsupported">("default");
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 

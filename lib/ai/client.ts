@@ -20,6 +20,7 @@ import {
   buildExamQuestionsPrompt,
   parseReadingResponse,
   parseListeningResponse,
+  buildTranslatePrompt,
 } from "./prompts";
 import { buildSummaryPrompt } from "./memory";
 import type {
@@ -37,6 +38,7 @@ import type {
   ListeningItem,
   ExamQuestion,
   ExamQuestionType,
+  TranslationRecord,
 } from "@/lib/types";
 
 /**
@@ -272,7 +274,7 @@ export async function sendChatMessage(
   scenario?: string,
   voiceMode = false,
   customPrompt?: string
-): Promise<{ reply: string; corrections: string[]; pronunciationTips?: string[] }> {
+): Promise<{ reply: string; fullCorrection?: string; corrections: string[]; pronunciationTips?: string[] }> {
   const res = await fetch("/api/ai/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -286,7 +288,7 @@ export async function sendChatMessage(
   }
 
   const { result } = (await res.json()) as { result: string };
-  const parsed = safeParseJson<{ reply: string; corrections: string[]; pronunciationTips?: string[] }>(result);
+  const parsed = safeParseJson<{ reply: string; fullCorrection?: string; corrections: string[]; pronunciationTips?: string[] }>(result);
   if (!parsed) {
     throw new Error("Failed to parse chat result");
   }
@@ -538,5 +540,70 @@ export async function askAdvisor(
     throw new Error("Failed to parse advisor response");
   }
   return parsed;
+}
+
+/**
+ * 翻译文本并获取评分+解析
+ *
+ * 翻译响应类型定义在 lib/types.ts 的 TranslationRecord 中，
+ * 包含 aiTranslation, score, dimensionScores, errors, analysis 等字段。
+ *
+ * @param mode - 翻译模式 word | sentence
+ * @param direction - 翻译方向 en2zh | zh2en
+ * @param sourceText - 原文（单词 ≤60 字符，句子 ≤500 字符）
+ * @param userTranslation - 用户自译（句子模式可选，传空则不评分）
+ * @param customPrompt - 自定义提示词模板（可选）
+ * @returns 翻译结果
+ */
+export async function translateText(
+  mode: "word" | "sentence",
+  direction: "en2zh" | "zh2en",
+  sourceText: string,
+  userTranslation?: string,
+  customPrompt?: string
+): Promise<{
+  aiTranslation: string;
+  score?: number;
+  dimensionScores?: { accuracy: number; fluency: number; completeness: number };
+  errors?: { original: string; correction: string; explanation: string }[];
+  analysis: TranslationRecord["analysis"];
+}> {
+  const res = await fetch("/api/ai/translate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      prompt: buildTranslatePrompt(mode, direction, sourceText, userTranslation, customPrompt),
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Translation failed");
+  }
+
+  const { result } = (await res.json()) as { result: string };
+  const parsed = safeParseJson<{
+    aiTranslation: string;
+    score?: number;
+    dimensionScores?: { accuracy: number; fluency: number; completeness: number };
+    errors?: { original: string; correction: string; explanation: string }[];
+    analysis: TranslationRecord["analysis"];
+  }>(result);
+
+  if (!parsed || !parsed.aiTranslation) {
+    throw new Error("Failed to parse translation result");
+  }
+
+  return {
+    aiTranslation: parsed.aiTranslation ?? "",
+    score: parsed.score,
+    dimensionScores: parsed.dimensionScores,
+    errors: parsed.errors ?? [],
+    analysis: parsed.analysis ?? {
+      grammar: { structure: "", keyPoints: [] },
+      collocations: [],
+      tips: [],
+      cultureNotes: [],
+    },
+  };
 }
 

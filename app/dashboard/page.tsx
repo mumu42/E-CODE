@@ -25,6 +25,7 @@ import {
   Mic,
   FileText,
   MessageCircle,
+  Languages,
   BookOpen,
   Star,
   Calendar,
@@ -300,6 +301,19 @@ function DashboardPageContent() {
               <p className="text-sm">{t("\u6682\u65E0\u5F85\u590D\u4E60\u9519\u8BEF")}</p>
               }
               <p className="text-sm text-gray-500 mt-2">{t("\u67E5\u770B\u9519\u9898\u672C\u4E0E\u8584\u5F31\u70B9\u8BAD\u7EC3")}</p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/translate" className="block h-full">
+          <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full dark:bg-gray-800 dark:text-white">
+            <CardHeader>
+              <Languages className="w-8 h-8 mb-2 text-teal-600" />
+              <CardTitle>{t("\u7FFB\u8BD1")}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm">{t("\u5355\u8BCD/\u53E5\u5B50\u4E92\u8BD1\uFF0CAI \u8BC4\u5206\u7EA0\u9519")}</p>
+              <p className="text-sm text-gray-500 mt-2">{t("\u82F1\u2194\u4E2D\u53CC\u5411\u7FFB\u8BD1 + \u7ED3\u6784\u5316\u89E3\u6790")}</p>
             </CardContent>
           </Card>
         </Link>

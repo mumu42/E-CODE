@@ -21,6 +21,17 @@ import {
 import type { ErrorItem } from "@/lib/types";
 import { RotateCw } from "lucide-react";
 
+/** 错误类型中文映射 */
+const ERROR_TYPE_LABELS: Record<string, string> = {
+  grammar: "语法",
+  vocabulary: "词汇",
+  spelling: "拼写",
+  structure: "结构",
+  pronunciation: "发音",
+  expression: "表达",
+  translation: "翻译",
+};
+
 interface FlashcardModeProps {
   errors: ErrorItem[];
   onGrade: (id: string, grade: "hard" | "good" | "easy") => void;
@@ -69,7 +80,7 @@ export function FlashcardMode({ errors, onGrade }: FlashcardModeProps) {
         <span>{t("\u7B2C")}
           {index + 1} / {errors.length}{t("\u9898")}
         </span>
-        <span className="capitalize">{current.errorType}</span>
+        <span className="capitalize">{ERROR_TYPE_LABELS[current.errorType] || current.errorType}</span>
       </div>
 
       <div className="relative h-64 cursor-pointer" onClick={() => setFlipped(!flipped)}>

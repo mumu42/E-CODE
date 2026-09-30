@@ -24,6 +24,17 @@ import { FillBlankMode } from "@/components/review/FillBlankMode";
 import { ChallengeMode } from "@/components/review/ChallengeMode";
 import type { DrillQuestion, ErrorItem, PracticeRecord, ChatSession } from "@/lib/types";
 
+/** 错误类型中文映射 */
+const ERROR_TYPE_LABELS: Record<string, string> = {
+  grammar: "语法",
+  vocabulary: "词汇",
+  spelling: "拼写",
+  structure: "结构",
+  pronunciation: "发音",
+  expression: "表达",
+  translation: "翻译",
+};
+
 type ReviewMode = "flashcard" | "dictation" | "fillblank" | "challenge";
 
 interface ErrorGroup {
@@ -275,7 +286,7 @@ export default function ReviewPage() {
                     </details>
                     }
                       <p className="text-xs text-gray-500 mt-1">
-                        {err.errorType} · {formatDate(err.date)}
+                        {ERROR_TYPE_LABELS[err.errorType] || err.errorType} · {formatDate(err.date)}
                       </p>
                     </div>
                     <div className="flex flex-col gap-2">
@@ -325,7 +336,7 @@ export default function ReviewPage() {
                 key={type}
                 className="flex items-center justify-between border-b py-2"
               >
-                    <span className="capitalize font-medium">{type}</span>
+                    <span className="capitalize font-medium">{ERROR_TYPE_LABELS[type] || type}</span>
                     <div className="flex items-center gap-4">
                       <span className="text-sm text-gray-500">{count}{t("次")}</span>
                       <Button size="sm" onClick={() => handleGenerateDrill(type)}>{t("专项练习")}</Button>

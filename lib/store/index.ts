@@ -57,6 +57,7 @@ const emptyProfileData = (): ProfileData => ({
   checkIns: [],
   badges: [],
   vocabulary: [],
+  translationRecords: [],
   settings: DEFAULT_SETTINGS,
 });
 
@@ -148,6 +149,8 @@ export interface AppState extends AppData {
   removeCustomQuestion: (id: string) => void;
   /** 重置所有数据 */
   resetData: () => void;
+  /** 添加一条翻译练习记录 */
+  addTranslationRecord: (record: import("@/lib/types").TranslationRecord) => void;
 }
 
 /** 初始状态 */
@@ -173,6 +176,7 @@ const initialState: AppData = {
   checkIns: [],
   badges: [],
   vocabulary: [],
+  translationRecords: [],
   locale: "zh-CN",
   theme: "system",
   settings: DEFAULT_SETTINGS,
@@ -214,6 +218,7 @@ function migrateFromLocalStorage(): AppData | undefined {
       checkIns: parsed.checkIns ?? [],
       badges: parsed.badges ?? [],
       vocabulary: parsed.vocabulary ?? [],
+      translationRecords: [],
       settings: parsed.settings ?? DEFAULT_SETTINGS,
     };
     return {
@@ -298,6 +303,7 @@ export const useAppStore = create<AppState>()(
         checkIns: [],
         badges: [],
         vocabulary: [],
+        translationRecords: [],
         settings: DEFAULT_SETTINGS,
       })),
       switchProfile: (id) =>
@@ -325,6 +331,7 @@ export const useAppStore = create<AppState>()(
                 checkIns: state.checkIns,
                 badges: state.badges,
                 vocabulary: state.vocabulary,
+                translationRecords: state.translationRecords,
                 settings: state.settings,
               }
             : emptyProfileData();
@@ -651,6 +658,7 @@ export const useAppStore = create<AppState>()(
                 checkIns: migrated.checkIns ?? [],
                 badges: migrated.badges ?? [],
                 vocabulary: migrated.vocabulary ?? [],
+                translationRecords: [],
                 settings: migrated.settings ?? DEFAULT_SETTINGS,
               },
             };
@@ -709,6 +717,11 @@ export const useAppStore = create<AppState>()(
               (data.currentProfileId && data.profileData
                 ? data.profileData[data.currentProfileId].settings
                 : state.settings),
+            translationRecords:
+              data.translationRecords ??
+              (data.currentProfileId && data.profileData
+                ? data.profileData[data.currentProfileId].translationRecords
+                : state.translationRecords) ?? [],
           };
         }),
       mergeData: (data) =>
@@ -739,6 +752,7 @@ export const useAppStore = create<AppState>()(
             checkIns: merged.checkIns ?? state.checkIns,
             badges: merged.badges ?? state.badges,
             vocabulary: merged.vocabulary ?? state.vocabulary,
+            translationRecords: merged.translationRecords ?? state.translationRecords,
             ...(nextData ? nextData : {}),
           };
         }),
@@ -779,6 +793,11 @@ export const useAppStore = create<AppState>()(
           customQuestions: state.customQuestions.filter((q) => q.id !== id),
         })),
       resetData: () => set(initialState),
+      addTranslationRecord: (record) =>
+        set((state) => ({
+          ...state,
+          translationRecords: [...state.translationRecords, record],
+        })),
     }),
     {
       name: "english-agent-storage",
@@ -825,6 +844,7 @@ useAppStore.subscribe((state) => {
           checkIns: state.checkIns,
           badges: state.badges,
           vocabulary: state.vocabulary,
+          translationRecords: state.translationRecords,
           settings: state.settings,
         },
       };

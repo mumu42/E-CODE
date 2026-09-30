@@ -15,6 +15,17 @@ import { speak, calculateSimilarity } from "@/lib/tts";
 import type { ErrorItem } from "@/lib/types";
 import { Volume2, Play, CheckCircle, XCircle } from "lucide-react";
 
+/** 错误类型中文映射 */
+const ERROR_TYPE_LABELS: Record<string, string> = {
+  grammar: "语法",
+  vocabulary: "词汇",
+  spelling: "拼写",
+  structure: "结构",
+  pronunciation: "发音",
+  expression: "表达",
+  translation: "翻译",
+};
+
 interface DictationModeProps {
   errors: ErrorItem[];
   onGrade: (id: string, grade: "hard" | "good" | "easy") => void;
@@ -76,7 +87,7 @@ export function DictationMode({ errors, onGrade }: DictationModeProps) {
         <span>{t("\u7B2C")}
           {index + 1} / {errors.length}{t("\u9898")}
         </span>
-        <span className="capitalize">{current.errorType}</span>
+        <span className="capitalize">{ERROR_TYPE_LABELS[current.errorType] || current.errorType}</span>
       </div>
 
       <Card>

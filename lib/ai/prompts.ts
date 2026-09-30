@@ -361,9 +361,15 @@ User: ${userMessage}
 Reply in JSON with this exact shape:
 {
   "reply": "your natural reply in English",
-  "corrections": ["optional correction 1", "optional correction 2"]
+  "fullCorrection": "if the user made mistakes, write the FULLY CORRECTED version of their message here; otherwise leave empty",
+  "corrections": ["brief note about each mistake — keep short and specific"]
 ${voiceMode ? '  ,"pronunciationTips": ["tip 1", "tip 2"]' : ""}
 }
+
+Rules:
+- "fullCorrection" must be the user's ORIGINAL sentence rewritten correctly, NOT just the changed part.
+- "corrections" are short explanations (e.g. "Use 'went' instead of 'goed'" or "Use 'many' for countable nouns").
+- If there are no mistakes, set fullCorrection to "" and corrections to [].
 
 Return only valid JSON, no markdown.`;
 }
@@ -700,5 +706,82 @@ Rules:
 - Suggest 2 follow-up questions the user can ask to deepen understanding.
 
 Return only valid JSON, no markdown.`;
+}
+
+/**
+ * 构建翻译+解析提示词
+ * @param mode - 翻译模式（word / sentence）
+ * @param direction - 翻译方向（en2zh / zh2en）
+ * @param sourceText - 原文
+ * @param userTranslation - 用户自译（句子模式可选）
+ * @param customPrompt - 自定义提示词模板（可选）
+ * @returns 翻译提示词字符串
+ */
+export function buildTranslatePrompt(
+  mode: "word" | "sentence",
+  direction: "en2zh" | "zh2en",
+  sourceText: string,
+  userTranslation?: string,
+  customPrompt?: string
+): string {
+  if (customPrompt) {
+    return renderPromptTemplate(customPrompt, {
+      mode,
+      direction,
+      sourceText,
+      userTranslation: userTranslation || "",
+    });
+  }
+
+  const directionText = direction === "en2zh" ? "English to Chinese" : "Chinese to English";
+
+  return `You are a professional English-Chinese translation coach. Analyze the following text and provide translation, scoring, and structured analysis.
+
+Mode: ${mode} (${mode === "word" ? "word/phrase" : "sentence"})
+Direction: ${directionText}
+Source text: "${sourceText}"${userTranslation ? `\nUser's translation: "${userTranslation}"` : ""}
+
+Return a JSON object with this exact shape:
+{
+  "aiTranslation": "reference translation in the target language",
+  "score": 0-100,
+  "dimensionScores": {
+    "accuracy": 0-100,
+    "fluency": 0-100,
+    "completeness": 0-100
+  },
+  "errors": [
+    {
+      "original": "incorrect segment",
+      "correction": "correction suggestion",
+      "explanation": "explanation in Chinese"
+    }
+  ],
+  "analysis": {
+    "grammar": {
+      "structure": "sentence structure (e.g., S+V+O)",
+      "tense": "tense/aspect (optional)",
+      "keyPoints": ["key grammar point 1", "key grammar point 2"]
+    },
+    "collocations": [
+      {
+        "phrase": "phrase",
+        "usage": "usage explanation",
+        "synonyms": ["synonym 1", "synonym 2"]
+      }
+    ],
+    "tips": ["translation tip 1", "translation tip 2"],
+    "cultureNotes": ["cultural note 1", "cultural note 2"]
+  }
+}
+
+Rules:
+- If mode is "word", score and dimensionScores are optional (omit or set to null).
+- If mode is "word", errors array should be empty.
+- If userTranslation is empty or not provided, omit score, dimensionScores, and errors (only return aiTranslation + analysis).
+- "errors" are only for sentence mode when userTranslation is provided.
+- analysis is always required for both modes.
+- For word mode: grammar.structure can be simplified, tips focus on usage differences between English and Chinese.
+- Return only valid JSON, no markdown.`;
 }
 

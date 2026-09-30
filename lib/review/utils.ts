@@ -5,7 +5,7 @@
  * @date 2026-08-21
  */
 
-import type { ErrorItem } from "@/lib/types";
+import type { ErrorItem, TranslationRecord } from "@/lib/types";
 
 /** 过滤今日待复习或未复习的错题 */
 export function getDueErrors(errors: ErrorItem[]): ErrorItem[] {
@@ -78,4 +78,53 @@ export function scoreChallenge(
 ): number {
   if (total === 0) return 0;
   return Math.round((correct / total) * 100);
+}
+
+/**
+ * 从翻译记录中生成错题列表
+ * 按 AI 返回的 errors 逐条生成 ErrorItem
+ * @param record - 翻译记录（句子模式+用户自译）
+ * @param userId - 用户 ID
+ * @returns 错题列表（逐条 AI 错误点）
+ */
+export function buildTranslationReviewErrors(
+  record: TranslationRecord,
+  userId: string
+): ErrorItem[] {
+  // 未提供自译则不出错题
+  if (!record.userTranslation || record.mode !== "sentence") return [];
+  // 无 AI 返回的错误点
+  if (!record.errors || record.errors.length === 0) return [];
+
+  return record.errors.map((err) => ({
+    id: crypto.randomUUID(),
+    userId,
+    sessionId: record.id,
+    type: "CHAT" as const,
+    date: record.date,
+    original: err.original,
+    correction: err.correction,
+    explanation: err.explanation,
+    errorType: "translation" as const,
+    reviewed: false,
+    nextReviewDate: new Date().toISOString().split("T")[0],
+    interval: 1,
+    repetitionCount: 0,
+    easeFactor: 2.5,
+  }));
+}
+
+/**
+ * 对翻译错题按 errorType + original 去重，保留最新一条
+ * 复用 chat review 的去重策略
+ * @param errors - 翻译错题列表
+ * @returns 去重后的错题列表
+ */
+export function dedupeTranslationErrors(errors: ErrorItem[]): ErrorItem[] {
+  const seen = new Map<string, ErrorItem>();
+  errors.forEach((err) => {
+    const key = `${err.errorType}:${err.original}`;
+    seen.set(key, err);
+  });
+  return Array.from(seen.values());
 }

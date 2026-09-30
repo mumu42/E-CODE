@@ -16,6 +16,17 @@ import { generateFillBlank } from "@/lib/review/utils";
 import type { ErrorItem } from "@/lib/types";
 import { Timer, Trophy } from "lucide-react";
 
+/** 错误类型中文映射 */
+const ERROR_TYPE_LABELS: Record<string, string> = {
+  grammar: "语法",
+  vocabulary: "词汇",
+  spelling: "拼写",
+  structure: "结构",
+  pronunciation: "发音",
+  expression: "表达",
+  translation: "翻译",
+};
+
 type ChallengeType = "flashcard" | "dictation" | "fillblank";
 
 interface ChallengeItem {

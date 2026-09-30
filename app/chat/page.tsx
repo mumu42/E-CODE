@@ -220,6 +220,7 @@ function ChatPageContent() {
         role: "assistant" as const,
         content: result.reply,
         corrections: result.corrections,
+        fullCorrection: result.fullCorrection,
         pronunciationTips: result.pronunciationTips,
         timestamp: new Date().toISOString(),
       };

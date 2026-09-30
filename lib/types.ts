@@ -18,7 +18,7 @@ export type SessionType = "SPEAK" | "WRITE" | "CHAT";
 export type ThemeMode = "light" | "dark" | "system";
 
 /** 可自定义 Prompt 类型 */
-export type PromptType = "speak" | "write" | "chat" | "plan" | "assessment" | "drill" | "summary" | "reading" | "listening" | "advisor";
+export type PromptType = "speak" | "write" | "chat" | "plan" | "assessment" | "drill" | "summary" | "reading" | "listening" | "advisor" | "translation";
 
 /** 自定义 Prompt 模板 */
 export interface PromptSettings {
@@ -42,6 +42,8 @@ export interface PromptSettings {
   listening: string;
   /** AI 学习顾问 Prompt */
   advisor: string;
+  /** 翻译与解析 Prompt */
+  translation: string;
 }
 
 /** 学习提醒设置 */
@@ -152,7 +154,7 @@ export interface GrammarError {
   /** 错误说明 */
   explanation: string;
   /** 错误类型 */
-  type: "grammar" | "vocabulary" | "spelling" | "structure" | "pronunciation" | "expression";
+  type: "grammar" | "vocabulary" | "spelling" | "structure" | "pronunciation" | "expression" | "translation";
 }
 
 /** 练习记录 */
@@ -217,6 +219,8 @@ export interface AppData {
   badges: Badge[];
   /** 词汇本（按档案隔离） */
   vocabulary: VocabularyItem[];
+  /** 翻译练习记录（按档案隔离） */
+  translationRecords: TranslationRecord[];
   /** 界面语言 */
   locale: "zh-CN" | "en-US";
   /** 主题偏好 */
@@ -261,6 +265,8 @@ export interface ProfileData {
   badges: Badge[];
   /** 词汇本 */
   vocabulary: VocabularyItem[];
+  /** 翻译练习记录 */
+  translationRecords: TranslationRecord[];
   /** 应用设置 */
   settings: AppSettings;
 }
@@ -310,6 +316,80 @@ export interface WordLookupResult {
     /** 中文翻译 */
     chinese: string;
   };
+}
+
+/** 翻译方向 */
+export type TranslationDirection = "en2zh" | "zh2en";
+
+/** 翻译模式 */
+export type TranslationMode = "word" | "sentence";
+
+/** AI 解析结构（翻译模块返回） */
+export interface TranslationAnalysis {
+  /** 语法结构分析：句子成分、时态、语态、从句类型、核心句型拆解 */
+  grammar: {
+    /** 主干结构简述，如 "S + V + O + O" */
+    structure: string;
+    /** 时态/语态 */
+    tense?: string;
+    /** 从句/非谓语等关键语法点 */
+    keyPoints?: string[];
+  };
+  /** 重点词组搭配：句中重点单词/短语的搭配、近义辨析、用法说明 */
+  collocations: {
+    /** 词/短语 */
+    phrase: string;
+    /** 搭配/用法说明 */
+    usage: string;
+    /** 近义辨析（可选） */
+    synonyms?: string[];
+  }[];
+  /** 翻译技巧点拨：直译 vs 意译建议、中英表达差异、翻译难点 */
+  tips: string[];
+  /** 文化/语境注释：习语、文化背景、语体正式度 */
+  cultureNotes: string[];
+}
+
+/** 翻译错误点（AI 自评纠错产生的单项错误） */
+export interface TranslationErrorPoint {
+  /** 原始片段 */
+  original: string;
+  /** 修正/参考译文片段 */
+  correction: string;
+  /** 错误说明 */
+  explanation: string;
+  /** 错误类型（统一为 translation） */
+  errorType: "translation";
+}
+
+/** 翻译记录 */
+export interface TranslationRecord {
+  /** 记录 ID */
+  id: string;
+  /** 用户 ID */
+  userId: string;
+  /** 模式 */
+  mode: TranslationMode;
+  /** 方向 */
+  direction: TranslationDirection;
+  /** 练习日期 */
+  date: string;
+  /** 原文 */
+  sourceText: string;
+  /** 用户自译（可空） */
+  userTranslation?: string;
+  /** AI 参考译文 */
+  aiTranslation: string;
+  /** 评分（句子模式，0-100；单词模式可空） */
+  score?: number;
+  /** 维度分（句子模式） */
+  dimensionScores?: { accuracy: number; fluency: number; completeness: number };
+  /** AI 解析 */
+  analysis: TranslationAnalysis;
+  /** AI 发现翻译错误点列表（句子模式+自译时） */
+  errors?: TranslationErrorPoint[];
+  /** 是否已沉淀为错题 */
+  addedToReview: boolean;
 }
 
 /** 学习画像 */
@@ -392,6 +472,8 @@ export interface ChatMessage {
   corrections?: string[];
   /** AI 发音提示（可选） */
   pronunciationTips?: string[];
+  /** AI 对用户上一条消息的完整修正句子（可选） */
+  fullCorrection?: string;
   /** 消息时间戳 */
   timestamp: string;
 }

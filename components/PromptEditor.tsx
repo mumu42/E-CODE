@@ -24,7 +24,8 @@ const PROMPT_LABELS: Record<PromptType, string> = {
   summary: "学习摘要",
   reading: "阅读理解生成",
   listening: "听力理解生成",
-  advisor: "AI 学习顾问"
+  advisor: "AI 学习顾问",
+  translation: "翻译与解析"
 };
 
 const PROMPT_VARIABLES: Record<PromptType, string[]> = {
@@ -37,7 +38,8 @@ const PROMPT_VARIABLES: Record<PromptType, string[]> = {
   summary: ["target", "level", "sessionCount", "errorCount", "recentTopics", "commonErrors"],
   reading: ["target", "level"],
   listening: ["target", "level"],
-  advisor: ["target", "level", "question", "context", "errorOriginal", "errorCorrection", "errorExplanation", "learningContext"]
+  advisor: ["target", "level", "question", "context", "errorOriginal", "errorCorrection", "errorExplanation", "learningContext"],
+  translation: ["mode", "direction", "sourceText", "userTranslation"]
 };
 
 /** Prompt 编辑器组件 */

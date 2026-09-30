@@ -2,15 +2,41 @@ import type { ChatSession, ErrorItem, UserProfile } from "@/lib/types";
 
 interface AggregatedReview {
   original: string;
+  fullCorrection: string;
   corrections: string[];
   pronunciationTips: string[];
   date: string;
 }
 
-function inferErrorType(text: string): ErrorItem["errorType"] {
-  if (/pronunciation|发音/.test(text)) return "pronunciation";
-  if (/vocabulary|word|spelling|单词|拼写/.test(text)) return "vocabulary";
-  if (/expression|表达|用法/.test(text)) return "expression";
+/**
+ * 通过对比 original 和 fullCorrection 推断主要错误类型
+ */
+function inferErrorTypeFromDiff(original: string, fullCorrection: string): ErrorItem["errorType"] {
+  if (!fullCorrection) return "grammar";
+
+  const origWords = original.toLowerCase().split(/\s+/);
+  const corrWords = fullCorrection.toLowerCase().split(/\s+/);
+
+  // 统计词汇替换（不同且不是常见的语法虚词变化）
+  let wordChanges = 0;
+  let grammarChanges = 0;
+
+  const minLen = Math.min(origWords.length, corrWords.length);
+  for (let i = 0; i < minLen; i++) {
+    if (origWords[i] !== corrWords[i]) {
+      // 判断是否为词汇错误（实词替换）还是语法错误（虚词/词形变化）
+      const isGrammarOnly =
+        /^(the|a|an|is|am|are|was|were|have|has|had|do|does|did|will|would|can|could|may|might|shall|should|to|of|in|on|at|for|with|by|i|you|he|she|it|we|they)$/i.test(origWords[i]) ||
+        /^(the|a|an|is|am|are|was|were|have|has|had|do|does|did|will|would|can|could|may|might|shall|should|to|of|in|on|at|for|with|by|i|you|he|she|it|we|they)$/i.test(corrWords[i]) ||
+        origWords[i].endsWith("ed") || origWords[i].endsWith("ing") || origWords[i].endsWith("s") ||
+        corrWords[i].endsWith("ed") || corrWords[i].endsWith("ing") || corrWords[i].endsWith("s");
+
+      if (isGrammarOnly) grammarChanges++;
+      else wordChanges++;
+    }
+  }
+
+  if (wordChanges > grammarChanges) return "vocabulary";
   return "grammar";
 }
 
@@ -36,14 +62,20 @@ export function buildChatReviewErrors(
       .find((m) => m.role === "user");
     const original = previousUser?.content?.trim() ?? "";
 
-    if (!original && !msg.corrections?.length && !msg.pronunciationTips?.length) return;
+    if (!original) return;
 
     const existing = map.get(original) ?? {
       original,
+      fullCorrection: "",
       corrections: [],
       pronunciationTips: [],
       date: session.updatedAt ?? session.createdAt,
     };
+
+    // 优先使用 AI 返回的完整修正句，后面的消息覆盖前面的
+    if (msg.fullCorrection) {
+      existing.fullCorrection = msg.fullCorrection;
+    }
 
     msg.corrections?.forEach((c) => existing.corrections.push(c));
     msg.pronunciationTips?.forEach((t) => existing.pronunciationTips.push(t));
@@ -58,18 +90,12 @@ export function buildChatReviewErrors(
     item.corrections.forEach((c) => parts.push(`• ${c}`));
     item.pronunciationTips.forEach((t) => parts.push(`• ${t}`));
 
-    if (parts.length === 0) return;
+    if (parts.length === 0 && !item.fullCorrection) return;
 
     const explanation = parts.join("\n");
-    const types: ErrorItem["errorType"][] = [
-      ...item.corrections.map((c) => inferErrorType(c)),
-      ...item.pronunciationTips.map(() => "pronunciation" as const),
-    ];
-    const typeCounts = new Map<ErrorItem["errorType"], number>();
-    types.forEach((t) => typeCounts.set(t, (typeCounts.get(t) ?? 0) + 1));
-    const errorType =
-      Array.from(typeCounts.entries()).sort((a, b) => b[1] - a[1])[0]?.[0] ??
-      "grammar";
+    const errorType = item.fullCorrection
+      ? inferErrorTypeFromDiff(item.original, item.fullCorrection)
+      : "grammar";
 
     errors.push({
       id: crypto.randomUUID(),
@@ -78,7 +104,7 @@ export function buildChatReviewErrors(
       type: "CHAT",
       date: item.date,
       original: item.original,
-      correction: "",
+      correction: item.fullCorrection || item.corrections[0] || "",
       explanation,
       errorType,
     });

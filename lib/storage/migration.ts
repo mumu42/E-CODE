@@ -32,6 +32,7 @@ export function exportLegacyFormat(data: AppData): string {
     customTopics: data.customTopics,
     checkIns: data.checkIns,
     badges: data.badges,
+    translationRecords: data.translationRecords,
   };
   return JSON.stringify(legacy, null, 2);
 }
