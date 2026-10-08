@@ -346,7 +346,7 @@ export function buildChatPrompt(
 
   const scenarioText = scenario ? `Scenario: ${scenario}\n` : "";
   const voiceText = voiceMode
-    ? "This is a voice conversation. Keep your reply natural, short (1-2 sentences), and easy to pronounce. After your reply, provide 1-2 concise pronunciation tips if you noticed any issues. Also list any grammar or pronunciation corrections briefly.\n"
+    ? "This is a voice conversation. The user is speaking naturally, so after your reply, you may optionally include 1-2 concise pronunciation tips if you noticed any issues. Keep pronunciation tips short and specific.\n"
     : "";
 
   return `You are ${roleDescriptions[role]}. The user is preparing for ${target} and is at level ${level}.
@@ -748,31 +748,49 @@ export function buildTranslationExercisePrompt(
 
   const moduleDesc = moduleLabels[module] || module;
   const typeLabel = mode === "word" ? "单词或短语" : "句子";
+  const modeInstruction = mode === "word"
+    ? `Each item must be a SHORT Chinese WORD or PHRASE (2-8 Chinese characters), NOT a complete sentence.
+Examples of GOOD word-mode items:
+- "会议" (meeting)
+- "环境保护" (environmental protection)
+- "高兴地" (happily - adverb)
+- "做出决定" (make a decision)
+- "因此" (therefore - conjunction)
 
-  return `You are a professional English-Chinese translation exercise creator. Generate ${count} Chinese ${typeLabel}s for a student preparing for ${target} at CEFR level ${level}.
+Examples of BAD word-mode items (do NOT generate these):
+- "昨天我去超市买了一些水果" (this is a sentence)
+- "如果你有时间的话，我们可以一起去看电影" (this is a sentence)`
+    : `Each item should be a complete Chinese sentence that the student will translate into English.
+Examples of GOOD sentence-mode items:
+- "昨天我去超市买了一些水果。"
+- "如果你有时间的话，我们可以一起去看电影。"
+- "这家公司去年实现了利润增长。"`;
+
+  return `You are a professional English-Chinese translation exercise creator for Chinese students learning English. Generate ${count} Chinese ${typeLabel}s for a student preparing for ${target} at CEFR level ${level}.
+
+The student will translate FROM Chinese TO English. So:
+- sourceText must be IN CHINESE (this is the question shown to the student)
+- referenceTranslation must be IN ENGLISH (this is the correct answer)
 
 Focus area: ${moduleDesc}
 
-Each item should be a natural Chinese ${typeLabel} that the student will translate into English.
-For word mode: provide short Chinese words/phrases that teach key vocabulary.
-For sentence mode: provide complete Chinese sentences that test grammar and expression.
+${modeInstruction}
 
 Return a JSON array with this exact shape:
 [
   {
     "id": "ex-1",
-    "sourceText": "Chinese text to translate (must be in Chinese)",
-    "referenceTranslation": "correct English translation (reference only, hidden from student until evaluation)"
+    "sourceText": "Chinese text (must be in Chinese only)",
+    "referenceTranslation": "correct English translation (must be in English only)"
   }
 ]
 
 Rules:
-- All sourceText must be in Chinese only.
-- Each referenceTranslation must be natural, correct English.
-- Match difficulty to CEFR level ${level}.
+- sourceText MUST be in Chinese only. NO English in sourceText.
+- referenceTranslation MUST be in English only. NO Chinese in referenceTranslation.
 - Cover different aspects within the focus area.
-- DO NOT include any English in sourceText.
-- Do NOT wrap the array in an object like {"items": [...]}. Return ONLY the JSON array.
+- Match difficulty to CEFR level ${level}.
+- Do NOT wrap the array in an object. Return ONLY the JSON array.
 - Return only valid JSON, no markdown.`;
 }
 
@@ -793,13 +811,18 @@ export function buildBatchEvaluatePrompt(
     return renderPromptTemplate(customPrompt, { items: itemsJson, mode: "evaluate" });
   }
 
-  return `You are a strict but encouraging English-Chinese translation coach. Evaluate the student's translations below.
+  return `You are a strict but encouraging English-Chinese translation coach. Evaluate the student's Chinese-to-English translations below.
+
+IMPORTANT: The student is translating FROM Chinese TO English.
+- sourceText is Chinese (the original text to translate)
+- userTranslation is the student's English translation
+- correction must be IN ENGLISH (the corrected English version)
+- errors[].original is the incorrect segment from the student's ENGLISH text
+- errors[].correction is the corrected ENGLISH segment
 
 Each item contains:
-- sourceText: the original Chinese text
-- userTranslation: the student's English translation
-
-For each item, evaluate the translation quality and return:
+- sourceText: the original Chinese text (e.g. "昨天我去超市")
+- userTranslation: the student's English translation (e.g. "Yesterday I go to supermarket")
 
 Return a JSON array with this exact shape:
 [
@@ -813,12 +836,12 @@ Return a JSON array with this exact shape:
     },
     "errors": [
       {
-        "original": "incorrect segment from student's translation",
-        "correction": "corrected segment",
-        "explanation": "explanation of the error in Chinese"
+        "original": "incorrect ENGLISH segment from student's translation",
+        "correction": "corrected ENGLISH segment",
+        "explanation": "explanation in Chinese"
       }
     ],
-    "correction": "the fully corrected English translation",
+    "correction": "the fully corrected ENGLISH translation (must be in English)",
     "analysis": {
       "grammar": {
         "structure": "sentence structure (e.g., S+V+O)",
